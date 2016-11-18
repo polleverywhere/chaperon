@@ -14,7 +14,7 @@ defmodule Canary.Action.HTTP do
   }
 end
 
-defimpl Canary.Action, for: Canary.Action.HTTP do
+defimpl Canary.Actionable, for: Canary.Action.HTTP do
   def run(action, session) do
     # TODO
     {:ok, session}

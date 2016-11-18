@@ -7,7 +7,7 @@ defmodule Canary.Action.SpreadAsync do
   @type t :: %__MODULE__{rate: rate, spread: spread}
 end
 
-defimpl Canary.Action, for: Canary.Action.SpreadAsync do
+defimpl Canary.Actionable, for: Canary.Action.SpreadAsync do
   def run(action, session) do
     # TODO
     {:ok, session}

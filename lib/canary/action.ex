@@ -1,8 +1,6 @@
-defprotocol Canary.Action do
+defprotocol Canary.Actionable do
   alias Canary.Session
   alias Canary.Action.Error
-
-  @fallback_to_any true
 
   @type result :: {:ok, Session.t} | {:error, Error.t}
 
@@ -16,22 +14,14 @@ defprotocol Canary.Action do
   def retry(action, session)
 end
 
-defimpl Canary.Action, for: Any do
-  def run(action, session) do
-    {:error, error(action, session, "Canary.Action.run not defined")}
-  end
-
-  def abort(action, session) do
-    {:error, error(action, session, "Canary.Action.abort not defined")}
-  end
-
+defmodule Canary.Action do
   def retry(action, session) do
-    with {:ok, session} <- Canary.Action.abort(action, session) do
-      Canary.Action.run(action, session)
+    with {:ok, session} <- Canary.Actionable.abort(action, session) do
+      Canary.Actionable.run(action, session)
     end
   end
 
-  defp error(action, session, reason)do
+  def error(action, session, reason) do
     %Canary.Action.Error{
       reason: reason,
       action: action,
