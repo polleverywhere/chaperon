@@ -5,15 +5,17 @@ defmodule Canary.Session do
     results: %{},
     async_tasks: %{},
     config: %{},
+    assigns: %{},
     scenario: nil
   ]
 
   @type t :: %Canary.Session{
     id: String.t,
-    actions: [Canary.Action.t],
+    actions: [Canary.Actionable],
     results: map,
     async_tasks: map,
     config: map,
+    assigns: map,
     scenario: Canary.Scenario.t
   }
 
@@ -46,4 +48,33 @@ defmodule Canary.Session do
     # TODO
     session
   end
+
+  def call(session, func) do
+    session
+    |> add_action(%Canary.Action.Function{func: func})
+  end
+
+  def add_action(session, action) do
+    IO.inspect session
+    update_in session.actions, &[action | &1] # prepend and reverse on execution
+  end
+
+  def assign(session, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, v}, session ->
+      put_in session.assigns[k], v
+    end)
+  end
+
+  def update_assign(session, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, func}, session ->
+      update_in session.assigns[k], func
+    end)
+  end
+
+  alias Canary.Session.Error
+
+  def ok(session), do: {:ok, session}
+  def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
 end

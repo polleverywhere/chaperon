@@ -1,34 +1,42 @@
 defmodule Example.Scenario.BackgroundNoise do
-  alias Canary.Session.Error
-  alias __MODULE__
-
   use Canary.Scenario
 
-  defmodule Session do
-    defstruct [
-      rate: 25,             # incoming requests per interval
-      interval: seconds(1), # spread request rate over this amount of time
-      session: nil
-    ]
-  end
-
   def init(session) do
-    {:ok, %BackgroundNoise.Session{session: session}}
+    session
+    # incoming requests per interval
+    |> assign(rate: 25)
+    # spread request rate over this amount of time
+    |> assign(interval: seconds(1))
+    |> ok
   end
 
   def run(session) do
     session
-    |> loop(:spread_post_data, 10 |> minutes)
+    # |> loop(:spread_post_data, 10 |> minutes)
+    ~> increase_noise
   end
 
   def spread_post_data(session = %{rate: r, interval: i}) do
     session
     |> cc_spread(:post_data, r, i)
     |> await_all(:post_data)
+    ~> increase_noise
   end
 
   def post_data(session) do
     session
     |> post("/data", %{data: "hello, world!"})
   end
+
+  def increase_noise(session) do
+    session
+    |> update_assign(rate: &(&1 * 1.025))
+  end
 end
+
+alias Example.Scenario.BackgroundNoise
+
+scenario = %Canary.Scenario{name: "test-scenario"}
+session = %Canary.Session{id: "test-session", scenario: scenario}
+{:ok, bg_session} = BackgroundNoise.init(session)
+IO.inspect(BackgroundNoise.run(bg_session))
