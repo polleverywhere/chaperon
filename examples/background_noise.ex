@@ -28,6 +28,11 @@ defmodule Example.Scenario.BackgroundNoise do
   @spec run(BackgroundNoise.Session.t) :: result
   def run(bg_session = %{rate: r, spread: s}) do
     bg_session
+    |> loop(:spread_post_data, 10 |> minutes)
+  end
+
+  def spread_post_data(session) do
+    session
     |> async_spread(:post_data, r, s)
     |> await(all: :post_data)
   end
