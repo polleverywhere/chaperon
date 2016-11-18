@@ -6,6 +6,8 @@ defmodule Canary do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
+    HTTPoison.start
+
     # Define workers and child supervisors to be supervised
     children = [
       # Starts a worker by calling: Canary.Worker.start_link(arg1, arg2, arg3)

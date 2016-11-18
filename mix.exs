@@ -2,20 +2,25 @@ defmodule Canary.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :canary,
-     version: "0.1.0",
-     elixir: "~> 1.3",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :canary,
+      version: "0.1.0",
+      elixir: "~> 1.3",
+      build_embedded: Mix.env == :prod,
+      start_permanent: Mix.env == :prod,
+      deps: deps(),
+      dialyzer: [plt_add_deps: :apps_direct, plt_add_apps: [:httpoison]]
+    ]
   end
 
   # Configuration for the OTP application
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
-     mod: {Canary, []}]
+    [
+      applications: [:logger],
+      mod: {Canary, [:httpoison]}
+    ]
   end
 
   # Dependencies can be Hex packages:
@@ -28,6 +33,9 @@ defmodule Canary.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:httpoison, "~> 0.10.0"},
+      {:dialyxir, "~> 0.4", only: [:dev]}
+    ]
   end
 end
