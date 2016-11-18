@@ -1,10 +1,10 @@
 defmodule Canary.Action.SpreadAsync do
-  defstruct [:callback, :rate, :spread]
+  defstruct [:callback, :rate, :interval]
 
-  @type rate   :: non_neg_integer
-  @type spread :: non_neg_integer
+  @type rate :: non_neg_integer
+  @type time :: non_neg_integer
 
-  @type t :: %__MODULE__{rate: rate, spread: spread}
+  @type t :: %__MODULE__{rate: rate, interval: time}
 end
 
 defimpl Canary.Actionable, for: Canary.Action.SpreadAsync do

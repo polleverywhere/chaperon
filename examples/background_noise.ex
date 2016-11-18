@@ -6,8 +6,8 @@ defmodule Example.Scenario.BackgroundNoise do
 
   defmodule Session do
     defstruct [
-      rate: 25,     # incoming requests per spread milliseconds
-      spread: 1000, # spread request rate over this amount of milliseconds
+      rate: 25,             # incoming requests per interval
+      interval: seconds(1), # spread request rate over this amount of time
       session: nil
     ]
   end
@@ -21,9 +21,14 @@ defmodule Example.Scenario.BackgroundNoise do
     |> loop(:spread_post_data, 10 |> minutes)
   end
 
-  def spread_post_data(session = %{rate: r, spread: s}) do
+  def spread_post_data(session = %{rate: r, interval: i}) do
     session
-    |> async_spread(:post_data, r, s)
-    |> await(all: :post_data)
+    |> cc_spread(:post_data, r, i)
+    |> await_all(:post_data)
+  end
+
+  def post_data(session) do
+    session
+    |> post("/data", %{data: "hello, world!"})
   end
 end
