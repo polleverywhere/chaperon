@@ -20,9 +20,12 @@ defimpl Canary.Action, for: Canary.Action.HTTP do
     {:ok, session}
   end
 
-
   def abort(action, session) do
     # TODO
     {:ok, session}
+  end
+
+  def retry(action, session) do
+    Canary.Action.Any.retry(action, session)
   end
 end
