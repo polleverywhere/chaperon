@@ -38,5 +38,7 @@ alias Example.Scenario.BackgroundNoise
 
 scenario = %Canary.Scenario{name: "test-scenario"}
 session = %Canary.Session{id: "test-session", scenario: scenario}
-{:ok, bg_session} = BackgroundNoise.init(session)
-IO.inspect(BackgroundNoise.run(bg_session))
+{:ok, bg_session} = session |> BackgroundNoise.init
+bg_session
+|> BackgroundNoise.run
+|> IO.inspect
