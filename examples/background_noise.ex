@@ -16,9 +16,9 @@ defmodule Example.Scenario.BackgroundNoise do
     ~> increase_noise
   end
 
-  def spread_post_data(session = %{rate: r, interval: i}) do
+  def spread_post_data(session) do
     session
-    |> cc_spread(:post_data, r, i)
+    |> cc_spread(:post_data, session.assigns.rate, session.assigns.interval)
     |> await_all(:post_data)
     ~> increase_noise
   end
