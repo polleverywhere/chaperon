@@ -60,6 +60,8 @@ defmodule Canary.Action.Loop do
 end
 
 defimpl Canary.Actionable, for: Canary.Action.Loop do
+  use Calendar
+
   def run(loop = %{started: nil}, session) do
     %{loop | started: DateTime.utc_now, running: true}
     |> run(session)
