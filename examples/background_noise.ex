@@ -3,10 +3,9 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def init(session) do
     session
-    # incoming requests per interval
-    |> assign(rate: 25)
-    # spread request rate over this amount of time
-    |> assign(interval: seconds(1))
+    # rate: incoming requests per interval
+    # interval: spread request rate over this amount of time (in ms)
+    |> assign(rate: 25, interval: seconds(1))
     |> ok
   end
 
