@@ -58,7 +58,6 @@ defmodule Canary.Session do
   end
 
   def add_action(session, action) do
-    IO.inspect session
     update_in session.actions, &[action | &1] # prepend and reverse on execution
   end
 
