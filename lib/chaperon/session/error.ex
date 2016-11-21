@@ -1,5 +1,5 @@
-defmodule Canary.Session.Error do
-  alias Canary.Session
+defmodule Chaperon.Session.Error do
+  alias Chaperon.Session
 
   defexception reason: nil, session: nil
 
@@ -9,6 +9,6 @@ defmodule Canary.Session.Error do
   }
 
   def message(%Session.Error{reason: reason, session: session}) do
-    "[Canary.Session.Error: #{session.id}] - #{inspect reason}"
+    "[Chaperon.Session.Error: #{session.id}] - #{inspect reason}"
   end
 end

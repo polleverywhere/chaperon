@@ -1,6 +1,6 @@
-defmodule CanaryTest do
+defmodule ChaperonTest do
   use ExUnit.Case
-  doctest Canary
+  doctest Chaperon
 
   test "the truth" do
     assert 1 + 1 == 2

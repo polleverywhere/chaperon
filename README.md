@@ -1,4 +1,4 @@
-# Canary
+# Chaperon
 
 ## HTTP Service Performance Testing Tool
 
@@ -11,8 +11,8 @@ An environment is a combination of target services, connection metadata (like he
 ## Custom Scenario Sample
 
 ```elixir
-defmodule Canary.Scenario.BasicAccountLogin do
-  use Canary.Scenario
+defmodule Chaperon.Scenario.BasicAccountLogin do
+  use Chaperon.Scenario
 
   def init(session) do
     {:ok, session} # return custom data if necessary
@@ -105,7 +105,7 @@ By default we label metrics under the scenario name.
 
 ## How does it work?
 
-When you define a new Scenario (like the one above), you're building a nested datastructure - somewhat of an execution tree or similar to an AST in a language compiler - that then gets executed by Canary's scheduler (not yet implemented).
+When you define a new Scenario (like the one above), you're building a nested datastructure - somewhat of an execution tree or similar to an AST in a language compiler - that then gets executed by Chaperon's scheduler (not yet implemented).
 The idea is to build up the structure in your definition code and then interpret that data structure.
 This allows easily inspecting the scenario (as it's just data). It's also easy to pass it around to other workers in a distributed context for easy concurrency and increasing load for a scenario by distributing the different sessions within it to multiple nodes.
 

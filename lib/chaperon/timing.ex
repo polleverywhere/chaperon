@@ -1,4 +1,4 @@
-defmodule Canary.Timing do
+defmodule Chaperon.Timing do
   @second 1000
   @minute @second * 60
   @hour   @minute * 60

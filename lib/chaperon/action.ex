@@ -1,28 +1,28 @@
-defprotocol Canary.Actionable do
-  alias Canary.Session
-  alias Canary.Action.Error
+defprotocol Chaperon.Actionable do
+  alias Chaperon.Session
+  alias Chaperon.Action.Error
 
   @type result :: Session.t | {:ok, Session.t} | {:error, Error.t}
 
-  @spec run(Canary.Actionable.t, Session.t) :: result
+  @spec run(Chaperon.Actionable.t, Session.t) :: result
   def run(action, session)
 
-  @spec abort(Canary.Actionable.t, Session.t) :: result
+  @spec abort(Chaperon.Actionable.t, Session.t) :: result
   def abort(action, session)
 
-  @spec retry(Canary.Actionable.t, Session.t) :: result
+  @spec retry(Chaperon.Actionable.t, Session.t) :: result
   def retry(action, session)
 end
 
-defmodule Canary.Action do
+defmodule Chaperon.Action do
   def retry(action, session) do
-    with {:ok, session} <- Canary.Actionable.abort(action, session) do
-      Canary.Actionable.run(action, session)
+    with {:ok, session} <- Chaperon.Actionable.abort(action, session) do
+      Chaperon.Actionable.run(action, session)
     end
   end
 
   def error(action, session, reason) do
-    %Canary.Action.Error{
+    %Chaperon.Action.Error{
       reason: reason,
       action: action,
       session: session
@@ -30,36 +30,36 @@ defmodule Canary.Action do
   end
 end
 
-defmodule Canary.Action.Function do
+defmodule Chaperon.Action.Function do
   defstruct func: nil
 
-  @type callback :: (Canary.Actionable -> Canary.Session.t)
-  @type t :: %Canary.Action.Function{func: callback}
+  @type callback :: (Chaperon.Actionable -> Chaperon.Session.t)
+  @type t :: %Chaperon.Action.Function{func: callback}
 end
 
-defimpl Canary.Actionable, for: Canary.Action.Function do
+defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
   def run(%{func: f}, session), do: f.(session)
   def abort(_, session),        do: session
   def retry(action, session),   do: run(action, session)
 end
 
 
-defmodule Canary.Action.Loop do
+defmodule Chaperon.Action.Loop do
   defstruct action: nil,
             duration: nil,
             started: nil,
             running: true
 
   @type duration :: non_neg_integer
-  @type t :: %Canary.Action.Loop{
-    action: Canary.Actionable,
+  @type t :: %Chaperon.Action.Loop{
+    action: Chaperon.Actionable,
     duration: duration,
     started: DateTime.t,
     running: true | false
   }
 end
 
-defimpl Canary.Actionable, for: Canary.Action.Loop do
+defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
   use Calendar
 
   def run(loop = %{started: nil}, session) do

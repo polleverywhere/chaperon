@@ -1,4 +1,4 @@
-defmodule Canary.Action.HTTP do
+defmodule Chaperon.Action.HTTP do
   defstruct [
     method: :get,
     path: nil,
@@ -7,14 +7,14 @@ defmodule Canary.Action.HTTP do
 
   @type method :: :get | :post | :put | :patch | :delete
 
-  @type t :: %Canary.Action.HTTP{
+  @type t :: %Chaperon.Action.HTTP{
     method: method,
     path: String.t,
     args: map
   }
 end
 
-defimpl Canary.Actionable, for: Canary.Action.HTTP do
+defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   def run(action, session) do
     # TODO
     {:ok, session}
@@ -26,6 +26,6 @@ defimpl Canary.Actionable, for: Canary.Action.HTTP do
   end
 
   def retry(action, session) do
-    Canary.Action.Any.retry(action, session)
+    Chaperon.Action.Any.retry(action, session)
   end
 end

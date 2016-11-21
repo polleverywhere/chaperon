@@ -1,5 +1,5 @@
 defmodule Example.Scenario.BackgroundNoise do
-  use Canary.Scenario
+  use Chaperon.Scenario
 
   def init(session) do
     session
@@ -34,8 +34,8 @@ end
 
 alias Example.Scenario.BackgroundNoise
 
-scenario = %Canary.Scenario{name: "test-scenario"}
-session = %Canary.Session{id: "test-session", scenario: scenario}
+scenario = %Chaperon.Scenario{name: "test-scenario"}
+session = %Chaperon.Session{id: "test-session", scenario: scenario}
 {:ok, bg_session} = session |> BackgroundNoise.init
 bg_session
 |> BackgroundNoise.run

@@ -1,9 +1,9 @@
-defmodule Canary.Mixfile do
+defmodule Chaperon.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :canary,
+      app: :chaperon,
       version: "0.1.0",
       elixir: "~> 1.3",
       build_embedded: Mix.env == :prod,
@@ -19,7 +19,7 @@ defmodule Canary.Mixfile do
   def application do
     [
       applications: [:logger],
-      mod: {Canary, [:httpoison]}
+      mod: {Chaperon, [:httpoison]}
     ]
   end
 

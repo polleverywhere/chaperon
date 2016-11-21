@@ -1,27 +1,27 @@
-defmodule Canary.Scenario do
+defmodule Chaperon.Scenario do
   defstruct [
     name: nil,
     sessions: [],
   ]
 
-  @type t :: %Canary.Scenario{
+  @type t :: %Chaperon.Scenario{
     name: atom,
-    sessions: [Canary.Session.t]
+    sessions: [Chaperon.Session.t]
   }
 
   defmacro __using__(_opts) do
     quote do
-      require Canary.Scenario
-      import  Canary.Scenario
-      import  Canary.Timing
-      import  Canary.Session
+      require Chaperon.Scenario
+      import  Chaperon.Scenario
+      import  Chaperon.Timing
+      import  Chaperon.Session
     end
   end
 
 
-  alias Canary.Session
-  alias Canary.Action.SpreadAsync
-  import  Canary.Session
+  alias Chaperon.Session
+  alias Chaperon.Action.SpreadAsync
+  import  Chaperon.Session
 
   @doc """
   Concurrently spreads a given action with a given rate over a

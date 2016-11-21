@@ -1,6 +1,6 @@
-defmodule Canary.Action.Error do
-  alias Canary.Actionable
-  alias Canary.Session
+defmodule Chaperon.Action.Error do
+  alias Chaperon.Actionable
+  alias Chaperon.Session
 
   defexception reason: nil, action: nil, session: nil
 
@@ -11,6 +11,6 @@ defmodule Canary.Action.Error do
   }
 
   def message(%__MODULE__{reason: reason, action: action, session: session}) do
-    "[Canary.Action.Error: #{inspect action} @ #{inspect session}] - #{inspect reason}"
+    "[Chaperon.Action.Error: #{inspect action} @ #{inspect session}] - #{inspect reason}"
   end
 end

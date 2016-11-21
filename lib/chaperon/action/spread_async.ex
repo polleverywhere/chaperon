@@ -1,4 +1,4 @@
-defmodule Canary.Action.SpreadAsync do
+defmodule Chaperon.Action.SpreadAsync do
   defstruct [:callback, :rate, :interval]
 
   @type rate :: non_neg_integer
@@ -7,7 +7,7 @@ defmodule Canary.Action.SpreadAsync do
   @type t :: %__MODULE__{rate: rate, interval: time}
 end
 
-defimpl Canary.Actionable, for: Canary.Action.SpreadAsync do
+defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
   def run(action, session) do
     # TODO
     {:ok, session}
@@ -19,6 +19,6 @@ defimpl Canary.Actionable, for: Canary.Action.SpreadAsync do
   end
 
   def retry(action, session) do
-    Canary.Action.Any.retry(action, session)
+    Chaperon.Action.Any.retry(action, session)
   end
 end

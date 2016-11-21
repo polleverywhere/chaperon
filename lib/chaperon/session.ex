@@ -1,4 +1,4 @@
-defmodule Canary.Session do
+defmodule Chaperon.Session do
   defstruct [
     id: nil,
     actions: [],
@@ -9,20 +9,20 @@ defmodule Canary.Session do
     scenario: nil
   ]
 
-  @type t :: %Canary.Session{
+  @type t :: %Chaperon.Session{
     id: String.t,
-    actions: [Canary.Actionable],
+    actions: [Chaperon.Actionable],
     results: map,
     async_tasks: map,
     config: map,
     assigns: map,
-    scenario: Canary.Scenario.t
+    scenario: Chaperon.Scenario.t
   }
 
   def loop(session, action_name, duration) do
     session
-    |> add_action(%Canary.Action.Loop{
-      action: %Canary.Action.Function{func: action_name},
+    |> add_action(%Chaperon.Action.Loop{
+      action: %Chaperon.Action.Function{func: action_name},
       duration: duration
     })
   end
@@ -54,7 +54,7 @@ defmodule Canary.Session do
 
   def call(session, func) do
     session
-    |> add_action(%Canary.Action.Function{func: func})
+    |> add_action(%Chaperon.Action.Function{func: func})
   end
 
   def add_action(session, action) do
@@ -80,7 +80,7 @@ defmodule Canary.Session do
     update_in session.actions, &List.replace_at(&1, idx, new_action)
   end
 
-  alias Canary.Session.Error
+  alias Chaperon.Session.Error
 
   def ok(session), do: {:ok, session}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
