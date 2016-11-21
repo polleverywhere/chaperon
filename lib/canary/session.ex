@@ -20,8 +20,11 @@ defmodule Canary.Session do
   }
 
   def loop(session, action_name, duration) do
-    # TODO
     session
+    |> add_action(%Canary.Action.Loop{
+      action: %Canary.Action.Function{func: action_name},
+      duration: duration
+    })
   end
 
   def await(session, action) when is_atom(action) do
@@ -71,6 +74,11 @@ defmodule Canary.Session do
     |> Enum.reduce(session, fn {k, func}, session ->
       update_in session.assigns[k], func
     end)
+  end
+
+  def update_action(session, action, new_action) do
+    idx = session.actions |> Enum.find_index(&(&1 == action))
+    update_in session.actions, &List.replace_at(&1, idx, new_action)
   end
 
   alias Canary.Session.Error
