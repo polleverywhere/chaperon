@@ -13,7 +13,6 @@ defmodule Example.Scenario.BackgroundNoise do
   def run(session) do
     session
     |> loop(:spread_post_data, 10 |> minutes)
-    ~> increase_noise
   end
 
   def spread_post_data(session) do
