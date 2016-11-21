@@ -29,7 +29,7 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def increase_noise(session) do
     session
-    |> update_assign(rate: &(&1 * 1.025))
+    |> update_assign(rate: &(&1 * 1.025)) # increase by 2.5%
   end
 end
 
