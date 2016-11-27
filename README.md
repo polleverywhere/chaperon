@@ -3,9 +3,9 @@
 ## HTTP Service Performance Testing Tool
 
 This is a tool for doing load and performance tests on HTTP based web services.
-It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per environment.
+It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per scenario.
 
-An environment is a combination of target services, connection metadata (like headers for authentication), custom metrics and custom server interaction logic.
+A scenario is a combination of target web services, optional connection metadata (like headers for authentication) for each of the services, optional custom metrics and service interaction logic.
 
 
 ## Custom Scenario Sample
@@ -15,7 +15,7 @@ defmodule Chaperon.Scenario.BasicAccountLogin do
   use Chaperon.Scenario
 
   def init(session) do
-    {:ok, session} # return custom data if necessary
+    {:ok, session} # you can annotate session with custom data if necessary
   end
 
   def run(session) do
