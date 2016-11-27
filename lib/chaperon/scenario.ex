@@ -17,7 +17,7 @@ defmodule Chaperon.Scenario do
       import  Chaperon.Session
 
       def start_link(opts) do
-        with {:ok, session} <- %Session{scenario: __MODULE__} |> init do
+        with {:ok, session} <- %Chaperon.Session{scenario: __MODULE__} |> init do
           Scenario.Task.start_link session
         end
       end
