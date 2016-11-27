@@ -29,7 +29,7 @@ defmodule Chaperon.Scenario do
   alias Chaperon.Action.SpreadAsync
 
   @doc """
-  Concurrently spreads a given action with a given rate over a
+  Concurrently spreads a given action with a given rate over a given time interval
   """
   @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
   def cc_spread(session, action_name, rate, interval) do
