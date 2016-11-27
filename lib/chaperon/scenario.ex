@@ -51,4 +51,16 @@ defmodule Chaperon.Scenario do
       end)
     end
   end
+
+  def execute(scenario_mod) do
+    # TODO: load & pass in scenario config
+    scenario = %Chaperon.Scenario{name: "test-scenario"}
+    session = %Chaperon.Session{id: "test-session", scenario: scenario}
+
+    {:ok, session} = session |> scenario_mod.init
+    session = session
+              |> scenario_mod.run
+    session
+    |> IO.inspect
+  end
 end

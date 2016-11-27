@@ -34,9 +34,4 @@ end
 
 alias Example.Scenario.BackgroundNoise
 
-scenario = %Chaperon.Scenario{name: "test-scenario"}
-session = %Chaperon.Session{id: "test-session", scenario: scenario}
-{:ok, bg_session} = session |> BackgroundNoise.init
-bg_session
-|> BackgroundNoise.run
-|> IO.inspect
+Chaperon.Scenario.execute BackgroundNoise
