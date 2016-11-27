@@ -31,7 +31,7 @@ defmodule Chaperon.Scenario.BasicAccountLogin do
 
   def login(session) do
     session
-    |> post("/login", %{user: "admin", password: "password"}),
+    |> post("/login", form: [user: "admin", password: "password"]),
   end
 
   def logout(session), do: session |> post("/logout")
@@ -42,7 +42,7 @@ defmodule Chaperon.Scenario.BasicAccountLogin do
     |> meter(:post_logout, fn s ->
       s
       |> foo_bar
-      |> put("/baz", %{data: "value"})
+      |> put("/baz", json: [data: "value"])
     end)
   end
 
@@ -59,7 +59,7 @@ defmodule Chaperon.Scenario.BasicAccountLogin do
     # same but for foo_bar
     |> async(:foo_bar)
     # run custom logic & assign response to baz
-    |> async(:baz, &put(&1, "/baz", %{data: "value"}))
+    |> async(:baz, &put(&1, "/baz", json: [data: "value"]))
     # await first and last async, ignore second
     |> await([:logout, :baz])
     # alternatively, wait on all async sessions:
