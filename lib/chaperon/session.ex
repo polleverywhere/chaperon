@@ -47,9 +47,29 @@ defmodule Chaperon.Session do
     |> Map.get(action_name, [])
   end
 
-  def post(session, path, data) do
-    # TODO
+  def get(session, path, params) do
     session
+    |> add_action(Chaperon.Action.HTTP.get(path, params))
+  end
+
+  def post(session, path, data) do
+    session
+    |> add_action(Chaperon.Action.HTTP.post(path, data))
+  end
+
+  def put(session, path, data) do
+    session
+    |> add_action(Chaperon.Action.HTTP.put(path, data))
+  end
+
+  def patch(session, path, data) do
+    session
+    |> add_action(Chaperon.Action.HTTP.patch(path, data))
+  end
+
+  def delete(session, path) do
+    session
+    |> add_action(Chaperon.Action.HTTP.delete(path))
   end
 
   def call(session, func) do
