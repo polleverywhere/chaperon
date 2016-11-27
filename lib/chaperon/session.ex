@@ -96,12 +96,15 @@ defmodule Chaperon.Session do
   end
 
   def update_action(session, action, new_action) do
-    idx = session.actions |> Enum.find_index(&(&1 == action))
-    update_in session.actions, &List.replace_at(&1, idx, new_action)
+    idx = session.actions
+          |> Enum.find_index(&(&1 == action))
+
+    update_in session.actions,
+              &List.replace_at(&1, idx, new_action)
   end
 
   alias Chaperon.Session.Error
 
-  def ok(session), do: {:ok, session}
+  def ok(session),      do: {:ok, session}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
 end
