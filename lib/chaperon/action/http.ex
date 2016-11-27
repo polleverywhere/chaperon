@@ -4,6 +4,7 @@ defmodule Chaperon.Action.HTTP do
     path: nil,
     headers: %{},
     params: %{},
+    response: nil,
     body: nil
   ]
 
@@ -14,6 +15,7 @@ defmodule Chaperon.Action.HTTP do
     path: String.t,
     headers: map,
     params: map,
+    response: HTTPoison.Response.t | HTTPoison.AsyncResponse.t,
     body: binary
   }
 
@@ -56,6 +58,15 @@ defmodule Chaperon.Action.HTTP do
     }
   end
 
+  def url(action, session) do
+    session.config.base_url <> "/" <> action.path
+  end
+
+  def options(action, session) do
+    session.config.http
+    |> Keyword.merge(params: action.params)
+  end
+
   def add_body(action, body) do
     import Map, only: [merge: 2]
 
@@ -96,9 +107,20 @@ defmodule Chaperon.Action.HTTP do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
+  alias Chaperon.Action.HTTP
+  import Chaperon.Session, only: [update_action: 3]
+
   def run(action, session) do
-    # TODO
-    {:ok, session}
+    case HTTPoison.request(
+      action.method,
+      HTTP.url(action, session),
+      action.body,
+      action.headers,
+      HTTP.options(action, session)
+    ) do
+      {:ok, response} ->
+        {:ok, session |> update_action(action, %{action | response: response})}
+    end
   end
 
   def abort(action, session) do
