@@ -30,7 +30,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
       loop
       |> abort(session)
     else
-      Chaperon.Actionable.run(a, session)
+      Chaperon.Actionable.run(loop, session)
     end
   end
 
