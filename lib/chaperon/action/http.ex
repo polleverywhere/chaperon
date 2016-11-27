@@ -26,6 +26,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   end
 
   def retry(action, session) do
-    Chaperon.Action.Any.retry(action, session)
+    Chaperon.Action.retry(action, session)
   end
 end

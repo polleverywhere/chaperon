@@ -15,13 +15,18 @@ defmodule Chaperon.Scenario do
       import  Chaperon.Scenario
       import  Chaperon.Timing
       import  Chaperon.Session
+
+      def start_link(opts) do
+        with {:ok, session} <- %Session{scenario: __MODULE__} |> init do
+          Scenario.Task.start_link session
+        end
+      end
     end
   end
 
 
   alias Chaperon.Session
   alias Chaperon.Action.SpreadAsync
-  import  Chaperon.Session
 
   @doc """
   Concurrently spreads a given action with a given rate over a

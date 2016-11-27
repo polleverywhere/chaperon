@@ -35,6 +35,7 @@ defmodule Chaperon.Mixfile do
   defp deps do
     [
       {:httpoison, "~> 0.10.0"},
+      {:uuid, "~> 1.1"},
       {:dialyxir, "~> 0.4", only: [:dev]}
     ]
   end

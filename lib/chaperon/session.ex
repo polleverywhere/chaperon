@@ -39,10 +39,10 @@ defmodule Chaperon.Session do
 
   def await_all(session, action_name) do
     session
-    |> await(session |> Session.async_actions(action_name))
+    |> await(session |> async_tasks(action_name))
   end
 
-  def async_actions(session, action_name) do
+  def async_tasks(session, action_name) do
     session.async_tasks
     |> Map.get(action_name, [])
   end
