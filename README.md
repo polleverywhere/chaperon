@@ -11,7 +11,7 @@ A scenario is a combination of target web services, optional connection metadata
 ## Custom Scenario Sample
 
 ```elixir
-defmodule Chaperon.Scenario.BasicAccountLogin do
+defmodule BasicAccountLogin do
   use Chaperon.Scenario
 
   def init(session) do
@@ -79,7 +79,7 @@ By default we label metrics under the scenario name.
 
 ```elixir
 %{
-  basic_account_login: %{
+  BasicAccountLogin => %{
     http: %{
       put: %{
         "/logout": [
