@@ -31,4 +31,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   def retry(action, session) do
     Chaperon.Action.retry(action, session)
   end
+
+  def done?(action, session) do
+    # TODO
+    false
+  end
 end

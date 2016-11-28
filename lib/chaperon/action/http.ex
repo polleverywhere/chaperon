@@ -137,4 +137,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   def retry(action, session) do
     Chaperon.Action.retry(action, session)
   end
+
+  def done?(%{response: nil}, _),
+    do: false
+  def done?(%{response: _}, _),
+    do: true
 end

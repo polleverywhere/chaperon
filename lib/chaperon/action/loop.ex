@@ -30,7 +30,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
       loop
       |> abort(session)
     else
-      Chaperon.Actionable.run(loop, session)
+      Chaperon.Actionable.run(a, session)
     end
   end
 
@@ -43,4 +43,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
     %{action | running: true, started: DateTime.utc_now}
     |> run(session)
   end
+
+  def done?(loop, session), do: loop.started && loop.running
 end
