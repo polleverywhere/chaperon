@@ -15,7 +15,10 @@ defmodule BasicAccountLogin do
   use Chaperon.Scenario
 
   def init(session) do
-    {:ok, session} # you can annotate session with custom data if necessary
+    # you can annotate session with custom data if necessary
+    session
+    |> assign(my_config: "my_val")
+    |> ok # returns {:ok, session}
   end
 
   def run(session) do
@@ -26,7 +29,8 @@ defmodule BasicAccountLogin do
   end
 
   def cleanup(session) do
-    # TODO
+    session
+    |> ok
   end
 
   def login(session) do
@@ -34,7 +38,10 @@ defmodule BasicAccountLogin do
     |> post("/login", form: [user: "admin", password: "password"]),
   end
 
-  def logout(session), do: session |> post("/logout")
+  def logout(session) do
+    session
+    |> post("/logout")
+  end
 
   def logout_with_stuff(session) do
     session
