@@ -32,6 +32,18 @@ defmodule Example.Scenario.BackgroundNoise do
   end
 end
 
-alias Example.Scenario.BackgroundNoise
+defmodule Environment.Production do
+  alias Example.Scenario.BackgroundNoise
+  use Chaperon.Environment
 
-Chaperon.Scenario.execute BackgroundNoise
+  scenarios do
+    run BackgroundNoise, %{
+      something: true,
+    }
+    run BackgroundNoise, %{
+      something: false,
+    }
+  end
+end
+
+IO.inspect Environment.Production.run

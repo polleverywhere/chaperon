@@ -78,6 +78,17 @@ defmodule BasicAccountLogin do
     end)
   end
 end
+
+# our environment definition:
+defmodule Environment.Production do
+  use Chaperon.Environment
+
+  scenarios do
+    run BasicAccountLogin, %{
+      some_config: some_val
+    }
+  end
+end
 ```
 
 Here, the logout action adds metrics for the `GET /logout` automatically.
