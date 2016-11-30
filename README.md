@@ -3,9 +3,9 @@
 ## HTTP Service Performance Testing Tool
 
 This is a tool for doing load and performance tests on HTTP based web services.
-It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per scenario.
+It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per environment.
 
-A scenario is a combination of target web services, optional connection metadata (like headers for authentication) for each of the services, optional custom metrics and service interaction logic.
+An environment is a combination of target web services & scenarios to run against them, optional connection metadata (like headers for authentication) for each of the services, optional custom metrics and service interaction logic.
 
 
 ## Custom Scenario Sample
