@@ -55,14 +55,17 @@ defmodule Chaperon.Session do
   end
 
   def await(session, task_name, task = %Task{}) do
+    update_in session.results,
+              &Map.merge(&1, session |> async_results(task_name, task))
+  end
+
+  def async_results(session, task_name, task = %Task{}) do
     %{results: results} = Task.await(task, session |> timeout)
 
-    results = for {k, v} <- results do
+    for {k, v} <- results do
       {k, {:async, task_name, v}}
     end
     |> Enum.into(%{})
-
-    update_in session.results, &Map.merge(&1, results)
   end
 
   def await(session, task_name) when is_atom(task_name) do
