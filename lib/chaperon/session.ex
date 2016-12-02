@@ -76,7 +76,7 @@ defmodule Chaperon.Session do
 
   def await_all(session, task_name) do
     session
-    |> await(session.async_tasks[task_name])
+    |> await(task_name, session.async_tasks[task_name])
   end
 
   def async_task(session, action_name) do
@@ -164,7 +164,20 @@ defmodule Chaperon.Session do
 
   def async(session, func_name) do
     task = Task.async(session.scenario.module, func_name, [session])
-    put_in session.async_tasks[func_name], task
+    session
+    |> add_async_task(func_name, task)
+  end
+
+  def add_async_task(session, name, task) do
+    case session.async_tasks[name] do
+      nil ->
+        put_in session.async_tasks[name], task
+      tasks when is_list(tasks) ->
+        update_in session.async_tasks[name], &[task | &1]
+      task ->
+        update_in session.async_tasks[name], &[task, &1]
+    end
+    put_in session.async_tasks[name], task
   end
 
   alias Chaperon.Session.Error

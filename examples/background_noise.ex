@@ -11,9 +11,11 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def run(session) do
     session
-    |> print_config
     |> async(:search)
-    |> await(:search)
+    |> async(:search)
+    |> async(:search)
+    |> post_data
+    |> await_all(:search)
     |> loop(:spread_post_data, 10 |> minutes)
   end
 
@@ -26,27 +28,21 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def search(session) do
     session
-    |> get("", q: "WHO AM I?")
+    |> get("/", q: "WHO AM I?")
   end
 
   def post_data(session) do
-    session
-    |> post("/data", json: "hello, world!")
+    if session.config.post_data do
+      session
+      |> post("/data", json: "hello, world!")
+    else
+      session
+    end
   end
 
   def increase_noise(session) do
     session
     |> update_assign(rate: &(&1 * 1.025)) # increase by 2.5%
-  end
-
-  def print_config(session = %{config: %{something: true}}) do
-    IO.puts "something: true"
-    session
-  end
-
-  def print_config(session = %{config: %{something: false}}) do
-    IO.puts "something: FALSE!"
-    session
   end
 end
 
@@ -62,10 +58,10 @@ defmodule Environment.Production do
       }
     }
     run BackgroundNoise, %{
-      something: true,
+      post_data: true,
     }
     run BackgroundNoise, %{
-      something: false,
+      post_data: true,
     }
   end
 end
