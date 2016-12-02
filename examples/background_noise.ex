@@ -67,9 +67,8 @@ end
 
 require Logger
 
-for _session <- Environment.Production.run do
-#   for {name, res} <- session.results do
-#     Logger.info "Result for #{inspect name} -> #{inspect res}"
-#     IO.puts("\n\n\n\n")
-#   end
+for session <- Environment.Production.run do
+  for {action, {:async, name, res}} <- session.results do
+    Logger.info "async #{name} -> #{inspect res.status_code}"
+  end
 end
