@@ -2,7 +2,7 @@ defprotocol Chaperon.Actionable do
   alias Chaperon.Session
   alias Chaperon.Action.Error
 
-  @type result :: Session.t | {:ok, Session.t} | {:error, Error.t}
+  @type result :: {:ok, Session.t} | {:error, Error.t}
 
   @spec run(Chaperon.Actionable.t, Session.t) :: result
   def run(action, session)

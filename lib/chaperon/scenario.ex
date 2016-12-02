@@ -11,6 +11,7 @@ defmodule Chaperon.Scenario do
 
   defmacro __using__(_opts) do
     quote do
+      require Logger
       require Chaperon.Scenario
       import  Chaperon.Scenario
       import  Chaperon.Timing
@@ -35,7 +36,6 @@ defmodule Chaperon.Scenario do
   end
 
   def execute(scenario_mod, config) do
-    # TODO: load & pass in scenario config
     scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Chaperon.Session{
       id: "test-session",

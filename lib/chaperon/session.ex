@@ -2,6 +2,7 @@ defmodule Chaperon.Session do
   defstruct [
     id: nil,
     results: %{},
+    errors: %{},
     async_tasks: %{},
     config: %{},
     assigns: %{},
@@ -11,6 +12,7 @@ defmodule Chaperon.Session do
   @type t :: %Chaperon.Session{
     id: String.t,
     results: map,
+    errors: map,
     async_tasks: map,
     config: map,
     assigns: map,
@@ -49,12 +51,23 @@ defmodule Chaperon.Session do
   end
 
   def timeout(session) do
-    session.config.timeout || @default_timeout
+    session.config[:timeout] || @default_timeout
   end
 
-  def await(session, task = %Task{}) do
-    result = Task.await(task, session |> timeout)
-    put_in session.results[task], result
+  def await(session, task_name, task = %Task{}) do
+    %{results: results} = Task.await(task, session |> timeout)
+
+    results = for {k, v} <- results do
+      {k, {:async, task_name, v}}
+    end
+    |> Enum.into(%{})
+
+    update_in session.results, &Map.merge(&1, results)
+  end
+
+  def await(session, task_name) when is_atom(task_name) do
+    session
+    |> await(task_name, session |> async_tasks(task_name))
   end
 
   def await(session, async_tasks) when is_list(async_tasks) do
@@ -106,10 +119,10 @@ defmodule Chaperon.Session do
     case Chaperon.Actionable.run(action, session) do
       {:error, reason} ->
         Logger.error "Session.run_action failed: #{inspect reason}"
-        put_in session.results[action], {:error, reason}
-      {:ok, result} ->
-        Logger.info "Session.run_action: #{inspect result}"
-        put_in session.results[action], {:ok, result}
+        put_in session.errors[action], reason
+      {:ok, session} ->
+        Logger.info "Session.run_action success"
+        session
     end
   end
 
@@ -128,7 +141,7 @@ defmodule Chaperon.Session do
   end
 
   def async(session, func_name) do
-    {:ok, task} = Task.start(session.scenario.module, func_name, [session])
+    task = Task.async(session.scenario.module, func_name, [session])
     put_in session.async_tasks[func_name], task
   end
 

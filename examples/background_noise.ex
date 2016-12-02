@@ -13,6 +13,7 @@ defmodule Example.Scenario.BackgroundNoise do
     session
     |> print_config
     |> async(:post_data)
+    |> await(:post_data)
     |> loop(:spread_post_data, 10 |> minutes)
   end
 
@@ -64,4 +65,11 @@ defmodule Environment.Production do
   end
 end
 
-IO.inspect Environment.Production.run
+require Logger
+
+for _session <- Environment.Production.run do
+#   for {name, res} <- session.results do
+#     Logger.info "Result for #{inspect name} -> #{inspect res}"
+#     IO.puts("\n\n\n\n")
+#   end
+end

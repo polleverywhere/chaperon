@@ -121,7 +121,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       HTTP.options(action, session)
     ) do
       {:ok, response} ->
-        {:ok, response}
+        Logger.debug "HTTP Response [#{action.method} #{action.path}] : #{response.status_code}"
+        {:ok, put_in(session.results[action], response)}
 
       {:error, reason} ->
         Logger.error "HTTP action [#{action.method} #{action.path}] failed: #{inspect reason}"
