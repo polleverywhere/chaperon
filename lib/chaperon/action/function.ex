@@ -10,5 +10,4 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
   def run(%{func: f}, session),       do: f.(session)
   def abort(_, session),              do: session
   def retry(function, session),       do: run(function, session)
-  def done?(%{called: is_called}, _), do: is_called
 end

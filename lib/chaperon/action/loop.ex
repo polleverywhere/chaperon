@@ -1,15 +1,13 @@
 defmodule Chaperon.Action.Loop do
   defstruct action: nil,
             duration: nil,
-            started: nil,
-            running: true
+            started: nil
 
   @type duration :: non_neg_integer
   @type t :: %Chaperon.Action.Loop{
     action: Chaperon.Actionable,
     duration: duration,
-    started: DateTime.t,
-    running: true | false
+    started: DateTime.t
   }
 end
 
@@ -17,13 +15,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
   alias Chaperon.Session
 
   def run(loop = %{started: nil}, session) do
-    %{loop | started: DateTime.utc_now, running: true}
+    %{loop | started: DateTime.utc_now}
     |> run(session)
   end
 
-  def run(%{running: false}, session), do: session
-
-  def run(loop = %{action: a, duration: d, running: true}, session) do
+  def run(loop = %{action: a, duration: d}, session) do
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
     s = loop.started |> DateTime.to_unix(:milliseconds)
     if (s + d) > now do
@@ -35,14 +31,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
   end
 
   def abort(loop, session) do
-     session
-     |> Session.update_action(loop, %{loop | running: false})
+     {:ok, session}
    end
 
   def retry(action, session) do
-    %{action | running: true, started: DateTime.utc_now}
+    %{action | started: DateTime.utc_now}
     |> run(session)
   end
-
-  def done?(loop, session), do: loop.started && loop.running
 end

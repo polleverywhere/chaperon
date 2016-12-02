@@ -1,11 +1,11 @@
 defmodule Chaperon.Scenario do
   defstruct [
-    name: nil,
+    module: nil,
     sessions: [],
   ]
 
   @type t :: %Chaperon.Scenario{
-    name: atom,
+    module: atom,
     sessions: [Chaperon.Session.t]
   }
 
@@ -39,7 +39,7 @@ defmodule Chaperon.Scenario do
       interval: interval
     }
     session
-    |> Session.add_action(action)
+    |> Session.run_action(action)
   end
 
   defmacro session ~> func_call do
@@ -54,7 +54,7 @@ defmodule Chaperon.Scenario do
 
   def execute(scenario_mod, config) do
     # TODO: load & pass in scenario config
-    scenario = %Chaperon.Scenario{name: "test-scenario"}
+    scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Chaperon.Session{
       id: "test-session",
       scenario: scenario,

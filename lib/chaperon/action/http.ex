@@ -109,7 +109,6 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   alias Chaperon.Action.Error
   alias Chaperon.Action.HTTP
-  import Chaperon.Session, only: [update_action: 3]
   require Logger
 
   def run(action, session) do
@@ -121,7 +120,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       HTTP.options(action, session)
     ) do
       {:ok, response} ->
-        {:ok, session |> update_action(action, %{action | response: response})}
+        {:ok, response}
 
       {:error, reason} ->
         Logger.error "HTTP action [#{action.method} #{action.path}] failed: #{inspect reason}"
@@ -137,9 +136,4 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   def retry(action, session) do
     Chaperon.Action.retry(action, session)
   end
-
-  def done?(%{response: nil}, _),
-    do: false
-  def done?(%{response: _}, _),
-    do: true
 end

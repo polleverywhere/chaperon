@@ -12,7 +12,4 @@ defprotocol Chaperon.Actionable do
 
   @spec retry(Chaperon.Actionable.t, Session.t) :: result
   def retry(action, session)
-
-  @spec done?(Chaperon.Actionable.t, Session.t) :: boolean
-  def done?(action, session)
 end

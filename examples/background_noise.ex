@@ -11,6 +11,8 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def run(session) do
     session
+    |> print_config
+    |> async(:post_data)
     |> loop(:spread_post_data, 10 |> minutes)
   end
 
@@ -18,7 +20,7 @@ defmodule Example.Scenario.BackgroundNoise do
     session
     |> cc_spread(:post_data, round(session.assigns.rate), session.assigns.interval)
     |> await_all(:post_data)
-    ~> increase_noise
+    |> increase_noise
   end
 
   def post_data(session) do
@@ -29,6 +31,16 @@ defmodule Example.Scenario.BackgroundNoise do
   def increase_noise(session) do
     session
     |> update_assign(rate: &(&1 * 1.025)) # increase by 2.5%
+  end
+
+  def print_config(session = %{config: %{something: true}}) do
+    IO.puts "something: true"
+    session
+  end
+
+  def print_config(session = %{config: %{something: false}}) do
+    IO.puts "something: FALSE!"
+    session
   end
 end
 
