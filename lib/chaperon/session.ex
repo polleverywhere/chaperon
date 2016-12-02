@@ -18,9 +18,27 @@ defmodule Chaperon.Session do
   }
 
   require Logger
+  alias Chaperon.Session
+  alias Chaperon.Action.SpreadAsync
   import Chaperon.Timing
 
   @default_timeout seconds(10)
+
+
+  @doc """
+  Concurrently spreads a given action with a given rate over a given time interval
+  """
+  @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
+  def cc_spread(session, action_name, rate, interval) do
+    action = %SpreadAsync{
+      callback: {session.scenario.name, action_name},
+      rate: rate,
+      interval: interval
+    }
+
+    session
+    |> Session.run_action(action)
+  end
 
   def loop(session, action_name, duration) do
     session
@@ -30,12 +48,13 @@ defmodule Chaperon.Session do
     })
   end
 
-  def await(session, async_task) when is_atom(async_task) do
-    result =
-      async_task
-      |> Task.await(session.config.timeout || @default_timeout)
+  def timeout(session) do
+    session.config.timeout || @default_timeout
+  end
 
-    put_in session.results[async_task], result
+  def await(session, task = %Task{}) do
+    result = Task.await(task, session |> timeout)
+    put_in session.results[task], result
   end
 
   def await(session, async_tasks) when is_list(async_tasks) do
@@ -84,8 +103,14 @@ defmodule Chaperon.Session do
   end
 
   def run_action(session, action) do
-    result = Chaperon.Actionable.run(action, session)
-    put_in session.results[action], result
+    case Chaperon.Actionable.run(action, session) do
+      {:error, reason} ->
+        Logger.error "Session.run_action failed: #{inspect reason}"
+        put_in session.results[action], {:error, reason}
+      {:ok, result} ->
+        Logger.info "Session.run_action: #{inspect result}"
+        put_in session.results[action], {:ok, result}
+    end
   end
 
   def assign(session, assignments) do
@@ -103,13 +128,8 @@ defmodule Chaperon.Session do
   end
 
   def async(session, func_name) do
-    case Task.start(session.scenario.module, func_name, session) do
-      {:ok, task} ->
-        put_in session.async_tasks[func_name], task
-      error = {:error, reason} ->
-        Logger.error "Session.async failed for #{session.scenario.module} #{inspect func_name}: #{inspect reason}"
-        error
-    end
+    {:ok, task} = Task.start(session.scenario.module, func_name, [session])
+    put_in session.async_tasks[func_name], task
   end
 
   alias Chaperon.Session.Error

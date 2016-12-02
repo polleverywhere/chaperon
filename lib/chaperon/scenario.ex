@@ -24,24 +24,6 @@ defmodule Chaperon.Scenario do
     end
   end
 
-
-  alias Chaperon.Session
-  alias Chaperon.Action.SpreadAsync
-
-  @doc """
-  Concurrently spreads a given action with a given rate over a given time interval
-  """
-  @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
-  def cc_spread(session, action_name, rate, interval) do
-    action = %SpreadAsync{
-      callback: {session.scenario.name, action_name},
-      rate: rate,
-      interval: interval
-    }
-    session
-    |> Session.run_action(action)
-  end
-
   defmacro session ~> func_call do
     quote do
       unquote(session)

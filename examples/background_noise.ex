@@ -25,7 +25,7 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def post_data(session) do
     session
-    |> post("/data", %{data: "hello, world!"})
+    |> post("/data", json: "hello, world!")
   end
 
   def increase_noise(session) do
@@ -49,6 +49,12 @@ defmodule Environment.Production do
   use Chaperon.Environment
 
   scenarios do
+    default_config %{
+      base_url: "https://github.com",
+      http: %{
+        # http (hackney request) parameters
+      }
+    }
     run BackgroundNoise, %{
       something: true,
     }

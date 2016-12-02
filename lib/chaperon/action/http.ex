@@ -64,6 +64,7 @@ defmodule Chaperon.Action.HTTP do
 
   def options(action, session) do
     session.config.http
+    |> Enum.into([])
     |> Keyword.merge(params: action.params)
   end
 
