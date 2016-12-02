@@ -6,6 +6,7 @@ defmodule Chaperon.Session do
     async_tasks: %{},
     config: %{},
     assigns: %{},
+    metrics: %{},
     scenario: nil
   ]
 
@@ -16,6 +17,7 @@ defmodule Chaperon.Session do
     async_tasks: map,
     config: map,
     assigns: map,
+    metrics: map,
     scenario: Chaperon.Scenario.t
   }
 
@@ -54,19 +56,17 @@ defmodule Chaperon.Session do
     session.config[:timeout] || @default_timeout
   end
 
-  def await(session, task_name, task = %Task{}) do
-    task_results =
-        task
-        |> Task.await(session |> timeout)
-        |> async_results(task_name, task)
+  def await(session, task_name, nil), do: session
 
-    update_in session.results,
-              &Map.merge(&1, task_results)
+  def await(session, task_name, task = %Task{}) do
+    task_result = task |> Task.await(session |> timeout)
+    session
+    |> merge_async_task_result(task_result, task_name)
   end
 
   def await(session, task_name) when is_atom(task_name) do
     session
-    |> await(task_name, session |> async_tasks(task_name))
+    |> await(task_name, session.async_tasks[task_name])
   end
 
   def await(session, async_tasks) when is_list(async_tasks) do
@@ -76,19 +76,35 @@ defmodule Chaperon.Session do
 
   def await_all(session, task_name) do
     session
-    |> await(session |> async_tasks(task_name))
+    |> await(session.async_tasks[task_name])
   end
 
-  def async_tasks(session, action_name) do
-    session.async_tasks
-    |> Map.get(action_name, [])
+  def async_task(session, action_name) do
+    session.async_tasks[action_name]
   end
 
-  def async_results(task_session, task_name, task = %Task{}) do
+  defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
       {k, {:async, task_name, v}}
     end
     |> Enum.into(%{})
+  end
+
+  defp async_metrics(task_session, task_name) do
+    for {k, v} <- task_session.metrics do
+      {k, {:async, task_name, v}}
+    end
+    |> Enum.into(%{})
+  end
+
+  defp merge_async_task_result(session, task_session, task_name) do
+    task_results = task_session |> async_results(task_name)
+    task_metrics = task_session |> async_metrics(task_name)
+
+    %{session |
+      results: Map.merge(session.results, task_results),
+      metrics: Map.merge(session.metrics, task_metrics)
+    }
   end
 
   def get(session, path, params) do

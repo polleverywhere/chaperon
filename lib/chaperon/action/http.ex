@@ -58,8 +58,19 @@ defmodule Chaperon.Action.HTTP do
     }
   end
 
-  def url(action, session) do
-    session.config.base_url <> "/" <> action.path
+  alias __MODULE__
+  alias Chaperon.Session
+
+  def url(%{path: path}, %Session{config: %{base_url: base_url}}) do
+    base_url <> "/" <> path
+  end
+
+  def full_url(action = %HTTP{method: method, params: params}, session) do
+    url = url(action, session)
+    case method do
+      :get -> url <> "?" <> URI.encode_query(params)
+      _    -> url
+    end
   end
 
   def options(action, session) do
@@ -113,10 +124,13 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   require Logger
 
   def run(action, session) do
+    url = HTTP.full_url(action, session)
+    Logger.info "#{action.method |> to_string |> String.upcase} #{url}"
+
     case HTTPoison.request(
       action.method,
-      HTTP.url(action, session),
-      action.body,
+      url,
+      action.body || "",
       action.headers,
       HTTP.options(action, session)
     ) do

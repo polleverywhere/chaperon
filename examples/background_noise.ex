@@ -12,8 +12,8 @@ defmodule Example.Scenario.BackgroundNoise do
   def run(session) do
     session
     |> print_config
-    |> async(:post_data)
-    |> await(:post_data)
+    |> async(:search)
+    |> await(:search)
     |> loop(:spread_post_data, 10 |> minutes)
   end
 
@@ -22,6 +22,11 @@ defmodule Example.Scenario.BackgroundNoise do
     |> cc_spread(:post_data, round(session.assigns.rate), session.assigns.interval)
     |> await_all(:post_data)
     |> increase_noise
+  end
+
+  def search(session) do
+    session
+    |> get("", q: "WHO AM I?")
   end
 
   def post_data(session) do
@@ -51,7 +56,7 @@ defmodule Environment.Production do
 
   scenarios do
     default_config %{
-      base_url: "https://github.com",
+      base_url: "https://www.google.de/search",
       http: %{
         # http (hackney request) parameters
       }
