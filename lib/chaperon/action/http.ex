@@ -80,11 +80,9 @@ defmodule Chaperon.Action.HTTP do
   end
 
   def add_body(action, body) do
-    import Map, only: [merge: 2]
-
     {new_headers, body} = parse_body(body)
     %{ action |
-      headers: action.headers |> merge(new_headers),
+      headers: action.headers |> Map.merge(new_headers),
       body: body
     }
   end
