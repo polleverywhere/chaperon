@@ -13,6 +13,7 @@ defmodule Chaperon.Scenario do
     quote do
       require Logger
       require Chaperon.Scenario
+      require Chaperon.Session
       import  Chaperon.Scenario
       import  Chaperon.Timing
       import  Chaperon.Session
@@ -22,16 +23,6 @@ defmodule Chaperon.Scenario do
           Scenario.Task.start_link session
         end
       end
-    end
-  end
-
-  defmacro session ~> func_call do
-    quote do
-      unquote(session)
-      |> call(fn s ->
-        s
-        |> unquote(func_call)
-      end)
     end
   end
 

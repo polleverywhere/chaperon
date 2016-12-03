@@ -63,14 +63,18 @@ defmodule BasicAccountLogin do
     session
     # calls logout/1, assigns response to :logout
     |> async(:logout)
+    # same as above but with helper macro:
+    ~> logout
     # same but for foo_bar
     |> async(:foo_bar)
     # run custom logic & assign response to baz
     |> async(:baz, &put(&1, "/baz", json: [data: "value"]))
     # await first and last async, ignore second
     |> await([:logout, :baz])
-    # alternatively, wait on all async sessions:
-    |> await(:all)
+    # wait for single task
+    |> await(:foo_bar)
+    # same as above but with helper macro:
+    <~ foo_bar
 
     # to get values out of async vals
     |> with_resp(:logout, fn (s, resp) ->

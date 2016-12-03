@@ -61,6 +61,7 @@ defmodule Chaperon.Session do
   def await(session, task_name, task = %Task{}) do
     task_result = task |> Task.await(session |> timeout)
     session
+    |> remove_async_task(task_name, task)
     |> merge_async_task_result(task_result, task_name)
   end
 
@@ -162,8 +163,8 @@ defmodule Chaperon.Session do
     end)
   end
 
-  def async(session, func_name) do
-    task = Task.async(session.scenario.module, func_name, [session])
+  def async(session, func_name, args \\ []) do
+    task = Task.async(session.scenario.module, func_name, [session | args])
     session
     |> add_async_task(func_name, task)
   end
@@ -180,8 +181,42 @@ defmodule Chaperon.Session do
     put_in session.async_tasks[name], task
   end
 
+  def remove_async_task(session, task_name, task) do
+    case session.async_tasks[task_name] do
+      nil ->
+        session
+
+      tasks when is_list(tasks) ->
+        update_in session.async_tasks[task_name],
+                  &List.delete(&1, task)
+      task ->
+        update_in session.async_tasks, &Map.delete(&1, task_name)
+    end
+  end
+
   alias Chaperon.Session.Error
 
   def ok(session),      do: {:ok, session}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
+
+  defmacro session ~> {func, _, nil} do
+    quote do
+      unquote(session)
+      |> Chaperon.Session.async(unquote(func))
+    end
+  end
+
+  defmacro session ~> {task_name, _, _} do
+    quote do
+      unquote(session)
+      |> Chaperon.Session.async(unquote(task_name))
+    end
+  end
+
+  defmacro session <~ {task_name, _, _} do
+    quote do
+      unquote(session)
+      |> Chaperon.Session.await(unquote(task_name))
+    end
+  end
 end

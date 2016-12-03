@@ -11,11 +11,11 @@ defmodule Example.Scenario.BackgroundNoise do
 
   def run(session) do
     session
-    |> async(:search)
-    |> async(:search)
-    |> async(:search)
+    |> async(:search, ["foo"])
+    ~> search("foo") # same as above
     |> post_data
-    |> await_all(:search)
+    |> await(:search)
+    <~ search # same as above but has no effect since tasks already awaited
     |> loop(:spread_post_data, 10 |> minutes)
   end
 
@@ -26,9 +26,9 @@ defmodule Example.Scenario.BackgroundNoise do
     |> increase_noise
   end
 
-  def search(session) do
+  def search(session, query \\ "WHO AM I?") do
     session
-    |> get("/", q: "WHO AM I?")
+    |> get("/", q: query)
   end
 
   def post_data(session) do
