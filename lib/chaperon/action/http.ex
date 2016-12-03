@@ -141,7 +141,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
     ) do
       {:ok, response} ->
         Logger.debug "HTTP Response #{action} : #{response.status_code}"
-        # {:ok, put_in(session.results[action], response)}
         {:ok, session |> Session.add_result(action, response)}
 
       {:error, reason} ->

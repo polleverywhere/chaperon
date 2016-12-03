@@ -77,9 +77,13 @@ defmodule BasicAccountLogin do
     <~ foo_bar
 
     # to get values out of async vals
-    |> with_resp(:logout, fn (s, resp) ->
+    |> with_resp(:logout, fn (session, resp) ->
       # do something with logout response
     end)
+    # same as above, but with helper macro
+    ~>> logout(session, resp) do
+      # do something with logout response
+    end
   end
 end
 

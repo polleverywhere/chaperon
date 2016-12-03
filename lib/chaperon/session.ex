@@ -91,14 +91,14 @@ defmodule Chaperon.Session do
 
   defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
-      {k, {:async, task_name, v}}
+      {task_name, {:async, k, v}}
     end
     |> Enum.into(%{})
   end
 
   defp async_metrics(task_session, task_name) do
     for {k, v} <- task_session.metrics do
-      {k, {:async, task_name, v}}
+      {task_name, {:async, k, v}}
     end
     |> Enum.into(%{})
   end
@@ -202,14 +202,28 @@ defmodule Chaperon.Session do
     case session.results[action] do
       nil ->
         put_in session.results[action], result
+
       results when is_list(results) ->
         update_in session.results[action],
                   &[result | &1]
+
       _ ->
         update_in session.results[action],
                   &[result, &1]
     end
   end
+
+  def with_response(session, task_name, callback) do
+    session = session |> await(task_name)
+    for {:async, action, resp} <- session.results[task_name] |> as_list do
+      callback.(session, resp)
+    end
+    session
+  end
+
+  defp as_list(nil), do: []
+  defp as_list([h|t]), do: [h|t]
+  defp as_list(val), do: [val]
 
   alias Chaperon.Session.Error
 
@@ -234,6 +248,19 @@ defmodule Chaperon.Session do
     quote do
       unquote(session)
       |> Chaperon.Session.await(unquote(task_name))
+    end
+  end
+
+  defmacro session ~>> {task_name, _, args} do
+    size = args |> Enum.count
+    body = List.last(args)
+    args = args |> Enum.take(size - 1)
+    body = body[:do]
+    callback_fn = {:fn, [], [{:->, [], [args, body]}]}
+
+    quote do
+      unquote(session)
+      |> with_response(unquote(task_name), unquote(callback_fn))
     end
   end
 end
