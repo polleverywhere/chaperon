@@ -185,12 +185,12 @@ defmodule Chaperon.Session do
     case session.async_tasks[task_name] do
       nil ->
         session
-
       tasks when is_list(tasks) ->
         update_in session.async_tasks[task_name],
                   &List.delete(&1, task)
       task ->
-        update_in session.async_tasks, &Map.delete(&1, task_name)
+        update_in session.async_tasks,
+                  &Map.delete(&1, task_name)
     end
   end
 
