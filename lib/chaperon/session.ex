@@ -65,13 +65,18 @@ defmodule Chaperon.Session do
     |> merge_async_task_result(task_result, task_name)
   end
 
+  def await(session, task_name, tasks) when is_list(tasks) do
+    tasks
+    |> Enum.reduce(session, &await(&2, task_name, &1))
+  end
+
   def await(session, task_name) when is_atom(task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
   end
 
-  def await(session, async_tasks) when is_list(async_tasks) do
-    async_tasks
+  def await(session, task_names) when is_list(task_names) do
+    task_names
     |> Enum.reduce(session, &await(&2, &1))
   end
 
@@ -144,7 +149,7 @@ defmodule Chaperon.Session do
         Logger.error "Session.run_action failed: #{inspect reason}"
         put_in session.errors[action], reason
       {:ok, session} ->
-        Logger.info "Session.run_action success"
+        Logger.debug "SUCCESS #{action}"
         session
     end
   end
@@ -175,7 +180,7 @@ defmodule Chaperon.Session do
         put_in session.async_tasks[name], task
       tasks when is_list(tasks) ->
         update_in session.async_tasks[name], &[task | &1]
-      task ->
+      _ ->
         update_in session.async_tasks[name], &[task, &1]
     end
   end
@@ -187,9 +192,22 @@ defmodule Chaperon.Session do
       tasks when is_list(tasks) ->
         update_in session.async_tasks[task_name],
                   &List.delete(&1, task)
-      task ->
+      _ ->
         update_in session.async_tasks,
                   &Map.delete(&1, task_name)
+    end
+  end
+
+  def add_result(session, action, result) do
+    case session.results[action] do
+      nil ->
+        put_in session.results[action], result
+      results when is_list(results) ->
+        update_in session.results[action],
+                  &[result | &1]
+      _ ->
+        update_in session.results[action],
+                  &[result, &1]
     end
   end
 

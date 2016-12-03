@@ -7,7 +7,17 @@ defmodule Chaperon.Action.Function do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
-  def run(%{func: f}, session),       do: f.(session)
-  def abort(_, session),              do: session
-  def retry(function, session),       do: run(function, session)
+  def run(%{func: f}, session), do: f.(session)
+  def abort(_, session),        do: session
+  def retry(function, session), do: run(function, session)
+end
+
+defimpl String.Chars, for: Chaperon.Action.Function do
+  def to_string(%{func: func}) when is_atom(func) do
+    "#{func}"
+  end
+
+  def to_string(%{func: func}) when is_function(func) do
+    "Function[#{inspect func}]"
+  end
 end

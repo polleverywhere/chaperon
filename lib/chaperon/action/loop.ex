@@ -39,3 +39,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
     |> run(session)
   end
 end
+
+defimpl String.Chars, for: Chaperon.Action.Loop do
+  def to_string(%{action: action, duration: duration}) do
+    "Loop[#{action}, #{duration}]"
+  end
+end

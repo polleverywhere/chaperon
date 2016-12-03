@@ -29,7 +29,7 @@ defmodule Chaperon.Scenario do
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Chaperon.Session{
-      id: "test-session",
+      id: "#{scenario_mod} #{UUID.uuid4}",
       scenario: scenario,
       config: config
     }

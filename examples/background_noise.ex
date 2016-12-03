@@ -14,7 +14,7 @@ defmodule Example.Scenario.BackgroundNoise do
     |> async(:search, ["foo"])
     ~> search("foo") # same as above
     |> post_data
-    |> await(:search)
+    |> await_all(:search)
     <~ search # same as above but has no effect since tasks already awaited
     |> loop(:spread_post_data, 10 |> minutes)
   end

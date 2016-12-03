@@ -8,7 +8,7 @@ defmodule Chaperon.Action.HTTP do
     body: nil
   ]
 
-  @type method :: :get | :post | :put | :patch | :delete
+  @type method :: :get | :post | :put | :patch | :delete | :head
 
   @type t :: %Chaperon.Action.HTTP{
     method: method,
@@ -69,6 +69,8 @@ defmodule Chaperon.Action.HTTP do
     base_url <> path
   end
 
+  def url(%{path: path}, _), do: path
+
   def full_url(action = %HTTP{method: method, params: params}, session) do
     url = url(action, session)
     case method do
@@ -123,6 +125,7 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   alias Chaperon.Action.Error
   alias Chaperon.Action.HTTP
+  alias Chaperon.Session
   require Logger
 
   def run(action, session) do
@@ -137,11 +140,12 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       HTTP.options(action, session)
     ) do
       {:ok, response} ->
-        Logger.debug "HTTP Response [#{action.method} #{action.path}] : #{response.status_code}"
-        {:ok, put_in(session.results[action], response)}
+        Logger.debug "HTTP Response #{action} : #{response.status_code}"
+        # {:ok, put_in(session.results[action], response)}
+        {:ok, session |> Session.add_result(action, response)}
 
       {:error, reason} ->
-        Logger.error "HTTP action [#{action.method} #{action.path}] failed: #{inspect reason}"
+        Logger.error "HTTP action #{action} failed: #{inspect reason}"
         {:error, %Error{reason: reason, action: action, session: session}}
     end
   end
@@ -153,5 +157,19 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
 
   def retry(action, session) do
     Chaperon.Action.retry(action, session)
+  end
+end
+
+defimpl String.Chars, for: Chaperon.Action.HTTP do
+  alias Chaperon.Action.HTTP
+
+  @methods [:get, :post, :put, :patch, :delete, :head]
+  @method_strings @methods
+                  |> Enum.map(&{&1, &1 |> Kernel.to_string |> String.upcase})
+                  |> Enum.into(%{})
+
+
+  def to_string(http) do
+    "#{@method_strings[http.method]} #{HTTP.full_url(http, %{})}"
   end
 end
