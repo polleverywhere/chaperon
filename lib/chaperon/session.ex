@@ -178,7 +178,6 @@ defmodule Chaperon.Session do
       task ->
         update_in session.async_tasks[name], &[task, &1]
     end
-    put_in session.async_tasks[name], task
   end
 
   def remove_async_task(session, task_name, task) do
