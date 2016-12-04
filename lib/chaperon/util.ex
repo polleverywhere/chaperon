@@ -1,8 +1,13 @@
 defmodule Chaperon.Util do
-  def as_list(nil), do: []
-  def as_list([h|t]), do: [h|t]
-  def as_list(val), do: [val]
+  @spec as_list(any) :: [any]
+  def as_list(nil),
+    do: []
+  def as_list(l) when is_list(l),
+    do: l
+  def as_list(val),
+    do: [val]
 
+  @spec preserve_vals_merge(map, map) :: map
   def preserve_vals_merge(map1, map2) do
     new_map = for {k,v} <- map2 do
       case map1[k] do
