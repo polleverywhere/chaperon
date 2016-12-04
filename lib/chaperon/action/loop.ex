@@ -12,8 +12,6 @@ defmodule Chaperon.Action.Loop do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
-  alias Chaperon.Session
-
   def run(loop = %{started: nil}, session) do
     %{loop | started: DateTime.utc_now}
     |> run(session)
@@ -30,9 +28,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
     end
   end
 
-  def abort(loop, session) do
-     {:ok, session}
-   end
+  def abort(_loop, session) do
+    {:ok, session}
+  end
 
   def retry(action, session) do
     %{action | started: DateTime.utc_now}

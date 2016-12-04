@@ -60,7 +60,7 @@ defmodule Chaperon.Session do
   end
 
   @spec await(Session.t, atom, Task.t) :: Session.t
-  def await(session, task_name, nil), do: session
+  def await(session, _task_name, nil), do: session
 
   def await(session, task_name, task = %Task{}) do
     task_session = task |> Task.await(session |> timeout)
@@ -216,7 +216,7 @@ defmodule Chaperon.Session do
   @spec with_response(Session.t, atom, (Session.t, any -> any)) :: Session.t
   def with_response(session, task_name, callback) do
     session = session |> await(task_name)
-    for {:async, action, resp} <- session.results[task_name] |> as_list do
+    for {:async, _action, resp} <- session.results[task_name] |> as_list do
       callback.(session, resp)
     end
     session
@@ -263,7 +263,7 @@ defmodule Chaperon.Session do
   @spec ok(Session.t) :: {:ok, Session.t}
   def ok(session), do: {:ok, session}
 
-  @spec error(Session.t, any) :: {:ok, Error.t}
+  @spec error(Session.t, any) :: {:error, Error.t}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
 
   defmacro session ~> {func, _, nil} do

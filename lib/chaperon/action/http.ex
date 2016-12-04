@@ -149,7 +149,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
     end
   end
 
-  def abort(action, session) do
+  def abort(_action, session) do
     # TODO
     {:ok, session}
   end

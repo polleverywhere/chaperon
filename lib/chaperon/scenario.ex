@@ -35,7 +35,7 @@ defmodule Chaperon.Scenario do
     }
 
     {:ok, session} = session |> scenario_mod.init
-    session = session
-              |> scenario_mod.run
+    session
+    |> scenario_mod.run
   end
 end

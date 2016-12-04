@@ -8,12 +8,12 @@ defmodule Chaperon.Action.SpreadAsync do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
-  def run(action, session) do
+  def run(_action, session) do
     # TODO
     {:ok, session}
   end
 
-  def abort(action, session) do
+  def abort(_action, session) do
     # TODO
     {:ok, session}
   end
