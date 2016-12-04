@@ -45,6 +45,7 @@ defmodule Chaperon.Session do
     |> Session.run_action(action)
   end
 
+  @spec loop(Session.t, atom, Chaperon.Timing.duration) :: Session.t
   def loop(session, action_name, duration) do
     session
     |> run_action(%Chaperon.Action.Loop{
@@ -53,10 +54,12 @@ defmodule Chaperon.Session do
     })
   end
 
+  @spec timeout(Session.t) :: non_neg_integer
   def timeout(session) do
     session.config[:timeout] || @default_timeout
   end
 
+  @spec await(Session.t, atom, Task.t) :: Session.t
   def await(session, task_name, nil), do: session
 
   def await(session, task_name, task = %Task{}) do
@@ -66,60 +69,72 @@ defmodule Chaperon.Session do
     |> merge_async_task_result(task_session, task_name)
   end
 
+  @spec await(Session.t, atom, [Task.t]) :: Session.t
   def await(session, task_name, tasks) when is_list(tasks) do
     tasks
     |> Enum.reduce(session, &await(&2, task_name, &1))
   end
 
+  @spec await(Session.t, atom) :: Session.t
   def await(session, task_name) when is_atom(task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
   end
 
+  @spec await(Session.t, [atom]) :: Session.t
   def await(session, task_names) when is_list(task_names) do
     task_names
     |> Enum.reduce(session, &await(&2, &1))
   end
 
+  @spec await_all(Session.t, atom) :: Session.t
   def await_all(session, task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
   end
 
+  @spec async_task(Session.t, atom) :: (Task.t | [Task.t])
   def async_task(session, action_name) do
     session.async_tasks[action_name]
   end
 
+  @spec get(Session.t, String.t, Keyword.t) :: Session.t
   def get(session, path, params) do
     session
     |> run_action(Chaperon.Action.HTTP.get(path, params))
   end
 
+  @spec post(Session.t, String.t, any) :: Session.t
   def post(session, path, data) do
     session
     |> run_action(Chaperon.Action.HTTP.post(path, data))
   end
 
+  @spec put(Session.t, String.t, any) :: Session.t
   def put(session, path, data) do
     session
     |> run_action(Chaperon.Action.HTTP.put(path, data))
   end
 
+  @spec patch(Session.t, String.t, any) :: Session.t
   def patch(session, path, data) do
     session
     |> run_action(Chaperon.Action.HTTP.patch(path, data))
   end
 
+  @spec delete(Session.t, String.t) :: Session.t
   def delete(session, path) do
     session
     |> run_action(Chaperon.Action.HTTP.delete(path))
   end
 
+  @spec call(Session.t, (Session.t -> Session.t)) :: Session.t
   def call(session, func) do
     session
     |> run_action(%Chaperon.Action.Function{func: func})
   end
 
+  @spec run_action(Session.t, Chaperon.Actionable.t) :: Session.t
   def run_action(session, action) do
     case Chaperon.Actionable.run(action, session) do
       {:error, reason} ->
@@ -131,6 +146,7 @@ defmodule Chaperon.Session do
     end
   end
 
+  @spec assign(Session.t, Keyword.t) :: Session.t
   def assign(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, v}, session ->
@@ -138,6 +154,7 @@ defmodule Chaperon.Session do
     end)
   end
 
+  @spec update_assign(Session.t, Keyword.t((any -> any))) :: Session.t
   def update_assign(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
@@ -145,6 +162,7 @@ defmodule Chaperon.Session do
     end)
   end
 
+  @spec async(Session.t, atom, [any]) :: Session.t
   def async(session, func_name, args \\ []) do
     Logger.debug "Async: #{func_name} #{inspect args}"
     task = Task.async(session.scenario.module, func_name, [session | args])
@@ -152,6 +170,7 @@ defmodule Chaperon.Session do
     |> add_async_task(func_name, task)
   end
 
+  @spec add_async_task(Session.t, atom, Task.t) :: Session.t
   def add_async_task(session, name, task) do
     case session.async_tasks[name] do
       nil ->
@@ -163,6 +182,7 @@ defmodule Chaperon.Session do
     end
   end
 
+  @spec remove_async_task(Session.t, atom, Task.t) :: Session.t
   def remove_async_task(session, task_name, task) do
     case session.async_tasks[task_name] do
       nil ->
@@ -176,6 +196,7 @@ defmodule Chaperon.Session do
     end
   end
 
+  @spec add_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_result(session, action, result) do
     Logger.debug "Add result #{action} : #{result.status_code}"
     case session.results[action] do
@@ -192,6 +213,7 @@ defmodule Chaperon.Session do
     end
   end
 
+  @spec with_response(Session.t, atom, (Session.t, any -> any)) :: Session.t
   def with_response(session, task_name, callback) do
     session = session |> await(task_name)
     for {:async, action, resp} <- session.results[task_name] |> as_list do
@@ -200,6 +222,7 @@ defmodule Chaperon.Session do
     session
   end
 
+  @spec async_results(Session.t, atom) :: map
   defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
       {task_name, {:async, k, v}}
@@ -207,6 +230,7 @@ defmodule Chaperon.Session do
     |> Enum.into(%{})
   end
 
+  @spec async_metrics(Session.t, atom) :: map
   defp async_metrics(task_session, task_name) do
     for {k, v} <- task_session.metrics do
       {task_name, {:async, k, v}}
@@ -214,6 +238,7 @@ defmodule Chaperon.Session do
     |> Enum.into(%{})
   end
 
+  @spec merge_async_task_result(Session.t, Session.t, atom) :: Session.t
   defp merge_async_task_result(session, task_session, task_name) do
     task_results = task_session |> async_results(task_name)
     task_metrics = task_session |> async_metrics(task_name)
@@ -223,17 +248,22 @@ defmodule Chaperon.Session do
     |> merge_metrics(task_metrics)
   end
 
+  @spec merge_results(Session.t, map) :: Session.t
   defp merge_results(session, results) do
     update_in session.results, &preserve_vals_merge(&1, results)
   end
 
+  @spec merge_metrics(Session.t, map) :: Session.t
   defp merge_metrics(session, metrics) do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
   end
 
   alias Chaperon.Session.Error
 
-  def ok(session),      do: {:ok, session}
+  @spec ok(Session.t) :: {:ok, Session.t}
+  def ok(session), do: {:ok, session}
+
+  @spec error(Session.t, any) :: {:ok, Error.t}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
 
   defmacro session ~> {func, _, nil} do

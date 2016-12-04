@@ -2,7 +2,7 @@ defmodule Chaperon.Action.Function do
   defstruct func: nil,
             called: false
 
-  @type callback :: (Chaperon.Actionable -> Chaperon.Session.t)
+  @type callback :: (Chaperon.Session.t -> Chaperon.Session.t)
   @type t :: %Chaperon.Action.Function{func: callback, called: boolean}
 end
 

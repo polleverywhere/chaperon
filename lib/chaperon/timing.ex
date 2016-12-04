@@ -10,4 +10,6 @@ defmodule Chaperon.Timing do
   def hours(num), do: num * @hour
   def days(num), do: num * @day
   def weeks(num), do: num * @week
+
+  @type duration :: non_neg_integer
 end
