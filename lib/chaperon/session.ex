@@ -35,14 +35,12 @@ defmodule Chaperon.Session do
   """
   @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
   def cc_spread(session, action_name, rate, interval) do
-    action = %SpreadAsync{
-      callback: {session.scenario.name, action_name},
+    session
+    |> Session.run_action(%SpreadAsync{
+      callback: {session.scenario.module, action_name},
       rate: rate,
       interval: interval
-    }
-
-    session
-    |> Session.run_action(action)
+    })
   end
 
   @spec loop(Session.t, atom, Chaperon.Timing.duration) :: Session.t
