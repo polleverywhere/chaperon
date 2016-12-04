@@ -89,30 +89,6 @@ defmodule Chaperon.Session do
     session.async_tasks[action_name]
   end
 
-  defp async_results(task_session, task_name) do
-    for {k, v} <- task_session.results do
-      {task_name, {:async, k, v}}
-    end
-    |> Enum.into(%{})
-  end
-
-  defp async_metrics(task_session, task_name) do
-    for {k, v} <- task_session.metrics do
-      {task_name, {:async, k, v}}
-    end
-    |> Enum.into(%{})
-  end
-
-  defp merge_async_task_result(session, task_session, task_name) do
-    task_results = task_session |> async_results(task_name)
-    task_metrics = task_session |> async_metrics(task_name)
-
-    %{session |
-      results: Map.merge(session.results, task_results),
-      metrics: Map.merge(session.metrics, task_metrics)
-    }
-  end
-
   def get(session, path, params) do
     session
     |> run_action(Chaperon.Action.HTTP.get(path, params))
@@ -169,6 +145,7 @@ defmodule Chaperon.Session do
   end
 
   def async(session, func_name, args \\ []) do
+    Logger.debug "Async: #{func_name} #{inspect args}"
     task = Task.async(session.scenario.module, func_name, [session | args])
     session
     |> add_async_task(func_name, task)
@@ -199,6 +176,7 @@ defmodule Chaperon.Session do
   end
 
   def add_result(session, action, result) do
+    Logger.info "add result #{result.status_code} for #{action}"
     case session.results[action] do
       nil ->
         put_in session.results[action], result
@@ -224,6 +202,51 @@ defmodule Chaperon.Session do
   defp as_list(nil), do: []
   defp as_list([h|t]), do: [h|t]
   defp as_list(val), do: [val]
+
+  defp async_results(task_session, task_name) do
+    for {k, v} <- task_session.results do
+      {task_name, {:async, k, v}}
+    end
+    |> Enum.into(%{})
+  end
+
+  defp async_metrics(task_session, task_name) do
+    for {k, v} <- task_session.metrics do
+      {task_name, {:async, k, v}}
+    end
+    |> Enum.into(%{})
+  end
+
+  defp merge_async_task_result(session, task_session, task_name) do
+    task_results = task_session |> async_results(task_name)
+    task_metrics = task_session |> async_metrics(task_name)
+
+    session
+    |> merge_results(task_results)
+    |> merge_metrics(task_metrics)
+  end
+
+  defp merge_results(session, results) do
+    update_in session.results, &preserve_vals_merge(&1, results)
+  end
+
+  defp merge_metrics(session, metrics) do
+    update_in session.metrics, &preserve_vals_merge(&1, metrics)
+  end
+
+  defp preserve_vals_merge(map1, map2) do
+    for {k,v} <- map2 do
+      case map1[k] do
+        nil ->
+          {k, v}
+        vals when is_list(vals) ->
+          {k, [v|vals]}
+        val ->
+          {k, [v, val]}
+      end
+    end
+    |> Enum.into(%{})
+  end
 
   alias Chaperon.Session.Error
 

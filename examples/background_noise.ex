@@ -75,7 +75,14 @@ end
 require Logger
 
 for session <- Environment.Production.run do
-  for {action, {:async, name, res}} <- session.results do
-    Logger.info "async #{name} -> #{inspect res.status_code}"
+  for {action, results} <- session.results do
+    for res <- results do
+      case res do
+        {:async, name, res} ->
+          Logger.info "async #{name} -> #{res.status_code}"
+        res ->
+          Logger.info "#{action} -> #{res.status_code}"
+      end
+    end
   end
 end
