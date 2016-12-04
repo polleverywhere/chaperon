@@ -164,10 +164,12 @@ defmodule Chaperon.Session do
 
   @spec async(Session.t, atom, [any]) :: Session.t
   def async(session, func_name, args \\ []) do
-    Logger.debug "Async: #{func_name} #{inspect args}"
-    task = Task.async(session.scenario.module, func_name, [session | args])
     session
-    |> add_async_task(func_name, task)
+    |> run_action(%Chaperon.Action.Async{
+      module: session.scenario.module,
+      function: func_name,
+      args: args
+    })
   end
 
   @spec add_async_task(Session.t, atom, Task.t) :: Session.t
