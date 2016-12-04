@@ -25,6 +25,7 @@ defmodule Chaperon.Session do
   alias Chaperon.Session
   alias Chaperon.Action.SpreadAsync
   import Chaperon.Timing
+  import Chaperon.Util
 
   @default_timeout seconds(10)
 
@@ -59,10 +60,10 @@ defmodule Chaperon.Session do
   def await(session, task_name, nil), do: session
 
   def await(session, task_name, task = %Task{}) do
-    task_result = task |> Task.await(session |> timeout)
+    task_session = task |> Task.await(session |> timeout)
     session
     |> remove_async_task(task_name, task)
-    |> merge_async_task_result(task_result, task_name)
+    |> merge_async_task_result(task_session, task_name)
   end
 
   def await(session, task_name, tasks) when is_list(tasks) do
@@ -176,7 +177,7 @@ defmodule Chaperon.Session do
   end
 
   def add_result(session, action, result) do
-    Logger.info "add result #{result.status_code} for #{action}"
+    Logger.debug "Add result #{action} : #{result.status_code}"
     case session.results[action] do
       nil ->
         put_in session.results[action], result
@@ -198,10 +199,6 @@ defmodule Chaperon.Session do
     end
     session
   end
-
-  defp as_list(nil), do: []
-  defp as_list([h|t]), do: [h|t]
-  defp as_list(val), do: [val]
 
   defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
@@ -232,20 +229,6 @@ defmodule Chaperon.Session do
 
   defp merge_metrics(session, metrics) do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
-  end
-
-  defp preserve_vals_merge(map1, map2) do
-    for {k,v} <- map2 do
-      case map1[k] do
-        nil ->
-          {k, v}
-        vals when is_list(vals) ->
-          {k, [v|vals]}
-        val ->
-          {k, [v, val]}
-      end
-    end
-    |> Enum.into(%{})
   end
 
   alias Chaperon.Session.Error
