@@ -240,12 +240,9 @@ defmodule Chaperon.Session do
 
   @spec merge_async_task_result(Session.t, Session.t, atom) :: Session.t
   defp merge_async_task_result(session, task_session, task_name) do
-    task_results = task_session |> async_results(task_name)
-    task_metrics = task_session |> async_metrics(task_name)
-
     session
-    |> merge_results(task_results)
-    |> merge_metrics(task_metrics)
+    |> merge_results(task_session |> async_results(task_name))
+    |> merge_metrics(task_session |> async_metrics(task_name))
   end
 
   @spec merge_results(Session.t, map) :: Session.t
