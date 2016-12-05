@@ -37,6 +37,7 @@ defmodule Chaperon.Mixfile do
       {:httpoison, "~> 0.10.0"},
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
+      {:hdr_histogram, "~> 0.2.0"},
       {:dialyxir, "~> 0.4", only: [:dev]}
     ]
   end
