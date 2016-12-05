@@ -1,12 +1,10 @@
 defmodule Chaperon.Scenario do
   defstruct [
-    module: nil,
-    sessions: [],
+    module: nil
   ]
 
   @type t :: %Chaperon.Scenario{
-    module: atom,
-    sessions: [Chaperon.Session.t]
+    module: atom
   }
 
   defmacro __using__(_opts) do
