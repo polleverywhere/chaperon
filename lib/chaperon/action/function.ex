@@ -2,11 +2,14 @@ defmodule Chaperon.Action.Function do
   defstruct func: nil,
             called: false
 
-  @type callback :: (Chaperon.Session.t -> Chaperon.Session.t)
+  @type callback :: (Chaperon.Session.t -> Chaperon.Session.t) | atom
   @type t :: %Chaperon.Action.Function{func: callback, called: boolean}
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
+  def run(%{func: f}, session) when is_atom(f) do
+    apply(session.scenario.module, f, [session])
+  end
   def run(%{func: f}, session), do: f.(session)
   def abort(_, session),        do: session
   def retry(function, session), do: run(function, session)

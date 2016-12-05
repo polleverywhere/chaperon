@@ -126,7 +126,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   alias Chaperon.Action.Error
   alias Chaperon.Action.HTTP
   alias Chaperon.Session
-  import Chaperon.Util, only: [timestamp: 0]
+  import Chaperon.Timing
   require Logger
 
   def run(action, session) do

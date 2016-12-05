@@ -20,7 +20,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
   def run(loop = %{action: a, duration: d}, session) do
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
     s = loop.started |> DateTime.to_unix(:milliseconds)
-    if (s + d) > now do
+    if now - s > d do
       loop
       |> abort(session)
     else

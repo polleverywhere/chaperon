@@ -27,7 +27,7 @@ defmodule Chaperon.Session do
   import Chaperon.Timing
   import Chaperon.Util
 
-  @default_timeout seconds(10)
+  @default_timeout :infinity # seconds(10)
 
 
   @doc """
@@ -213,7 +213,7 @@ defmodule Chaperon.Session do
     end
   end
 
-  @spec add_metric(Session.t, String.t, any) :: Session.t
+  @spec add_metric(Session.t, [any], any) :: Session.t
   def add_metric(session, name, val) do
     Logger.debug "Add metric #{inspect name} : #{val}"
     case session.metrics[name] do

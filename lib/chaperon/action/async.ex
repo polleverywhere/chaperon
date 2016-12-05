@@ -13,7 +13,7 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   require Logger
   alias Chaperon.Session
-  import Chaperon.Util, only: [timestamp: 0]
+  import Chaperon.Timing
 
   def run(action = %{module: mod, function: func_name, args: args}, session) do
     Logger.debug "Async: #{func_name} #{inspect args}"
@@ -37,7 +37,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
       start = timestamp
       session = apply(mod, func_name, [session | args])
       duration = timestamp - start
-      session |> Session.add_metric([:duration, func_name], duration)
+
+      session
+      |> Session.add_metric([:duration, func_name], duration)
     end
   end
 end

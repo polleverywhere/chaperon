@@ -21,4 +21,9 @@ defmodule Chaperon.Timing do
 
   @spec weeks(duration) :: duration
   def weeks(num), do: num * @week
+
+  @spec timestamp() :: non_neg_integer
+  def timestamp do
+    :os.system_time(:milli_seconds)
+  end
 end
