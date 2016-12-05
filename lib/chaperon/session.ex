@@ -213,6 +213,23 @@ defmodule Chaperon.Session do
     end
   end
 
+  @spec add_metric(Session.t, String.t, any) :: Session.t
+  def add_metric(session, name, val) do
+    Logger.debug "Add metric #{inspect name} : #{val}"
+    case session.metrics[name] do
+      nil ->
+        put_in session.metrics[name], val
+
+      vals when is_list(vals) ->
+        update_in session.metrics[name],
+                  &[val | &1]
+
+      _ ->
+        update_in session.metrics[name],
+                  &[val | &1]
+    end
+  end
+
   @spec with_response(Session.t, atom, (Session.t, any -> any)) :: Session.t
   def with_response(session, task_name, callback) do
     session = session |> await(task_name)

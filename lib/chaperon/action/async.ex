@@ -13,11 +13,15 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   require Logger
   alias Chaperon.Session
+  import Chaperon.Util, only: [timestamp: 0]
 
-  def run(%{module: mod, function: func_name, args: args}, session) do
+  def run(action = %{module: mod, function: func_name, args: args}, session) do
     Logger.debug "Async: #{func_name} #{inspect args}"
-    task = Task.async(mod, func_name, [session | args])
-    {:ok, session |> Session.add_async_task(func_name, task)}
+    task = action |> execute_task(session)
+
+    session
+    |> Session.add_async_task(func_name, task)
+    |> Session.ok
   end
 
   def abort(_action, session) do
@@ -26,6 +30,15 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
 
   def retry(action, session) do
     Chaperon.Action.retry(action, session)
+  end
+
+  defp execute_task(%{module: mod, function: func_name, args: args}, session) do
+    Task.async fn ->
+      start = timestamp
+      session = apply(mod, func_name, [session | args])
+      duration = timestamp - start
+      session |> Session.add_metric([:duration, func_name], duration)
+    end
   end
 end
 

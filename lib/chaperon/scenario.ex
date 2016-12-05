@@ -32,8 +32,19 @@ defmodule Chaperon.Scenario do
       config: config
     }
 
+    {:ok, hist} = :hdr_histogram.open(1000000, 3)
+
     {:ok, session} = session |> scenario_mod.init
+    session = session |> scenario_mod.run
+
+    session =
+      session.async_tasks
+      |> Enum.reduce(session, fn {k, v}, acc ->
+        acc |> Chaperon.Session.await(k, v)
+      end)
+
+
+    :hdr_histogram.close(hist)
     session
-    |> scenario_mod.run
   end
 end

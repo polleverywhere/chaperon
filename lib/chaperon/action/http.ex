@@ -126,12 +126,14 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   alias Chaperon.Action.Error
   alias Chaperon.Action.HTTP
   alias Chaperon.Session
+  import Chaperon.Util, only: [timestamp: 0]
   require Logger
 
   def run(action, session) do
     url = HTTP.full_url(action, session)
     Logger.info "#{action.method |> to_string |> String.upcase} #{url}"
 
+    start = timestamp
     case HTTPoison.request(
       action.method,
       url,
@@ -141,7 +143,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
     ) do
       {:ok, response} ->
         Logger.debug "HTTP Response #{action} : #{response.status_code}"
-        {:ok, session |> Session.add_result(action, response)}
+        session
+        |> Session.add_result(action, response)
+        |> Session.add_metric([:duration, action.method, url], timestamp - start)
+        |> Session.ok
 
       {:error, reason} ->
         Logger.error "HTTP action #{action} failed: #{inspect reason}"

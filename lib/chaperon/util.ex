@@ -24,4 +24,9 @@ defmodule Chaperon.Util do
     map1
     |> Map.merge(new_map)
   end
+
+  @spec timestamp() :: non_neg_integer
+  def timestamp do
+    :os.system_time(:micro_seconds)
+  end
 end
