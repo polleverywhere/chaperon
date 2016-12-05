@@ -249,10 +249,11 @@ defmodule Chaperon.Session do
 
   @spec async_metrics(Session.t, atom) :: map
   defp async_metrics(task_session, task_name) do
-    for {k, v} <- task_session.metrics do
-      {task_name, {:async, k, v}}
-    end
-    |> Enum.into(%{})
+    # for {k, v} <- task_session.metrics do
+    #   {task_name, {:async, k, v}}
+    # end
+    # |> Enum.into(%{})
+    task_session.metrics
   end
 
   @spec merge_async_task_result(Session.t, Session.t, atom) :: Session.t

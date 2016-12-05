@@ -24,6 +24,8 @@ defmodule Chaperon.Scenario do
     end
   end
 
+  require Logger
+
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Chaperon.Session{
@@ -32,19 +34,69 @@ defmodule Chaperon.Scenario do
       config: config
     }
 
-    {:ok, hist} = :hdr_histogram.open(1000000, 3)
-
     {:ok, session} = session |> scenario_mod.init
     session = session |> scenario_mod.run
 
-    session =
-      session.async_tasks
-      |> Enum.reduce(session, fn {k, v}, acc ->
-        acc |> Chaperon.Session.await(k, v)
+    session.async_tasks
+    |> Enum.reduce(session, fn {k, v}, acc ->
+      acc |> Chaperon.Session.await(k, v)
+    end)
+    |> add_histogram_metrics
+  end
+
+  def add_histogram_metrics(session) do
+    histograms =
+      session.metrics
+      |> Map.keys
+      |> Enum.map(fn metric ->
+        {:ok, hist} = :hdr_histogram.open(1000000, 3)
+        {metric, hist}
       end)
+      |> Enum.into(%{})
 
 
-    :hdr_histogram.close(hist)
-    session
+    for {k, v} <- session.metrics do
+      try do
+        histograms[k] |> record_metric(v)
+      rescue
+        FunctionClauseError ->
+          Logger.error "Failed to get histogram data for: #{inspect k} -- #{inspect Map.keys(histograms)}"
+      end
+    end
+
+    hist_vals = for {k, hist} <- histograms do
+      {k, %{
+        :min => :hdr_histogram.min(hist),
+        :mean => :hdr_histogram.mean(hist),
+        :median => :hdr_histogram.median(hist),
+        :max => :hdr_histogram.max(hist),
+        :stddev => :hdr_histogram.stddev(hist),
+        {:percentile, 75} => :hdr_histogram.percentile(hist, 75.0),
+        {:percentile, 90} => :hdr_histogram.percentile(hist, 90.0),
+        {:percentile, 95} => :hdr_histogram.percentile(hist, 95.0),
+        {:percentile, 99} => :hdr_histogram.percentile(hist, 99.0),
+        {:percentile, 999} => :hdr_histogram.percentile(hist, 99.9),
+        {:percentile, 9999} => :hdr_histogram.percentile(hist, 99.99),
+        {:percentile, 99999} => :hdr_histogram.percentile(hist, 99.999),
+        total_count: :hdr_histogram.get_total_count(hist)
+      }}
+    end
+    |> Enum.into(%{})
+
+    put_in session.metrics, hist_vals
+  end
+
+  def record_metric(hist, vals) when is_list(vals) do
+    for v <- vals do
+      record_metric(hist, v)
+    end
+  end
+
+  def record_metric(hist, {:async, _name, val}) when is_number(val) do
+    record_metric(hist, val)
+  end
+
+  def record_metric(hist, val) when is_number(val) do
+    :hdr_histogram.record(hist, val)
   end
 end
