@@ -23,7 +23,7 @@ defmodule Chaperon.Environment do
           {t, config}
         end
         for {t, config} <- env_tasks do
-          Task.await(t, config[:timeout] || :infinity)
+          Task.await(t, config[:scenario_timeout] || :infinity)
         end
       end
     end

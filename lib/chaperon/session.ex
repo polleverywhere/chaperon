@@ -27,7 +27,7 @@ defmodule Chaperon.Session do
   import Chaperon.Timing
   import Chaperon.Util
 
-  @default_timeout :infinity # seconds(10)
+  @default_timeout seconds(10)
 
 
   @doc """
