@@ -18,8 +18,11 @@ defmodule Chaperon.Environment do
       import  Chaperon.Timing
 
       def run do
-        for {scenario, config} <- scenarios do
-          Chaperon.Scenario.execute(scenario, config)
+        env_tasks = for {scenario, config} <- scenarios do
+          Task.async Chaperon.Scenario, :execute, [scenario, config]
+        end
+        for t <- env_tasks do
+          Task.await(t)
         end
       end
     end
