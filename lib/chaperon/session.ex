@@ -288,10 +288,10 @@ defmodule Chaperon.Session do
     end
   end
 
-  defmacro session ~> {task_name, _, _} do
+  defmacro session ~> {task_name, _, args} do
     quote do
       unquote(session)
-      |> Chaperon.Session.async(unquote(task_name))
+      |> Chaperon.Session.async(unquote(task_name), unquote(args))
     end
   end
 
