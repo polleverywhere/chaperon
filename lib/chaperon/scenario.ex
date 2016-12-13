@@ -45,24 +45,7 @@ defmodule Chaperon.Scenario do
   end
 
   def add_histogram_metrics(session) do
-    histograms =
-      session.metrics
-      |> Map.keys
-      |> Enum.map(fn metric ->
-        {:ok, hist} = :hdr_histogram.open(1000000, 3)
-        {metric, hist}
-      end)
-      |> Enum.into(%{})
-
-
-    for {k, v} <- session.metrics do
-      try do
-        histograms[k] |> record_metric(v)
-      rescue
-        FunctionClauseError ->
-          Logger.error "Failed to get histogram data for: #{inspect k} -- #{inspect Map.keys(histograms)}"
-      end
-    end
+    histograms = session |> record_metrics
 
     hist_vals = for {k, hist} <- histograms do
       {k, %{
@@ -86,10 +69,27 @@ defmodule Chaperon.Scenario do
     put_in session.metrics, hist_vals
   end
 
-  def record_metric(hist, vals) when is_list(vals) do
-    for v <- vals do
-      record_metric(hist, v)
-    end
+  def record_metrics(session) do
+    session.metrics
+    |> Enum.reduce(%{}, fn {k,v}, histograms ->
+      case histograms[k] do
+        nil ->
+          {:ok, hist} = :hdr_histogram.open(1000000, 3)
+          hist |> record_metric(v)
+          put_in histograms[k], hist
+
+        hist ->
+          hist |> record_metric(v)
+          histograms
+      end
+    end)
+    |> Enum.into(%{})
+  end
+
+  def record_metric(hist, []), do: :ok
+  def record_metric(hist, [v | vals]) do
+    record_metric(hist, v)
+    record_metric(hist, vals)
   end
 
   def record_metric(hist, {:async, _name, val}) when is_number(val) do
