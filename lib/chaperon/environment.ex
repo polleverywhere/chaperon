@@ -18,15 +18,22 @@ defmodule Chaperon.Environment do
       import  Chaperon.Timing
 
       def run do
-        env_tasks = for {scenario, config} <- scenarios do
+        scenarios
+        |> Enum.map(fn {scenario, config} ->
           t = Task.async Chaperon.Scenario, :execute, [scenario, config]
           {t, config}
-        end
-        for {t, config} <- env_tasks do
+        end)
+        |> Enum.map(fn {t, config} ->
           Task.await(t, config[:scenario_timeout] || :infinity)
-        end
+        end)
       end
     end
+  end
+
+  @spec merge_metrics([Chaperon.Session.t]) :: Chaperon.Session.t
+  def merge_metrics([session | sessions]) do
+    session = sessions |> Enum.reduce(&Session.merge_metrics(&2, &1))
+    session.metrics
   end
 
   defmacro scenarios(do: {:__block__, _, run_exprs}) do

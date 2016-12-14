@@ -264,12 +264,12 @@ defmodule Chaperon.Session do
   end
 
   @spec merge_results(Session.t, map) :: Session.t
-  defp merge_results(session, results) do
+  def merge_results(session, results) do
     update_in session.results, &preserve_vals_merge(&1, results)
   end
 
   @spec merge_metrics(Session.t, map) :: Session.t
-  defp merge_metrics(session, metrics) do
+  def merge_metrics(session, metrics) do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
   end
 
