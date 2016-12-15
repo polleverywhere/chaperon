@@ -263,6 +263,13 @@ defmodule Chaperon.Session do
     |> merge_metrics(task_session |> async_metrics(task_name))
   end
 
+  @spec merge(Session.t, Session.t) :: Session.t
+  def merge(session, other_session) do
+    session
+    |> merge_results(other_session.results)
+    |> merge_metrics(other_session.metrics)
+  end
+
   @spec merge_results(Session.t, map) :: Session.t
   def merge_results(session, results) do
     update_in session.results, &preserve_vals_merge(&1, results)

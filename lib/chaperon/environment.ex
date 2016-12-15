@@ -30,10 +30,12 @@ defmodule Chaperon.Environment do
     end
   end
 
-  @spec merge_metrics([Chaperon.Session.t]) :: Chaperon.Session.t
-  def merge_metrics([session | sessions]) do
-    session = sessions |> Enum.reduce(&Session.merge_metrics(&2, &1))
-    session.metrics
+  alias Chaperon.Session
+
+  @spec merge_sessions([Session.t]) :: Session.t
+  def merge_sessions(sessions) when is_list(sessions) do
+    sessions
+    |> Enum.reduce(&Session.merge(&2, &1))
   end
 
   defmacro scenarios(do: {:__block__, _, run_exprs}) do
