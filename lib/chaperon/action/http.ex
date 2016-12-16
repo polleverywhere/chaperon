@@ -74,10 +74,18 @@ defmodule Chaperon.Action.HTTP do
   def full_url(action = %HTTP{method: method, params: params}, session) do
     url = url(action, session)
     case method do
-      :get -> url <> "?" <> URI.encode_query(params)
+      :get -> url <> query_params_string(params)
       _    -> url
     end
   end
+
+  def full_path(%{path: path, params: params}),
+    do: path <> query_params_string(params)
+
+  def query_params_string([]),
+    do: ""
+  def query_params_string(params),
+    do: "?" <> URI.encode_query(params)
 
   def options(action, session) do
     session.config.http
