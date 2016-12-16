@@ -13,7 +13,7 @@ defmodule Chaperon.Export.CSV do
   end
 
   @header_fields [
-    "action", "max", "mean", "median", "min", "stddev", "total_count",
+    "action", "total_count", "max", "mean", "median", "min", "stddev",
     "percentile_75", "percentile_90", "percentile_95", "percentile_99",
     "percentile_999", "percentile_9999", "percentile_99999"
   ]
@@ -38,9 +38,13 @@ defmodule Chaperon.Export.CSV do
     |> Enum.map(&(prefix <> separator <> encode_row(&1, separator)))
   end
 
+  defp encode_runs(run, prefix, seperator) do
+    [prefix <> seperator <> encode_row(run, seperator)]
+  end
+
   defp encode_row(vals, separator) when is_map(vals) do
     [
-      :action, :max, :mean, :median, :min, :stddev, :total_count,
+      :total_count, :max, :mean, :median, :min, :stddev,
       {:percentile, 75}, {:percentile, 90}, {:percentile, 95}, {:percentile, 99},
       {:percentile, 999}, {:percentile, 9999}, {:percentile, 99999}
     ]

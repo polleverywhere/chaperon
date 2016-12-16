@@ -97,25 +97,25 @@ defmodule Chaperon.Session do
   end
 
   @spec get(Session.t, String.t, Keyword.t) :: Session.t
-  def get(session, path, params) do
+  def get(session, path, params \\ []) do
     session
     |> run_action(Chaperon.Action.HTTP.get(path, params))
   end
 
   @spec post(Session.t, String.t, any) :: Session.t
-  def post(session, path, data) do
+  def post(session, path, data \\ "") do
     session
     |> run_action(Chaperon.Action.HTTP.post(path, data))
   end
 
   @spec put(Session.t, String.t, any) :: Session.t
-  def put(session, path, data) do
+  def put(session, path, data \\ "") do
     session
     |> run_action(Chaperon.Action.HTTP.put(path, data))
   end
 
   @spec patch(Session.t, String.t, any) :: Session.t
-  def patch(session, path, data) do
+  def patch(session, path, data \\ "") do
     session
     |> run_action(Chaperon.Action.HTTP.patch(path, data))
   end
@@ -249,18 +249,17 @@ defmodule Chaperon.Session do
 
   @spec async_metrics(Session.t, atom) :: map
   defp async_metrics(task_session, task_name) do
-    # for {k, v} <- task_session.metrics do
-    #   {task_name, {:async, k, v}}
-    # end
-    # |> Enum.into(%{})
-    task_session.metrics
+    for {k, v} <- task_session.metrics do
+      {task_name, {:async, k, v}}
+    end
+    |> Enum.into(%{})
   end
 
   @spec merge_async_task_result(Session.t, Session.t, atom) :: Session.t
   defp merge_async_task_result(session, task_session, task_name) do
     session
-    |> merge_results(task_session |> async_results(task_name))
-    |> merge_metrics(task_session |> async_metrics(task_name))
+    |> merge_results(task_session.results)
+    |> merge_metrics(task_session.metrics)
   end
 
   @spec merge(Session.t, Session.t) :: Session.t
