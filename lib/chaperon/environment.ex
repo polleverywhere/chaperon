@@ -18,7 +18,7 @@ defmodule Chaperon.Environment do
       import  Chaperon.Timing
 
       def run do
-        scenarios
+        scenarios()
         |> Enum.map(fn {scenario, config} ->
           t = Task.async Chaperon.Scenario, :execute, [scenario, config]
           {t, config}
