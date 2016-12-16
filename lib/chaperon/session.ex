@@ -284,12 +284,12 @@ defmodule Chaperon.Session do
 
   def session_results(session) do
     session.results
-    |> Chaperon.Util.map_prefix_value(session |> name)
+    |> Chaperon.Util.map_nested_put(:session_name, session |> name)
   end
 
   def session_metrics(session) do
     session.metrics
-    |> Chaperon.Util.map_prefix_value(session |> name)
+    |> Chaperon.Util.map_nested_put(:session_name, session |> name)
   end
 
   def name(session) do

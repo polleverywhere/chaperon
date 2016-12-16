@@ -31,4 +31,16 @@ defmodule Chaperon.Util do
     end
     |> Enum.into(%{})
   end
+
+  def map_nested_put(map, k2, v2) do
+    for {k, v} <- map do
+      case v do
+        v when is_map(v) ->
+          {k, Map.put(v, k2, v2)}
+        v ->
+          {k, v}
+      end
+    end
+    |> Enum.into(%{})
+  end
 end

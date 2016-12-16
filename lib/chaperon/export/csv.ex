@@ -1,6 +1,6 @@
 defmodule Chaperon.Export.CSV do
   alias Chaperon.Session
-  @separator ","
+  @separator ";"
   @delimiter "\n"
 
   def encode(session, env \\ []) do
@@ -13,9 +13,15 @@ defmodule Chaperon.Export.CSV do
   end
 
   @header_fields [
-    "session_name", "action", "total_count", "max", "mean", "median", "min", "stddev",
+    "session_action_name", "total_count", "max", "mean", "median", "min", "stddev",
     "percentile_75", "percentile_90", "percentile_95", "percentile_99",
     "percentile_999", "percentile_9999", "percentile_99999"
+  ]
+
+  @columns [
+    :total_count, :max, :mean, :median, :min, :stddev,
+    {:percentile, 75}, {:percentile, 90}, {:percentile, 95}, {:percentile, 99},
+    {:percentile, 999}, {:percentile, 9999}, {:percentile, 99999}
   ]
 
   defp encode_header(separator) do
@@ -29,43 +35,30 @@ defmodule Chaperon.Export.CSV do
         encode_runs(vals, "#{action}(#{url})", separator)
       {[:duration, action], vals} ->
         encode_runs(vals, "#{action}", separator)
-
-      x ->
-        IO.puts "got: #{inspect x}"
     end)
     |> Enum.join(delimiter)
   end
 
-  defp encode_runs(runs, prefix, separator) when is_list(runs) do
+  defp encode_runs(runs, action_name, separator) when is_list(runs) do
     runs
-    |> Enum.map(&(encode_row(&1, prefix, separator)))
+    |> Enum.map(&(encode_row(&1, action_name, separator)))
   end
 
-  defp encode_runs(run, prefix, seperator) do
-    [encode_row(run, prefix, seperator)]
+  defp encode_runs(run, action_name, seperator) do
+    [encode_row(run, action_name, seperator)]
   end
 
-  defp encode_row({session_name, vals}, prefix, separator) when is_map(vals) do
-    to_string(session_name)
-    <> separator
-    <> encode_row(vals, prefix, separator)
-  end
+  defp encode_row(vals, action_name, separator) when is_map(vals) do
+    session_name = vals[:session_name]
 
-  @columns [
-    :total_count, :max, :mean, :median, :min, :stddev,
-    {:percentile, 75}, {:percentile, 90}, {:percentile, 95}, {:percentile, 99},
-    {:percentile, 999}, {:percentile, 9999}, {:percentile, 99999}
-  ]
-
-  defp encode_row(vals, prefix, separator) when is_map(vals) do
-    prefix
+    "#{session_name} #{action_name}"
     <> separator
     <> encode_row_values(vals, separator)
   end
 
   defp encode_row_values(vals, separator) do
     @columns
-    |> Enum.map(&(vals[&1]))
+    |> Enum.map(&(round(vals[&1])))
     |> Enum.join(separator)
   end
 end

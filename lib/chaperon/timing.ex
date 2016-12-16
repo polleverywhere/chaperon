@@ -1,5 +1,5 @@
 defmodule Chaperon.Timing do
-  @type duration :: non_neg_integer
+  @type duration :: non_neg_integer | float
 
   @second 1000
   @minute @second * 60
@@ -8,19 +8,19 @@ defmodule Chaperon.Timing do
   @week   @day * 7
 
   @spec seconds(duration) :: duration
-  def seconds(num), do: num * @second
+  def seconds(num), do: round(num * @second)
 
   @spec minutes(duration) :: duration
-  def minutes(num), do: num * @minute
+  def minutes(num), do: round(num * @minute)
 
   @spec hours(duration) :: duration
-  def hours(num), do: num * @hour
+  def hours(num), do: round(num * @hour)
 
   @spec days(duration) :: duration
-  def days(num), do: num * @day
+  def days(num), do: round(num * @day)
 
   @spec weeks(duration) :: duration
-  def weeks(num), do: num * @week
+  def weeks(num), do: round(num * @week)
 
   @spec timestamp() :: non_neg_integer
   def timestamp do
