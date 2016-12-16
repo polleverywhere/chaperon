@@ -264,9 +264,12 @@ defmodule Chaperon.Session do
 
   @spec merge(Session.t, Session.t) :: Session.t
   def merge(session, other_session) do
-    session
-    |> merge_results(other_session.results)
-    |> merge_metrics(other_session.metrics)
+    %{session |
+      metrics: session |> session_metrics,
+      results: session |> session_results
+    }
+    |> merge_results(other_session |> session_results)
+    |> merge_metrics(other_session |> session_metrics)
   end
 
   @spec merge_results(Session.t, map) :: Session.t
@@ -277,6 +280,20 @@ defmodule Chaperon.Session do
   @spec merge_metrics(Session.t, map) :: Session.t
   def merge_metrics(session, metrics) do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
+  end
+
+  def session_results(session) do
+    session.results
+    |> Chaperon.Util.map_prefix_value(session |> name)
+  end
+
+  def session_metrics(session) do
+    session.metrics
+    |> Chaperon.Util.map_prefix_value(session |> name)
+  end
+
+  def name(session) do
+    session.config[:session_name] || session.scenario.module
   end
 
   alias Chaperon.Session.Error

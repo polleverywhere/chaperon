@@ -24,4 +24,11 @@ defmodule Chaperon.Util do
     map1
     |> Map.merge(new_map)
   end
+
+  def map_prefix_value(map, prefix) do
+    for {k, v} <- map do
+      {k, {prefix, v}}
+    end
+    |> Enum.into(%{})
+  end
 end

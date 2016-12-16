@@ -50,6 +50,19 @@ defmodule Chaperon.Environment do
       end
     end
 
+    scenarios_with_name = for {:run, _, [scenario, name, config]} <- run_exprs do
+      quote do
+        {
+          unquote(scenario),
+          unquote(default_config)
+          |> Map.merge(%{session_name: unquote(name)})
+          |> Map.merge(unquote(config))
+        }
+      end
+    end
+
+    scenarios = scenarios ++ scenarios_with_name
+
     quote do
       def scenarios do
         unquote(scenarios)
