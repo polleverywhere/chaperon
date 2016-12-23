@@ -27,35 +27,36 @@ defmodule Chaperon.Action.HTTP do
     }
   end
 
-  def post(path, data) do
+  def post(path, opts) do
     %Chaperon.Action.HTTP{
       method: :post,
       path: path
     }
-    |> add_body(data)
+    |> add_options(opts)
   end
 
-  def put(path, data) do
+  def put(path, opts)  do
     %Chaperon.Action.HTTP{
       method: :put,
       path: path
     }
-    |> add_body(data)
+    |> add_options(opts)
   end
 
-  def patch(path, data) do
+  def patch(path, opts) do
     %Chaperon.Action.HTTP{
       method: :patch,
       path: path
     }
-    |> add_body(data)
+    |> add_options(opts)
   end
 
-  def delete(path) do
+  def delete(path, opts \\ []) do
     %Chaperon.Action.HTTP{
       method: :delete,
       path: path
     }
+    |> add_options(opts)
   end
 
   alias __MODULE__
@@ -93,14 +94,29 @@ defmodule Chaperon.Action.HTTP do
     |> Keyword.merge(params: action.params)
   end
 
-  def add_body(action, body) do
-    {new_headers, body} = parse_body(body)
+  def add_options(action, opts) do
+    alias Keyword, as: KW
+    import Map, only: [merge: 2]
+
+    headers = opts[:headers] || %{}
+    params  = opts[:params] || %{}
+
+    {new_headers, body} =
+      opts
+      |> KW.delete(:headers)
+      |> KW.delete(:params)
+      |> parse_body
+
+    headers = action.headers |> merge(headers) |> merge(new_headers)
+
     %{ action |
-      headers: action.headers |> Map.merge(new_headers),
+      headers: headers,
+      params: params,
       body: body
     }
   end
 
+  defp parse_body([]), do: {%{}, ""}
   defp parse_body(json: data) when is_list(data) do
     data = if Keyword.keyword?(data) do
       data |> Enum.into(%{})
