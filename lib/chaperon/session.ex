@@ -103,21 +103,21 @@ defmodule Chaperon.Session do
   end
 
   @spec post(Session.t, String.t, any) :: Session.t
-  def post(session, path, data \\ "") do
+  def post(session, path, opts \\ []) do
     session
-    |> run_action(Chaperon.Action.HTTP.post(path, data))
+    |> run_action(Chaperon.Action.HTTP.post(path, opts))
   end
 
   @spec put(Session.t, String.t, any) :: Session.t
-  def put(session, path, data \\ "") do
+  def put(session, path, opts) do
     session
-    |> run_action(Chaperon.Action.HTTP.put(path, data))
+    |> run_action(Chaperon.Action.HTTP.put(path, opts))
   end
 
   @spec patch(Session.t, String.t, any) :: Session.t
-  def patch(session, path, data \\ "") do
+  def patch(session, path, opts) do
     session
-    |> run_action(Chaperon.Action.HTTP.patch(path, data))
+    |> run_action(Chaperon.Action.HTTP.patch(path, opts))
   end
 
   @spec delete(Session.t, String.t) :: Session.t
