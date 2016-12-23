@@ -1,5 +1,6 @@
 defmodule Chaperon.Timing do
   @type duration :: non_neg_integer | float
+  @type time_unit :: :seconds | :milli_seconds | :micro_seconds | :nano_seconds
 
   @second 1000
   @minute @second * 60
@@ -22,8 +23,8 @@ defmodule Chaperon.Timing do
   @spec weeks(duration) :: duration
   def weeks(num), do: round(num * @week)
 
-  @spec timestamp() :: non_neg_integer
-  def timestamp do
-    :os.system_time(:milli_seconds)
+  @spec timestamp(time_unit) :: non_neg_integer
+  def timestamp(unit \\ :milli_seconds) do
+    :os.system_time(unit)
   end
 end
