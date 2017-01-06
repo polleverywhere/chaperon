@@ -88,7 +88,7 @@ defmodule Firehose.Scenario.PublishChannel do
   def publish(session, channel) do
     session
     |> put(channel,
-           json: %{"hello" => "world"},
+           json: %{"hello" => "world", "time" => Chaperon.Timing.timestamp},
            headers: %{"X-Firehose-Persist" => true})
   end
 end
@@ -118,17 +118,17 @@ defmodule Environment.Staging do
 
     run PublishChannel, %{
       delay: 4 |> seconds,
-      duration: 10 |> seconds,
+      duration: 3 |> seconds,
       channel: "/testchannel",
-      base_interval: 180,
-      publications_per_loop: 3
+      base_interval: 250,
+      publications_per_loop: 1
     }
 
     run PublishChannel, %{
       delay: 10 |> seconds,
       duration: 5 |> seconds,
       channel: "/testchannel",
-      base_interval: 50,
+      base_interval: 550,
       publications_per_loop: 10
     }
 
