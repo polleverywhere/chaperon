@@ -12,6 +12,7 @@ defmodule Example.Scenario.BackgroundNoise do
   def run(session) do
     session
     |> async(:search, ["foo"])
+    |> async(:search, ["foo"])
     ~> search("foo") # same as above
     |> post_data
     |> await_all(:search)
@@ -20,7 +21,7 @@ defmodule Example.Scenario.BackgroundNoise do
     #   # do something with logout response
     #   IO.puts "Got search response: #{inspect resp}"
     # end
-    |> loop(:spread_post_data, 10 |> minutes)
+    |> loop(:spread_post_data, 1 |> seconds)
   end
 
   def spread_post_data(session) do
@@ -73,8 +74,8 @@ defmodule Environment.Production do
 end
 
 require Logger
-
-for session <- Environment.Production.run do
+sessions = Environment.Production.run
+for session <- sessions do
   for {action, results} <- session.results do
     for res <- results |> Chaperon.Util.as_list do
       case res do
@@ -86,3 +87,15 @@ for session <- Environment.Production.run do
     end
   end
 end
+
+session = Chaperon.Environment.merge_sessions(sessions)
+Logger.info("Metrics:")
+for {k, v} <- session.metrics do
+  k = inspect k
+  delimiter = for _ <- 1..byte_size(k), do: "="
+  IO.puts("#{delimiter}\n#{k}\n#{delimiter}")
+  IO.inspect(v)
+  IO.puts("")
+end
+
+IO.puts Chaperon.Export.CSV.encode(session)
