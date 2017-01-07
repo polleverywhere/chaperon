@@ -105,44 +105,33 @@ defmodule Environment.Staging do
       http: %{
         # http (hackney request) parameters
       },
-      timeout: :infinity
+      timeout: :infinity,
+      channel: "/testchannel"
     }
 
     run PublishChannel, %{
       delay: 1 |> seconds,
       duration: 1 |> seconds,
-      channel: "/testchannel",
       base_interval: 50,
       publications_per_loop: 5
     }
 
     run PublishChannel, %{
       delay: 4 |> seconds,
-      duration: 3 |> seconds,
-      channel: "/testchannel",
+      duration: 10 |> seconds,
       base_interval: 250,
       publications_per_loop: 1
-    }
-
-    run PublishChannel, %{
-      delay: 10 |> seconds,
-      duration: 5 |> seconds,
-      channel: "/testchannel",
-      base_interval: 550,
-      publications_per_loop: 10
     }
 
     run SubscribeChannel, "s1", %{
       delay: 5 |> seconds,
       duration: 1 |> seconds,
-      channel: "/testchannel",
       base_interval: 50,
       subscriptions_per_loop: 5
     }
 
     run SubscribeChannel, "s2", %{
       duration: 15 |> seconds,
-      channel: "/testchannel",
       base_interval: 500,
       subscriptions_per_loop: 5
     }
@@ -150,7 +139,6 @@ defmodule Environment.Staging do
     run SubscribeChannel, "s3", %{
       delay: 7.5 |> seconds,
       duration: 3 |> seconds,
-      channel: "/testchannel",
       base_interval: 75,
       subscriptions_per_loop: 20
     }
