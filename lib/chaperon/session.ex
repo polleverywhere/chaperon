@@ -126,6 +126,24 @@ defmodule Chaperon.Session do
     |> run_action(Chaperon.Action.HTTP.delete(path))
   end
 
+  @spec ws_connect(Session.t, String.t) :: Session.t
+  def ws_connect(session, path) do
+    session
+    |> run_action(Chaperon.Action.WebSocket.connect(path))
+  end
+
+  @spec ws_send(Session.t, any) :: Session.t
+  def ws_send(session, msg, options \\ []) do
+    session
+    |> run_action(Chaperon.Action.WebSocket.send(msg, options))
+  end
+
+  @spec ws_recv(Session.t) :: Session.t
+  def ws_recv(session, options \\ []) do
+    session
+    |> run_action(Chaperon.Action.WebSocket.recv(options))
+  end
+
   @spec call(Session.t, (Session.t -> Session.t)) :: Session.t
   def call(session, func) do
     session
@@ -199,6 +217,24 @@ defmodule Chaperon.Session do
   @spec add_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_result(session, action, result) do
     Logger.debug "Add result #{action} : #{result.status_code}"
+    case session.results[action] do
+      nil ->
+        put_in session.results[action], result
+
+      results when is_list(results) ->
+        update_in session.results[action],
+                  &[result | &1]
+
+      _ ->
+        update_in session.results[action],
+                  &[result, &1]
+    end
+  end
+
+  @spec add_ws_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
+  def add_ws_result(session, action, result) do
+    Logger.debug "Add WS result #{action} : #{inspect result}"
+
     case session.results[action] do
       nil ->
         put_in session.results[action], result
