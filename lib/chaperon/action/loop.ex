@@ -21,21 +21,16 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
     s = loop.started |> DateTime.to_unix(:milliseconds)
     if now - s > d do
-      loop
-      |> abort(session)
+      {:ok, _, session} = loop |> abort(session)
+      {:ok, session}
     else
       session = Chaperon.Actionable.run(a, session)
       run(loop, session)
     end
   end
 
-  def abort(_loop, session) do
-    {:ok, session}
-  end
-
-  def retry(action, session) do
-    %{action | started: DateTime.utc_now}
-    |> run(session)
+  def abort(loop, session) do
+    {:ok, %{loop | started: nil}, session}
   end
 end
 

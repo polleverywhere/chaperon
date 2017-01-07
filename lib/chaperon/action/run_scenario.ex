@@ -22,13 +22,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
     end
   end
 
-  def abort(%{pid: pid}, session) do
+  def abort(action = %{pid: pid}, session) do
     # TODO
     send pid, :abort
-    {:ok, session}
-  end
-
-  def retry(action, session) do
-    Chaperon.Action.retry(action, session)
+    {:ok, action, session}
   end
 end

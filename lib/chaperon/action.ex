@@ -1,6 +1,6 @@
 defmodule Chaperon.Action do
   def retry(action, session) do
-    with {:ok, session} <- Chaperon.Actionable.abort(action, session) do
+    with {:ok, action, session} <- Chaperon.Actionable.abort(action, session) do
       Chaperon.Actionable.run(action, session)
     end
   end

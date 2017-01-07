@@ -24,12 +24,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
     |> Session.ok
   end
 
-  def abort(_action, session) do
-    {:ok, session}
-  end
-
-  def retry(action, session) do
-    Chaperon.Action.retry(action, session)
+  def abort(action, session) do
+    {:ok, action, session}
   end
 
   defp execute_task(%{module: mod, function: func_name, args: args}, session) do

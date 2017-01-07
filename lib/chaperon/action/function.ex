@@ -11,8 +11,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
     apply(session.scenario.module, f, [session])
   end
   def run(%{func: f}, session), do: f.(session)
-  def abort(_, session),        do: session
-  def retry(function, session), do: run(function, session)
+  def abort(func, session),     do: {:ok, func, session}
 end
 
 defimpl String.Chars, for: Chaperon.Action.Function do
