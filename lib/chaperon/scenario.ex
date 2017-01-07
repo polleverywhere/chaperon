@@ -86,7 +86,7 @@ defmodule Chaperon.Scenario do
     |> Enum.into(%{})
   end
 
-  def record_metric(hist, []), do: :ok
+  def record_metric(_hist, []), do: :ok
   def record_metric(hist, [v | vals]) do
     record_metric(hist, v)
     record_metric(hist, vals)

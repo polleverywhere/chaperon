@@ -15,7 +15,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   alias Chaperon.Session
   import Chaperon.Timing
 
-  def run(action = %{module: mod, function: func_name, args: args}, session) do
+  def run(action = %{function: func_name, args: args}, session) do
     Logger.debug "Async: #{func_name} #{inspect args}"
     task = action |> execute_task(session)
 

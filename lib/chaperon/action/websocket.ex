@@ -111,7 +111,6 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   import Chaperon.Timing
   import Chaperon.Action.WebSocket.ReceiveMessage
-  alias Chaperon.Action.HTTP
   alias Chaperon.Session
   alias Chaperon.Action.Error
   require Logger

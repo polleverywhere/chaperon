@@ -1,5 +1,4 @@
 defmodule Chaperon.Export.CSV do
-  alias Chaperon.Session
   @separator ";"
   @delimiter "\n"
 
