@@ -7,7 +7,7 @@ defmodule Chaperon.Action.WebSocket do
     def url(action, session) do
       case Chaperon.Action.HTTP.url(action, session) do
         "https" <> rest -> "wss" <> rest
-        "http"  <> rest -> "ws" <> rest
+        "http"  <> rest -> "ws"  <> rest
       end
     end
   end
@@ -15,7 +15,6 @@ defmodule Chaperon.Action.WebSocket do
   defmodule SendMessage do
     defstruct message: nil,
               options: []
-
 
     def encoded_message(%{message: [json: data]}) do
       {:text, Poison.encode!(data)}
