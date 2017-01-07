@@ -47,6 +47,38 @@ defmodule Firehose.Scenario.SubscribeChannel do
   end
 end
 
+defmodule Firehose.Scenario.WSSubscribeChannel do
+  use Chaperon.Scenario
+
+  def init(session) do
+    session
+    |> ok
+  end
+
+  def run(session) do
+    session
+    |> subscribe(session.config.channel, session.config.await_messages)
+  end
+
+  def subscribe(session, channel, amount) do
+    Logger.info "WS subscribe #{channel} (Awaiting #{amount} messages)"
+    session
+    |> ws_connect(channel)
+    |> ws_send(json: %{last_message_sequence: 0})
+    |> receive_messages(amount)
+  end
+
+  def receive_messages(session, 0),
+    do: session
+
+  def receive_messages(session, amount) do
+    session
+    |> ws_recv
+    # |> ws_recv(decode: :json) # same as above but decode message as json
+    |> receive_messages(amount - 1)
+  end
+end
+
 defmodule Firehose.Scenario.PublishChannel do
   use Chaperon.Scenario
 
@@ -96,6 +128,8 @@ end
 defmodule Environment.Staging do
   alias Firehose.Scenario.SubscribeChannel
   alias Firehose.Scenario.PublishChannel
+  alias Firehose.Scenario.WSSubscribeChannel
+
   use Chaperon.Environment
 
   scenarios do
@@ -146,9 +180,12 @@ defmodule Environment.Staging do
     run SubscribeChannel, "s4", %{
       delay: 2 |> seconds,
       duration: 3 |> seconds,
-      channel: "/testchannel",
       base_interval: 150,
       subscriptions_per_loop: 1
+    }
+
+    run WSSubscribeChannel, "ws1", %{
+      await_messages: 200
     }
   end
 end
