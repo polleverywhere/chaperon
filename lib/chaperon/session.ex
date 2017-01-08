@@ -300,10 +300,7 @@ defmodule Chaperon.Session do
 
   @spec merge(Session.t, Session.t) :: Session.t
   def merge(session, other_session) do
-    %{session |
-      metrics: session |> session_metrics,
-      results: session |> session_results
-    }
+    session
     |> merge_results(other_session |> session_results)
     |> merge_metrics(other_session |> session_metrics)
   end

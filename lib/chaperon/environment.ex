@@ -33,9 +33,17 @@ defmodule Chaperon.Environment do
   alias Chaperon.Session
 
   @spec merge_sessions([Session.t]) :: Session.t
-  def merge_sessions(sessions) when is_list(sessions) do
+  def merge_sessions([s | sessions]) when is_list(sessions) do
     sessions
-    |> Enum.reduce(&Session.merge(&2, &1))
+    |> Enum.reduce(s |> prepare_merge, &Session.merge(&2, &1))
+  end
+
+  @spec prepare_merge([Session.t]) :: Session.t
+  defp prepare_merge(session) do
+    %{session |
+      metrics: session |> Session.session_metrics,
+      results: session |> Session.session_results
+    }
   end
 
   defmacro scenarios(do: {:__block__, _, run_exprs}) do
