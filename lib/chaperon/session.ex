@@ -188,6 +188,12 @@ defmodule Chaperon.Session do
     })
   end
 
+  @spec delay(Session.t, Chaperon.Timing.duration) :: Session.t
+  def delay(session, duration) do
+    :timer.sleep(duration)
+    session
+  end
+
   @spec add_async_task(Session.t, atom, Task.t) :: Session.t
   def add_async_task(session, name, task) do
     case session.async_tasks[name] do

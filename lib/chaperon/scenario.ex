@@ -25,21 +25,32 @@ defmodule Chaperon.Scenario do
   end
 
   require Logger
+  alias Chaperon.Session
 
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
-    session = %Chaperon.Session{
+    session = %Session{
       id: "#{scenario_mod} #{UUID.uuid4}",
       scenario: scenario,
       config: config
     }
 
     {:ok, session} = session |> scenario_mod.init
-    session = session |> scenario_mod.run
+
+    session =
+      case config[:delay] do
+        nil ->
+          session
+
+        duration ->
+          session
+          |> Session.delay(duration)
+      end
+      |> scenario_mod.run
 
     session.async_tasks
     |> Enum.reduce(session, fn {k, v}, acc ->
-      acc |> Chaperon.Session.await(k, v)
+      acc |> Session.await(k, v)
     end)
     |> add_histogram_metrics
   end

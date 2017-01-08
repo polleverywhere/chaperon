@@ -6,9 +6,7 @@ defmodule Firehose.Scenario.SubscribeChannel do
     |> ok
   end
 
-  def run(session = %{config: %{delay: delay}}) do
-    :timer.sleep(delay)
-
+  def run(session) do
     session
     |> multi_subscribe_loop(session.config.subscriptions_per_loop)
   end
@@ -93,9 +91,7 @@ defmodule Firehose.Scenario.PublishChannel do
     |> ok
   end
 
-  def run(session = %{config: %{delay: delay}}) do
-    :timer.sleep(delay)
-
+  def run(session) do
     session
     |> publish_loop
   end
