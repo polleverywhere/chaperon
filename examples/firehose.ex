@@ -57,7 +57,7 @@ defmodule Firehose.Scenario.WSSubscribeChannel do
 
   def run(session) do
     session
-    |> subscribe(session.config.channel, session.config.await_messages)
+    |> subscribe(session.config.channel, session |> expected_messages)
   end
 
   def subscribe(session, channel, amount) do
@@ -68,8 +68,11 @@ defmodule Firehose.Scenario.WSSubscribeChannel do
     |> receive_messages(amount)
   end
 
-  def receive_messages(session, 0),
-    do: session
+  def receive_messages(session, 0) do
+    amount = session |> expected_messages
+    Logger.info "WS received #{amount}/#{amount} messages"
+    session
+  end
 
   def receive_messages(session, amount) do
     session
@@ -77,6 +80,9 @@ defmodule Firehose.Scenario.WSSubscribeChannel do
     # |> ws_recv(decode: :json) # same as above but decode message as json
     |> receive_messages(amount - 1)
   end
+
+  defp expected_messages(session),
+    do: session.config.await_messages
 end
 
 defmodule Firehose.Scenario.PublishChannel do
@@ -143,14 +149,14 @@ defmodule Environment.Staging do
       channel: "/testchannel"
     }
 
-    run PublishChannel, %{
+    run PublishChannel, "p1", %{
       delay: 1 |> seconds,
       duration: 1 |> seconds,
       base_interval: 50,
       publications_per_loop: 5
     }
 
-    run PublishChannel, %{
+    run PublishChannel, "p2", %{
       delay: 4 |> seconds,
       duration: 10 |> seconds,
       base_interval: 250,
@@ -185,6 +191,15 @@ defmodule Environment.Staging do
     }
 
     run WSSubscribeChannel, "ws1", %{
+      await_messages: 10
+    }
+    run WSSubscribeChannel, "ws2", %{
+      await_messages: 50
+    }
+    run WSSubscribeChannel, "ws3", %{
+      await_messages: 100
+    }
+    run WSSubscribeChannel, "ws4", %{
       await_messages: 200
     }
   end
