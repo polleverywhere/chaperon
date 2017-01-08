@@ -38,7 +38,7 @@ defmodule Chaperon.Environment do
     |> Enum.reduce(s |> prepare_merge, &Session.merge(&2, &1))
   end
 
-  @spec prepare_merge([Session.t]) :: Session.t
+  @spec prepare_merge(Session.t) :: Session.t
   defp prepare_merge(session) do
     %{session |
       metrics: session |> Session.session_metrics,
