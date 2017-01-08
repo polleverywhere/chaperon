@@ -7,6 +7,8 @@ It tracks many kinds of metrics automatically and allows tracking custom ones th
 
 An environment is a combination of target web services & scenarios to run against them, optional connection metadata (like headers for authentication) for each of the services, optional custom metrics and service interaction logic.
 
+Chaperon supports running both HTTP & WebSocket actions against a web server.
+Have a look at the `examples/firehose.ex` example file to see an example of both HTTP and WebSocket commands in action.
 
 ## Custom Scenario Sample
 
