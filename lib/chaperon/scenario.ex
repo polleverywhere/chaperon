@@ -16,10 +16,17 @@ defmodule Chaperon.Scenario do
       import  Chaperon.Timing
       import  Chaperon.Session
 
-      def start_link(opts) do
-        with {:ok, session} <- %Chaperon.Session{scenario: __MODULE__} |> init do
+      def start_link(config) do
+        with {:ok, session} <- config |> new_session |> init do
           Scenario.Task.start_link session
         end
+      end
+
+      def new_session(config) do
+        %Chaperon.Session{
+          scenario: __MODULE__,
+          config: config
+        }
       end
     end
   end
