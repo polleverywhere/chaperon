@@ -23,6 +23,7 @@ defmodule Chaperon.Session do
 
   require Logger
   alias Chaperon.Session
+  alias Chaperon.Action
   alias Chaperon.Action.SpreadAsync
   import Chaperon.Timing
   import Chaperon.Util
@@ -46,8 +47,8 @@ defmodule Chaperon.Session do
   @spec loop(Session.t, atom, Chaperon.Timing.duration) :: Session.t
   def loop(session, action_name, duration) do
     session
-    |> run_action(%Chaperon.Action.Loop{
-      action: %Chaperon.Action.Function{func: action_name},
+    |> run_action(%Action.Loop{
+      action: %Action.Function{func: action_name},
       duration: duration
     })
   end
@@ -99,55 +100,61 @@ defmodule Chaperon.Session do
   @spec get(Session.t, String.t, Keyword.t) :: Session.t
   def get(session, path, params \\ []) do
     session
-    |> run_action(Chaperon.Action.HTTP.get(path, params))
+    |> run_action(Action.HTTP.get(path, params))
   end
 
   @spec post(Session.t, String.t, any) :: Session.t
   def post(session, path, opts \\ []) do
     session
-    |> run_action(Chaperon.Action.HTTP.post(path, opts))
+    |> run_action(Action.HTTP.post(path, opts))
   end
 
   @spec put(Session.t, String.t, any) :: Session.t
   def put(session, path, opts) do
     session
-    |> run_action(Chaperon.Action.HTTP.put(path, opts))
+    |> run_action(Action.HTTP.put(path, opts))
   end
 
   @spec patch(Session.t, String.t, any) :: Session.t
   def patch(session, path, opts) do
     session
-    |> run_action(Chaperon.Action.HTTP.patch(path, opts))
+    |> run_action(Action.HTTP.patch(path, opts))
   end
 
   @spec delete(Session.t, String.t) :: Session.t
   def delete(session, path) do
     session
-    |> run_action(Chaperon.Action.HTTP.delete(path))
+    |> run_action(Action.HTTP.delete(path))
   end
 
   @spec ws_connect(Session.t, String.t) :: Session.t
   def ws_connect(session, path) do
     session
-    |> run_action(Chaperon.Action.WebSocket.connect(path))
+    |> run_action(Action.WebSocket.connect(path))
   end
 
   @spec ws_send(Session.t, any) :: Session.t
   def ws_send(session, msg, options \\ []) do
     session
-    |> run_action(Chaperon.Action.WebSocket.send(msg, options))
+    |> run_action(Action.WebSocket.send(msg, options))
   end
 
   @spec ws_recv(Session.t) :: Session.t
   def ws_recv(session, options \\ []) do
     session
-    |> run_action(Chaperon.Action.WebSocket.recv(options))
+    |> run_action(Action.WebSocket.recv(options))
   end
 
   @spec call(Session.t, (Session.t -> Session.t)) :: Session.t
   def call(session, func) do
     session
-    |> run_action(%Chaperon.Action.Function{func: func})
+    |> run_action(%Action.Function{func: func})
+  end
+
+  @spec run_scenario(Session.t, Action.RunScenario.scenario, map) :: Session.t
+  def run_scenario(session, scenario, config \\ %{}) do
+    session
+    |> run_action(Action.RunScenario.new(scenario, config))
   end
 
   @spec run_action(Session.t, Chaperon.Actionable.t) :: Session.t
@@ -181,7 +188,7 @@ defmodule Chaperon.Session do
   @spec async(Session.t, atom, [any]) :: Session.t
   def async(session, func_name, args \\ []) do
     session
-    |> run_action(%Chaperon.Action.Async{
+    |> run_action(%Action.Async{
       module: session.scenario.module,
       function: func_name,
       args: args

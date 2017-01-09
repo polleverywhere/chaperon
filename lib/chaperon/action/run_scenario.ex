@@ -12,6 +12,24 @@ defmodule Chaperon.Action.RunScenario do
     id: String.t,
     pid: pid
   }
+
+  alias __MODULE__
+  alias Chaperon.Scenario
+
+  @type scenario :: atom | Scenario.t
+
+  def new(scenario, config) do
+    %RunScenario{
+      scenario: scenario |> as_scenario,
+      config: config
+    }
+  end
+
+  @spec as_scenario(scenario) :: Scenario.t
+  defp as_scenario(scenario_mod) when is_atom(scenario_mod),
+    do: %Scenario{module: scenario_mod}
+  defp as_scenario(s = %Scenario{}),
+    do: s
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
