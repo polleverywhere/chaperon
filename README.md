@@ -131,6 +131,27 @@ By default we label metrics under the scenario name.
 }
 ```
 
+## Distributed Load-Testing (TODO - Still WIP)
+
+Aside from running Chaperon scenarios from a single machine, you can also run them in a cluster.
+Since Chaperon is written in Elixir, it makes use of its built-in distribution mechanics (provided by the Erlang VM and OTP) to achieve this.
+
+To run a Chaperon scenario in distributed mode, you need to deploy your Chaperon scenario and environment code to all machines in the cluster, start them up and connect to the master node:
+
+```elixir
+Chaperon.connect_to_master "chaperon@node1.myhost.com"
+```
+
+To start any node simply load up the code by running
+
+```
+$ iex --cookie my-secret-cookie --name "chaperon@mynode.com" -S mix run my_chaperon_scenario_code.ex
+```
+
+Pick one of the nodes as your master nodes and set it in the config (see above).
+Before starting up the child nodes make sure you've given them the same VM cookie and config to point to the master node.
+The master node can be identical to the worker nodes, the only difference being that it kicks off the load test and distributes the workload across all worker nodes. When a worker node is done with running a scenario / session task, it sends the results back to the master, which then merges all results to give the final metrics for display / output.
+
 ## How to run this in production?
 
 Don't yet. It's still WIP.
