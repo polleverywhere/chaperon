@@ -1,5 +1,7 @@
 defmodule Chaperon.Action.WebSocket.Connect do
-  defstruct path: nil
+  defstruct [
+    path: nil
+  ]
 
   def url(action, session) do
     case Chaperon.Action.HTTP.url(action, session) do

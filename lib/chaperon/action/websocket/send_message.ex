@@ -1,6 +1,8 @@
 defmodule Chaperon.Action.WebSocket.SendMessage do
-  defstruct message: nil,
-            options: []
+  defstruct [
+    message: nil,
+    options: []
+  ]
 
   def encoded_message(%{message: [json: data]}) do
     {:text, Poison.encode!(data)}

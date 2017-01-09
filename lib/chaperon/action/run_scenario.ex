@@ -1,9 +1,16 @@
 defmodule Chaperon.Action.RunScenario do
-  defstruct [:scenario, :config, :id, :pid]
+  defstruct [
+    scenario: nil,
+    config: %{},
+    id: nil,
+    pid: nil
+  ]
 
   @type t :: %__MODULE__{
     scenario: Chaperon.Scenario.t,
-    config: [name: atom]
+    config: map,
+    id: String.t,
+    pid: pid
   }
 end
 

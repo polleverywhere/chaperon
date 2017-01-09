@@ -1,7 +1,9 @@
 defmodule Chaperon.Action.Async do
-  defstruct module: nil,
-            function: nil,
-            args: []
+  defstruct [
+    module: nil,
+    function: nil,
+    args: []
+  ]
 
   @type t :: %Chaperon.Action.Async{
     module: atom,

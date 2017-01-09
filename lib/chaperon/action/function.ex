@@ -1,6 +1,8 @@
 defmodule Chaperon.Action.Function do
-  defstruct func: nil,
-            called: false
+  defstruct [
+    func: nil,
+    called: false
+  ]
 
   @type callback :: (Chaperon.Session.t -> Chaperon.Session.t) | atom
   @type t :: %Chaperon.Action.Function{func: callback, called: boolean}

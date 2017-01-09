@@ -1,5 +1,9 @@
 defmodule Chaperon.Action.SpreadAsync do
-  defstruct [:callback, :rate, :interval]
+  defstruct [
+    callback: nil,
+    rate: nil,
+    interval: nil
+  ]
 
   @type rate :: non_neg_integer
   @type time :: non_neg_integer

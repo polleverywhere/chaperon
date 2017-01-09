@@ -1,5 +1,7 @@
 defmodule Chaperon.Action.WebSocket.ReceiveMessage do
-  defstruct options: []
+  defstruct [
+    options: []
+  ]
 
   def decode_message(action, message) do
     case action.options[:decode] do

@@ -1,7 +1,9 @@
 defmodule Chaperon.Action.Loop do
-  defstruct action: nil,
-            duration: nil,
-            started: nil
+  defstruct [
+    action: nil,
+    duration: 0,
+    started: nil
+  ]
 
   @type duration :: non_neg_integer
   @type t :: %Chaperon.Action.Loop{
