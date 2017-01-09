@@ -16,14 +16,4 @@ defmodule Chaperon.Action.WebSocket do
   def recv(options \\ []) do
     %WebSocket.ReceiveMessage{options: options}
   end
-
-  def ws_opts(%{path: path}, %Session{config: %{base_url: base_url}}) do
-    uri = URI.parse(base_url)
-    opts = case uri.scheme do
-      "http"  -> [path: path]
-      "https" -> [path: path, secure: true]
-    end
-
-    {{uri.host, uri.port}, opts}
-  end
 end

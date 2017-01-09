@@ -9,6 +9,16 @@ defmodule Chaperon.Action.WebSocket.Connect do
       "http"  <> rest -> "ws"  <> rest
     end
   end
+
+  def opts(%{path: path}, %Chaperon.Session{config: %{base_url: base_url}}) do
+    uri = URI.parse(base_url)
+    opts = case uri.scheme do
+      "http"  -> [path: path]
+      "https" -> [path: path, secure: true]
+    end
+
+    {{uri.host, uri.port}, opts}
+  end
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
@@ -16,7 +26,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
   alias Chaperon.Action.WebSocket.Connect
 
   def run(action, session) do
-    {addr, opts} = Chaperon.Action.WebSocket.ws_opts(action, session)
+    {addr, opts} = Connect.opts(action, session)
     ws = Socket.Web.connect! addr, opts
 
     session =
