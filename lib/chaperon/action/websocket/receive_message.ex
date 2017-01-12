@@ -19,6 +19,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   require Logger
 
   def run(action, session = %{assigns: %{websocket: socket}}) do
+    Logger.debug "WS_RECV #{session.assigns.websocket_url}"
     start = timestamp
 
     case Socket.Web.recv(socket, action.options) do
