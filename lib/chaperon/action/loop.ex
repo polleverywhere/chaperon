@@ -26,8 +26,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Loop do
       {:ok, _, session} = loop |> abort(session)
       {:ok, session}
     else
-      session = Chaperon.Actionable.run(a, session)
-      run(loop, session)
+      with {:ok, session} <- Chaperon.Actionable.run(a, session) do
+        run(loop, session)
+      end
     end
   end
 

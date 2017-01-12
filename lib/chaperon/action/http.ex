@@ -89,7 +89,8 @@ defmodule Chaperon.Action.HTTP do
     do: "?" <> URI.encode_query(params)
 
   def options(action, session) do
-    session.config.http
+    session.config
+    |> Map.get(:http, %{})
     |> Enum.into([])
     |> Keyword.merge(params: action.params)
   end
