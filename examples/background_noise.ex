@@ -14,7 +14,6 @@ defmodule Example.Scenario.BackgroundNoise do
     |> async(:search, ["foo"])
     |> async(:search, ["foo"])
     ~> search("foo") # same as above
-    |> post_data
     |> await_all(:search)
     <~ search # same as above but has no effect since tasks already awaited
     # ~>> search(session, resp) do
@@ -41,7 +40,7 @@ defmodule Example.Scenario.BackgroundNoise do
   def post_data(session) do
     if session.config.post_data do
       session
-      |> post("/data", json: "hello, world!")
+      |> post("/", json: %{message: "hello, world!"})
     else
       session
     end
