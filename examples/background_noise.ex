@@ -59,43 +59,19 @@ defmodule Environment.Production do
 
   scenarios do
     default_config %{
-      base_url: "https://www.google.de/search",
+      # scenario_timeout: 12_000,
+      base_url: "http://google.com/",
       http: %{
-        # http (hackney request) parameters
+        # additional http (hackney request) parameters, if needed
       }
     }
     run BackgroundNoise, %{
-      post_data: true,
+      post_data: true
     }
     run BackgroundNoise, %{
-      post_data: true,
+      post_data: true
     }
   end
 end
 
-require Logger
-sessions = Environment.Production.run
-for session <- sessions do
-  for {action, results} <- session.results do
-    for res <- results |> Chaperon.Util.as_list do
-      case res do
-        {:async, name, res} ->
-          Logger.info "~> #{name} -> #{res.status_code}"
-        res ->
-          Logger.info "#{action} -> #{res.status_code}"
-      end
-    end
-  end
-end
-
-session = Chaperon.Environment.merge_sessions(sessions)
-Logger.info("Metrics:")
-for {k, v} <- session.metrics do
-  k = inspect k
-  delimiter = for _ <- 1..byte_size(k), do: "="
-  IO.puts("#{delimiter}\n#{k}\n#{delimiter}")
-  IO.inspect(v)
-  IO.puts("")
-end
-
-IO.puts Chaperon.Export.CSV.encode(session)
+Chaperon.run_environment(Environment.Production, print_results: true)
