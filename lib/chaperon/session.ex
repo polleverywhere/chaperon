@@ -151,6 +151,12 @@ defmodule Chaperon.Session do
     |> run_action(%Action.Function{func: func})
   end
 
+  @spec call(Session.t, atom, [any]) :: Session.t
+  def call(session, func, args) when is_atom(func) do
+    session
+    |> run_action(%Action.Function{func: func, args: args})
+  end
+
   @spec run_scenario(Session.t, Action.RunScenario.scenario, map) :: Session.t
   def run_scenario(session, scenario, config \\ %{}) do
     session
