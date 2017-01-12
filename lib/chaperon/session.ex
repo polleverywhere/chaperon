@@ -235,7 +235,8 @@ defmodule Chaperon.Session do
 
   @spec add_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_result(session, action, result) do
-    Logger.debug "Add result #{action} : #{result.status_code}"
+    Logger.debug "Add result #{action}"
+
     case session.results[action] do
       nil ->
         put_in session.results[action], result
