@@ -31,6 +31,29 @@ defmodule Chaperon do
     session = sessions
               |> Chaperon.Environment.merge_sessions
 
+    if opts[:print_metrics] do
+      print_metrics(session)
+    end
+
+    print_seperator
+    IO.puts apply(encoder(opts), :encode, [session])
+  end
+
+  def encoder(opts) do
+    case Keyword.get(opts, :export, :csv) do
+      :csv  -> Chaperon.Export.CSV
+      :json -> Chaperon.Export.JSON
+    end
+  end
+
+  defp print_seperator do
+    IO.puts ""
+    IO.puts(for _ <- 1..80, do: "=")
+    IO.puts ""
+  end
+
+  defp print_metrics(session) do
+    print_seperator
     Logger.info("Metrics:")
     for {k, v} <- session.metrics do
       k = inspect k
@@ -39,11 +62,10 @@ defmodule Chaperon do
       IO.inspect(v)
       IO.puts("")
     end
-
-    IO.puts Chaperon.Export.CSV.encode(session)
   end
 
-  def print_results(sessions) do
+  defp print_results(sessions) do
+    print_seperator
     for session <- sessions do
       for {action, results} <- session.results do
         for res <- results |> Chaperon.Util.as_list do
