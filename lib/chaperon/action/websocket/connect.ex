@@ -24,8 +24,12 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket.Connect
+  require Logger
 
   def run(action, session) do
+    ws_url = Connect.url(action, session)
+    Logger.info "WS_CONN #{ws_url}"
+
     {addr, opts} = Connect.opts(action, session)
     ws = Socket.Web.connect! addr, opts
 
@@ -33,7 +37,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
       session
       |> Session.assign(
         websocket: ws,
-        websocket_url: Connect.url(action, session)
+        websocket_url: ws_url
       )
 
     {:ok, session}
