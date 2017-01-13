@@ -2,9 +2,12 @@ defmodule Chaperon.Export.CSV do
   @separator ";"
   @delimiter "\n"
 
-  def encode(session, env \\ []) do
-    separator = env |> Keyword.get(:separator, @separator)
-    delimiter = env |> Keyword.get(:delimiter, @delimiter)
+  @doc """
+  Encodes metrics of given `session` into CSV format.
+  """
+  def encode(session, opts \\ []) do
+    separator = opts |> Keyword.get(:separator, @separator)
+    delimiter = opts |> Keyword.get(:delimiter, @delimiter)
 
     encode_header(separator)
     <> delimiter
@@ -24,7 +27,8 @@ defmodule Chaperon.Export.CSV do
   ]
 
   defp encode_header(separator) do
-    @header_fields |> Enum.join(separator)
+    @header_fields
+    |> Enum.join(separator)
   end
 
   defp encode_rows(session, separator, delimiter) do

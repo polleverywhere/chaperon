@@ -5,7 +5,10 @@ defmodule Chaperon.Export.JSON do
     {:percentile, 999}, {:percentile, 9999}, {:percentile, 99999}
   ]
 
-  def encode(session, env \\ []) do
+  @doc """
+  Encodes metrics of given `session` into JSON format.
+  """
+  def encode(session, _opts \\ []) do
     session.metrics
     |> Enum.map(fn
       {[:duration, :call, func], vals} ->
