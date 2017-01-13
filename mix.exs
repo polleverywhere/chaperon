@@ -39,7 +39,8 @@ defmodule Chaperon.Mixfile do
       {:poison, "~> 3.0"},
       {:hdr_histogram, "~> 0.2.0"},
       {:socket, "~> 0.3.5"},
-      {:dialyxir, "~> 0.4", only: [:dev]}
+      {:dialyxir, "~> 0.4", only: [:dev]},
+      {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
 end
