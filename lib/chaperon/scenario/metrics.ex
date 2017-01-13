@@ -1,4 +1,12 @@
 defmodule Chaperon.Scenario.Metrics do
+  @moduledoc """
+  This module calculates histogram data for a sessions metrics.
+  It uses the `:hdr_histogram` Erlang library to calculate the histograms.
+  """
+
+  @doc """
+  Replaces base metrics for a given `session` with the histogram values for them.
+  """
   def add_histogram_metrics(session) do
     histograms = session |> record_metrics
 
@@ -24,6 +32,7 @@ defmodule Chaperon.Scenario.Metrics do
     put_in session.metrics, hist_vals
   end
 
+  @doc false
   def record_metrics(session) do
     session.metrics
     |> Enum.reduce(%{}, fn {k,v}, histograms ->
@@ -41,16 +50,19 @@ defmodule Chaperon.Scenario.Metrics do
     |> Enum.into(%{})
   end
 
+  @doc false
   def record_metric(_hist, []), do: :ok
   def record_metric(hist, [v | vals]) do
     record_metric(hist, v)
     record_metric(hist, vals)
   end
 
+  @doc false
   def record_metric(hist, {:async, _name, val}) when is_number(val) do
     record_metric(hist, val)
   end
 
+  @doc false
   def record_metric(hist, val) when is_number(val) do
     :hdr_histogram.record(hist, val)
   end
