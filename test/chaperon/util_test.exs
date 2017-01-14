@@ -1,6 +1,6 @@
 defmodule Chaperon.Util.Test do
   use ExUnit.Case
-  doctest Chaperon
+  doctest Chaperon.Util
   import Chaperon.Util
 
   test "as_list" do
