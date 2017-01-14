@@ -1,4 +1,10 @@
 defmodule Chaperon.Session do
+  @moduledoc """
+  Defines a Session struct and corresponding helper functions that are used
+  within `Chaperon.Scenario` definitions.
+  Most of Chaperon's logic is centered around these sessions.
+  """
+
   defstruct [
     id: nil,
     results: %{},
@@ -32,7 +38,8 @@ defmodule Chaperon.Session do
 
 
   @doc """
-  Concurrently spreads a given action with a given rate over a given time interval
+  Concurrently spreads a given action with a given rate over a given time
+  interval within `session`.
   """
   @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
   def cc_spread(session, func_name, rate, interval) do
@@ -44,6 +51,10 @@ defmodule Chaperon.Session do
     })
   end
 
+  @doc """
+  Loops a given action for a given duration, returning the resulting session at
+  the end.
+  """
   @spec loop(Session.t, atom, Chaperon.Timing.duration) :: Session.t
   def loop(session, action_name, duration) do
     session
@@ -53,6 +64,10 @@ defmodule Chaperon.Session do
     })
   end
 
+  @doc """
+  Returns the session's configured timeout or the default timeout, if none
+  specified.
+  """
   @spec timeout(Session.t) :: non_neg_integer
   def timeout(session) do
     session.config[:timeout] || @default_timeout
@@ -74,95 +89,154 @@ defmodule Chaperon.Session do
     |> Enum.reduce(session, &await(&2, task_name, &1))
   end
 
+  @doc """
+  Await an async task with a given `task_name` in `session`.
+  """
   @spec await(Session.t, atom) :: Session.t
   def await(session, task_name) when is_atom(task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
   end
 
+  @doc """
+  Await all async tasks for the given `task_names` in `session`.
+  """
   @spec await(Session.t, [atom]) :: Session.t
   def await(session, task_names) when is_list(task_names) do
     task_names
     |> Enum.reduce(session, &await(&2, &1))
   end
 
+  @doc """
+  Await all async tasks with a given `task_name` in `session`.
+  """
   @spec await_all(Session.t, atom) :: Session.t
   def await_all(session, task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
   end
 
+  @doc """
+  Returns a single task or a list of tasks associated with a given `action_name`
+  in `session`.
+  """
   @spec async_task(Session.t, atom) :: (Task.t | [Task.t])
   def async_task(session, action_name) do
     session.async_tasks[action_name]
   end
 
+  @doc """
+  Performs a HTTP GET request on `session`'s base_url and `path`.
+  Takes an optional list of options to be passed to `HTTPotion`.
+  """
   @spec get(Session.t, String.t, Keyword.t) :: Session.t
   def get(session, path, params \\ []) do
     session
     |> run_action(Action.HTTP.get(path, params))
   end
 
+  @doc """
+  Performs a HTTP POST request on `session`'s base_url and `path`.
+  Takes an optional list of options to be passed to `HTTPotion`.
+  """
   @spec post(Session.t, String.t, any) :: Session.t
   def post(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.post(path, opts))
   end
 
+  @doc """
+  Performs a HTTP PUT request on `session`'s base_url and `path`.
+  Takes an optional list of options to be passed to `HTTPotion`.
+  """
   @spec put(Session.t, String.t, any) :: Session.t
   def put(session, path, opts) do
     session
     |> run_action(Action.HTTP.put(path, opts))
   end
 
+  @doc """
+  Performs a HTTP PATCH request on `session`'s base_url and `path`.
+  Takes an optional list of options to be passed to `HTTPotion`.
+  """
   @spec patch(Session.t, String.t, any) :: Session.t
   def patch(session, path, opts) do
     session
     |> run_action(Action.HTTP.patch(path, opts))
   end
 
+  @doc """
+  Performs a HTTP DELETE request on `session`'s base_url and `path`.
+  Takes an optional list of options to be passed to `HTTPotion`.
+  """
   @spec delete(Session.t, String.t) :: Session.t
   def delete(session, path) do
     session
     |> run_action(Action.HTTP.delete(path))
   end
 
+  @doc """
+  Performs a WebSocket connection attempt on `session`'s base_url and
+  `path`.
+  """
   @spec ws_connect(Session.t, String.t) :: Session.t
   def ws_connect(session, path) do
     session
     |> run_action(Action.WebSocket.connect(path))
   end
 
+  @doc """
+  Performs a WebSocket message send on `session`s WebSocket connection.
+  Takes an optional list of `options` to be passed along to `Socket.Web.send/3`.
+  """
   @spec ws_send(Session.t, any) :: Session.t
   def ws_send(session, msg, options \\ []) do
     session
     |> run_action(Action.WebSocket.send(msg, options))
   end
 
+  @doc """
+  Performs a WebSocket message receive on `session`s WebSocket connection.
+  Takes an optional list of `options` to be passed along to `Socket.Web.recv/2`.
+  """
   @spec ws_recv(Session.t) :: Session.t
   def ws_recv(session, options \\ []) do
     session
     |> run_action(Action.WebSocket.recv(options))
   end
 
+  @doc """
+  Calls a given function and captures duration metrics in `session`.
+  """
   @spec call(Session.t, (Session.t -> Session.t)) :: Session.t
   def call(session, func) do
     session
     |> run_action(%Action.Function{func: func})
   end
 
+  @doc """
+  Calls a function with the given name and args and captures duration metrics
+  in `session`.
+  """
   @spec call(Session.t, atom, [any]) :: Session.t
-  def call(session, func, args) when is_atom(func) do
+  def call(session, func, args \\ []) when is_atom(func) do
     session
     |> run_action(%Action.Function{func: func, args: args})
   end
 
+  @doc """
+  Runs & captures metrics of running another `Chaperon.Scenario` from `session`.
+  """
   @spec run_scenario(Session.t, Action.RunScenario.scenario, map) :: Session.t
   def run_scenario(session, scenario, config \\ %{}) do
     session
     |> run_action(Action.RunScenario.new(scenario, config))
   end
 
+  @doc """
+  Runs a given action within `session` and returns the resulting
+  session.
+  """
   @spec run_action(Session.t, Chaperon.Actionable.t) :: Session.t
   def run_action(session, action) do
     case Chaperon.Actionable.run(action, session) do
@@ -175,6 +249,15 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Assigns a given list of key-value pairs (as a `Keyword` list) in `session`
+  for further usage later.
+
+  ## Example
+
+      iex> assign(%Session{}, foo: 1, bar: "hello").assigns
+      %{foo: 1, bar: "hello"}
+  """
   @spec assign(Session.t, Keyword.t) :: Session.t
   def assign(session, assignments) do
     assignments
@@ -183,6 +266,10 @@ defmodule Chaperon.Session do
     end)
   end
 
+  @doc """
+  Updates assigns based on a given Keyword list of functions to be used for
+  updating `assigns` in `session`.
+  """
   @spec update_assign(Session.t, Keyword.t((any -> any))) :: Session.t
   def update_assign(session, assignments) do
     assignments
@@ -191,6 +278,9 @@ defmodule Chaperon.Session do
     end)
   end
 
+  @doc """
+  Runs a given function with args asynchronously from `session`.
+  """
   @spec async(Session.t, atom, [any]) :: Session.t
   def async(session, func_name, args \\ []) do
     session
@@ -201,12 +291,18 @@ defmodule Chaperon.Session do
     })
   end
 
+  @doc """
+  Delays further execution of `session` by a given `duration`.
+  """
   @spec delay(Session.t, Chaperon.Timing.duration) :: Session.t
   def delay(session, duration) do
     :timer.sleep(duration)
     session
   end
 
+  @doc """
+  Adds a given `Task` to `session` under a given `name`.
+  """
   @spec add_async_task(Session.t, atom, Task.t) :: Session.t
   def add_async_task(session, name, task) do
     case session.async_tasks[name] do
@@ -219,6 +315,9 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Removes a `Task` with a given `task_name` from `session`.
+  """
   @spec remove_async_task(Session.t, atom, Task.t) :: Session.t
   def remove_async_task(session, task_name, task) do
     case session.async_tasks[task_name] do
@@ -233,6 +332,9 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Adds a given HTTP request `result` to `session` for the given `action`.
+  """
   @spec add_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_result(session, action, result) do
     Logger.debug "Add result #{action}"
@@ -251,6 +353,9 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Adds a given WebSocket action `result` to `session` for a given `action`.
+  """
   @spec add_ws_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_ws_result(session, action, result) do
     Logger.debug "Add WS result #{action} : #{inspect result}"
@@ -269,6 +374,9 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Stores a given metric `val` under a given `name` in `session`.
+  """
   @spec add_metric(Session.t, [any], any) :: Session.t
   def add_metric(session, name, val) do
     Logger.debug "Add metric #{inspect name} : #{val}"
@@ -286,6 +394,10 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Calls a given callback with a `session`'s task results when the async task
+  with a given `task_name` has finished.
+  """
   @spec with_response(Session.t, atom, (Session.t, any -> any)) :: Session.t
   def with_response(session, task_name, callback) do
     session = session |> await(task_name)
@@ -318,6 +430,9 @@ defmodule Chaperon.Session do
     |> merge_metrics(task_session.metrics)
   end
 
+  @doc """
+  Merges two session's results & metrics and returns the resulting session.
+  """
   @spec merge(Session.t, Session.t) :: Session.t
   def merge(session, other_session) do
     session
@@ -325,35 +440,57 @@ defmodule Chaperon.Session do
     |> merge_metrics(other_session |> session_metrics)
   end
 
+  @doc """
+  Merges results of two sessions.
+  """
   @spec merge_results(Session.t, map) :: Session.t
   def merge_results(session, results) do
     update_in session.results, &preserve_vals_merge(&1, results)
   end
 
+  @doc """
+  Merges metrics of two sessions.
+  """
   @spec merge_metrics(Session.t, map) :: Session.t
   def merge_metrics(session, metrics) do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
   end
 
+  @doc """
+  Returns `session`'s results wrapped with `session`'s name.
+  """
   def session_results(session) do
     session.results
     |> Chaperon.Util.map_nested_put(:session_name, session |> name)
   end
 
+  @doc """
+  Returns `session`'s metrics wrapped with `session`'s name.
+  """
   def session_metrics(session) do
     session.metrics
     |> Chaperon.Util.map_nested_put(:session_name, session |> name)
   end
 
+  @doc """
+  Returns the `session`s configured name or scenario's module name.
+  """
   def name(session) do
     session.config[:session_name] || session.scenario.module
   end
 
   alias Chaperon.Session.Error
 
+  @doc """
+  Returns `{:ok, reason}`.
+  """
   @spec ok(Session.t) :: {:ok, Session.t}
   def ok(session), do: {:ok, session}
 
+  @doc """
+  Returns an `Chaperon.Session.Error` for the given `session` and with a given
+  `reason`.
+  """
   @spec error(Session.t, any) :: {:error, Error.t}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
 
