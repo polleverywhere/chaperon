@@ -494,6 +494,21 @@ defmodule Chaperon.Session do
   @spec error(Session.t, any) :: {:error, Error.t}
   def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
 
+  @doc """
+  Makes a given function call async for `session`.
+
+  ## Example
+
+      session
+      ~> foo
+      ~> bar(1,2,3)
+
+  Is the same as:
+
+      session
+      |> async(:foo)
+      |> async(:bar, [1,2,3])
+  """
   defmacro session ~> {func, _, nil} do
     quote do
       unquote(session)
@@ -508,6 +523,21 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Awaits a given async task within `session`.
+
+  ## Example
+
+      session
+      <~ foo
+      <~ bar
+
+  Is the same as:
+
+      session
+      |> await(:foo)
+      |> await(:bar)
+  """
   defmacro session <~ {task_name, _, _} do
     quote do
       unquote(session)
