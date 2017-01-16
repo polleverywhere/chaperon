@@ -545,6 +545,37 @@ defmodule Chaperon.Session do
     end
   end
 
+  @doc """
+  Wraps a function call with `session` as an arg in a call to
+  `Chaperon.Session.call` and captures function call duration metrics in
+  `session`.
+
+  ## Example
+
+      session
+      >>> foo
+      >>> bar(1,2,3)
+
+  Is the same as:
+
+      session
+      |> call(:foo)
+      |> call(:bar, [1,2,3])
+  """
+  defmacro session >>> {func, _, nil} do
+    quote do
+      unquote(session)
+      |> Chaperon.Session.call(unquote(func))
+    end
+  end
+
+  defmacro session >>> {func, _, args} do
+    quote do
+      unquote(session)
+      |> Chaperon.Session.call(unquote(func), unquote(args))
+    end
+  end
+
   defmacro session ~>> {task_name, _, args} do
     size = args |> Enum.count
     body = List.last(args)

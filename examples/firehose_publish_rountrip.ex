@@ -16,7 +16,7 @@ defmodule Firehose.Scenario.PublishRountrip do
 
   def publish_receive_loop(session, iterations) do
     session
-    |> call(:publish_roundtrip)
+    >>> publish_roundtrip
     |> publish_receive_loop(iterations - 1)
   end
 
