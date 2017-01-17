@@ -2,6 +2,9 @@ defmodule Chaperon.Scenario do
   @moduledoc """
   Helper module to be used by scenario definition modules.
 
+  Imports `Chaperon.Session` and other helper modules for easy scenario
+  definitions.
+
   Example
 
       defmodule MyScenario do
@@ -9,13 +12,22 @@ defmodule Chaperon.Scenario do
 
         def init(session) do
           # Possibly do something with session before running scenario
-          {:ok, session}
+          delay = :rand.uniform
+          if delay > 0.5 do
+            {:ok, session |> with_delay(delay |> seconds)}
+          else
+            {:ok, session}
+          end
         end
 
         def run(session) do
           session
           |> post("/api/messages", json: %{message: "what's up?"})
           |> get("/api/messages")
+        end
+
+        def with_delay(session, delay) do
+          put_in session.config[:delay], delay
         end
       end
   """
