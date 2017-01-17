@@ -1,4 +1,25 @@
 defmodule Chaperon.Scenario do
+  @moduledoc """
+  Helper module to be used by scenario definition modules.
+
+  Example
+
+      defmodule MyScenario do
+        use Chaperon.Scenario
+
+        def init(session) do
+          # Possibly do something with session before running scenario
+          {:ok, session}
+        end
+
+        def run(session) do
+          session
+          |> post("/api/messages", json: %{message: "what's up?"})
+          |> get("/api/messages")
+        end
+      end
+  """
+
   defstruct [
     module: nil
   ]
