@@ -5,7 +5,7 @@ defmodule Chaperon.Scenario do
   Imports `Chaperon.Session` and other helper modules for easy scenario
   definitions.
 
-  Example
+  ## Example
 
       defmodule MyScenario do
         use Chaperon.Scenario

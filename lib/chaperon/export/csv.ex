@@ -1,4 +1,8 @@
 defmodule Chaperon.Export.CSV do
+  @moduledoc """
+  CSV metrics export module.
+  """
+
   @separator ";"
   @delimiter "\n"
 

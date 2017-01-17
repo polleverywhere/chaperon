@@ -1,4 +1,8 @@
 defmodule Chaperon.Export.JSON do
+  @moduledoc """
+  JSON metrics export module.
+  """
+
   @columns [
     :total_count, :max, :mean, :median, :min, :stddev,
     {:percentile, 75}, {:percentile, 90}, {:percentile, 95}, {:percentile, 99},
