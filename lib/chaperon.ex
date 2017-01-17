@@ -35,7 +35,7 @@ defmodule Chaperon do
       print_metrics(session)
     end
 
-    print_seperator
+    print_separator
     IO.puts apply(encoder(opts), :encode, [session])
   end
 
@@ -46,14 +46,14 @@ defmodule Chaperon do
     end
   end
 
-  defp print_seperator do
+  defp print_separator do
     IO.puts ""
     IO.puts(for _ <- 1..80, do: "=")
     IO.puts ""
   end
 
   defp print_metrics(session) do
-    print_seperator
+    print_separator
     Logger.info("Metrics:")
     for {k, v} <- session.metrics do
       k = inspect k
@@ -65,7 +65,7 @@ defmodule Chaperon do
   end
 
   defp print_results(sessions) do
-    print_seperator
+    print_separator
     Logger.info("Results:")
     for session <- sessions do
       for {action, results} <- session.results do

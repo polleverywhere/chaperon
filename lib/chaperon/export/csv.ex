@@ -51,8 +51,8 @@ defmodule Chaperon.Export.CSV do
     |> Enum.map(&(encode_row(&1, action_name, separator)))
   end
 
-  defp encode_runs(run, action_name, seperator) do
-    [encode_row(run, action_name, seperator)]
+  defp encode_runs(run, action_name, separator) do
+    [encode_row(run, action_name, separator)]
   end
 
   defp encode_row(vals, action_name, separator) when is_map(vals) do
