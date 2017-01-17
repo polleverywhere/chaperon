@@ -485,7 +485,9 @@ defmodule Chaperon.Session do
   `reason`.
   """
   @spec error(Session.t, any) :: {:error, Error.t}
-  def error(s, reason), do: {:error, %Error{reason: reason, session: s}}
+  def error(session, reason) do
+    {:error, %Error{reason: reason, session: session}}
+  end
 
   @doc """
   Makes a given function call async for `session`.
