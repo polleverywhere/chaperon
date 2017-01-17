@@ -1,4 +1,12 @@
 defmodule Chaperon.Action.HTTP do
+  @moduledoc """
+  HTTP based actions to be run in a `Chaperon.Scenario` module for a given
+  `Chaperon.Session`.
+
+  This supports `GET`, `POST`, `PUT`, `PATCH`, `DELETE` & `HEAD` requests with
+  support for optional headers & query params.
+  """
+
   defstruct [
     method: :get,
     path: nil,

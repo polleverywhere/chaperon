@@ -1,4 +1,7 @@
 defmodule Chaperon.Action.Error do
+  @moduledoc """
+  Module for errors related to any `Chaperon.Actionable`.
+  """
   alias Chaperon.Actionable
   alias Chaperon.Session
 

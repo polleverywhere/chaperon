@@ -1,11 +1,17 @@
 defmodule Chaperon.Action.Function do
+  @moduledoc """
+  Performs & measures a function call (with args) within a session's
+  `Chaperon.Scenario` module.
+  """
+
   defstruct [
     func: nil,
     called: false,
     args: []
   ]
 
-  @type callback :: (Chaperon.Session.t -> Chaperon.Session.t) | atom
+  @type callback :: atom
+                    | (Chaperon.Session.t -> Chaperon.Session.t)
 
   @type t :: %Chaperon.Action.Function{
     func: callback,

@@ -1,4 +1,9 @@
 defmodule Chaperon.Action.Loop do
+  @moduledoc """
+  Action that executes a given `Chaperon.Actionable` repeatedly for a given
+  `duration`.
+  """
+
   defstruct [
     action: nil,
     duration: 0,

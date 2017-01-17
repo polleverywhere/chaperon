@@ -1,4 +1,9 @@
 defmodule Chaperon.Action.Async do
+  @moduledoc """
+  Implementation module for asynchronous actions (function calls into a
+  `Chaperon.Scenario` module).
+  """
+
   defstruct [
     module: nil,
     function: nil,
