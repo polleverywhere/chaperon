@@ -3,7 +3,6 @@ defmodule Chaperon.Action.WebSocket do
   Helper functions for creating WebSocket actions.
   """
 
-  alias Chaperon.Session
   alias __MODULE__
 
   @doc """
