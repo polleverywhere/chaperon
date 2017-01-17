@@ -206,20 +206,13 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Calls a given function and captures duration metrics in `session`.
+  Calls a given function or a function with the given name and args, then
+  captures duration metrics in `session`.
   """
-  @spec call(Session.t, (Session.t -> Session.t)) :: Session.t
-  def call(session, func) do
-    session
-    |> run_action(%Action.Function{func: func})
-  end
-
-  @doc """
-  Calls a function with the given name and args and captures duration metrics
-  in `session`.
-  """
-  @spec call(Session.t, atom, [any]) :: Session.t
-  def call(session, func, args \\ []) when is_atom(func) do
+  @spec call(Session.t, Action.Function.callback, [any]) :: Session.t
+  def call(session, func, args \\ [])
+    when is_atom(func) or is_function(func)
+  do
     session
     |> run_action(%Action.Function{func: func, args: args})
   end
