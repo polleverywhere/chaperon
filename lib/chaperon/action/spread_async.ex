@@ -1,4 +1,9 @@
 defmodule Chaperon.Action.SpreadAsync do
+  @moduledoc """
+  Action that calls a function with a given `rate` over a given `interval` of
+  time (ms).
+  """
+
   defstruct [
     func: nil,
     rate: nil,

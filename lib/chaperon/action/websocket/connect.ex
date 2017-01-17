@@ -1,4 +1,15 @@
 defmodule Chaperon.Action.WebSocket.Connect do
+  @moduledoc """
+  WebSocket connection action that needs to be run in order for a
+  `Chaperon.Session` to be successfully connected to a web server via WebSocket.
+
+  Assigns `websocket` and `websocket_url` values to a session when run,
+  which are used by the remaining websocket actions found under
+  `Chaperon.Action.WebSocket`.
+  The stored values are accessible via `session.assigns.websocket` &
+  `session.assigns.websocket_url`.
+  """
+
   defstruct [
     path: nil
   ]

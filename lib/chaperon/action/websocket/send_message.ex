@@ -1,4 +1,9 @@
 defmodule Chaperon.Action.WebSocket.SendMessage do
+  @moduledoc """
+  WebSocket action to send a message in a WebSocket-connected session.
+  Includes an optional list of `options` to be sent along to `Socket.Web.send/3`.
+  """
+
   defstruct [
     message: nil,
     options: []

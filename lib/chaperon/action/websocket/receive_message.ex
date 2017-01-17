@@ -1,4 +1,8 @@
 defmodule Chaperon.Action.WebSocket.ReceiveMessage do
+  @moduledoc """
+  WebSocket action to receive message in a WebSocket-connected session.
+  """
+
   defstruct [
     options: []
   ]

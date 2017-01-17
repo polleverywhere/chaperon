@@ -1,4 +1,8 @@
 defmodule Chaperon.Action.RunScenario do
+  @moduledoc """
+  Action that runs a `Chaperon.Scenario` module from the current session.
+  """
+
   defstruct [
     scenario: nil,
     config: %{},
