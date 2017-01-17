@@ -78,7 +78,7 @@ defmodule Chaperon.Environment do
   differentiate later on for which session they were recorded.
   """
   @spec prepare_merge(Session.t) :: Session.t
-  defp prepare_merge(session) do
+  def prepare_merge(session) do
     %{session |
       metrics: session |> Session.session_metrics,
       results: session |> Session.session_results

@@ -24,7 +24,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
   import Chaperon.Timing
   alias Chaperon.Session
 
-  def run(action = %{func: f, args: args}, session) when is_atom(f) do
+  def run(%{func: f, args: args}, session) when is_atom(f) do
     start = timestamp
     session = apply(session.scenario.module, f, [session | args])
     session

@@ -417,7 +417,7 @@ defmodule Chaperon.Session do
   end
 
   @spec merge_async_task_result(Session.t, Session.t, atom) :: Session.t
-  defp merge_async_task_result(session, task_session, task_name) do
+  defp merge_async_task_result(session, task_session, _task_name) do
     session
     |> merge_results(task_session.results)
     |> merge_metrics(task_session.metrics)
