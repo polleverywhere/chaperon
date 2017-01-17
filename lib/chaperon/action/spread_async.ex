@@ -7,10 +7,9 @@ defmodule Chaperon.Action.SpreadAsync do
 
   @type rate :: non_neg_integer
   @type time :: non_neg_integer
-  @type callback :: (Chaperon.Session.t -> Chaperon.Session.t) | atom
 
   @type t :: %__MODULE__{
-    func: callback,
+    func: Chaperon.Function.callback,
     rate: rate,
     interval: time
   }
