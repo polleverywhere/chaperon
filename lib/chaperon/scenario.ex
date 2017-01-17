@@ -70,7 +70,7 @@ defmodule Chaperon.Scenario do
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Session{
-      id: "#{scenario_mod} #{UUID.uuid4}",
+      id: "#{scenario |> name} #{UUID.uuid4}",
       scenario: scenario,
       config: config
     }
@@ -93,5 +93,11 @@ defmodule Chaperon.Scenario do
       acc |> Session.await(k, v)
     end)
     |> Chaperon.Scenario.Metrics.add_histogram_metrics
+  end
+
+  def name(%Chaperon.Scenario{module: mod}) do
+    mod
+    |> Module.split
+    |> Enum.join(".")
   end
 end

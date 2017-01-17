@@ -469,7 +469,7 @@ defmodule Chaperon.Session do
   Returns the `session`s configured name or scenario's module name.
   """
   def name(session) do
-    session.config[:session_name] || session.scenario.module
+    session.config[:session_name] || session.id
   end
 
   alias Chaperon.Session.Error
