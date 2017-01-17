@@ -71,6 +71,10 @@ defmodule Chaperon do
       for {action, results} <- session.results do
         for res <- results |> Chaperon.Util.as_list do
           case res do
+            {:async, name, results} when is_list(results) ->
+              results
+              |> Enum.each(&print_result(name, &1))
+
             {:async, name, res} ->
               Logger.info "~> #{name} -> #{res.status_code}"
 
