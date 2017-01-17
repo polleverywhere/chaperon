@@ -66,7 +66,7 @@ defmodule Chaperon.Scenario do
     {:ok, session} = session |> scenario_mod.init
 
     session =
-      case config[:delay] do
+      case session.config[:delay] do
         nil ->
           session
 
