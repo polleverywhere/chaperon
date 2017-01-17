@@ -20,7 +20,7 @@ defmodule Example.Scenario.BackgroundNoise do
     #   # do something with logout response
     #   IO.puts "Got search response: #{inspect resp}"
     # end
-    |> loop(:spread_post_data, 1 |> seconds)
+    |> spread_post_data
   end
 
   def spread_post_data(session) do
