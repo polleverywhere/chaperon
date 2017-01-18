@@ -1,11 +1,6 @@
 defmodule Firehose.Scenario.SubscribeChannel do
   use Chaperon.Scenario
 
-  def init(session) do
-    session
-    |> ok
-  end
-
   def run(session) do
     session
     |> multi_subscribe_loop(session.config.subscriptions_per_loop)

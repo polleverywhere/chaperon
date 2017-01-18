@@ -1,11 +1,6 @@
 defmodule Firehose.Scenario.PublishRountrip do
   use Chaperon.Scenario
 
-  def init(session) do
-    session
-    |> ok
-  end
-
   def run(session) do
     session
     |> subscribe

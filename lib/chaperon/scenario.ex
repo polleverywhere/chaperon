@@ -50,7 +50,7 @@ defmodule Chaperon.Scenario do
       import  Chaperon.Session
 
       def start_link(config) do
-        with {:ok, session} <- config |> new_session |> init do
+        with {:ok, session} <- __MODULE__ |> init(config |> new_session) do
           Scenario.Task.start_link session
         end
       end
@@ -75,7 +75,7 @@ defmodule Chaperon.Scenario do
       config: config
     }
 
-    {:ok, session} = session |> scenario_mod.init
+    {:ok, session} = scenario_mod |> init(session)
 
     session =
       case session.config[:delay] do
@@ -93,6 +93,14 @@ defmodule Chaperon.Scenario do
       acc |> Session.await(k, v)
     end)
     |> Chaperon.Scenario.Metrics.add_histogram_metrics
+  end
+
+  def init(scenario_mod, session) do
+    if function_exported?(scenario_mod, :init, 1) do
+      session |> scenario_mod.init
+    else
+      {:ok, session}
+    end
   end
 
   def name(%Chaperon.Scenario{module: mod}) do
