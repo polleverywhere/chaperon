@@ -61,6 +61,18 @@ defmodule Chaperon.Util do
     |> Enum.into(%{})
   end
 
+  @doc """
+  Inserts a given key-value pair (`{k2, v2}` under any values within `map` that
+  are also maps).
+
+  ## Example
+
+      iex> m = %{a: 1, b: %{baz: 3}, c: %{foo: 1, bar: 2}}
+      iex> Chaperon.Util.map_nested_put(m, :baz, 10)
+      %{a: 1, b: %{baz: 10}, c: %{foo: 1, bar: 2, baz: 10}}
+      iex> Chaperon.Util.map_nested_put(m, :foo, "ok")
+      %{a: 1, b: %{baz: 3, foo: "ok"}, c: %{foo: "ok", bar: 2}}
+  """
   @spec map_nested_put(map, any, any) :: map
   def map_nested_put(map, k2, v2) do
     for {k, v} <- map do
