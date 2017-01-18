@@ -9,7 +9,12 @@ defmodule Chaperon.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
-      dialyzer: [plt_add_deps: :apps_direct, plt_add_apps: [:httpoison]]
+      dialyzer: [
+        plt_add_deps: :apps_direct,
+        plt_add_apps: [
+          :httpoison, :uuid, :poison, :hdr_histogram, :socket
+        ]
+      ]
     ]
   end
 
