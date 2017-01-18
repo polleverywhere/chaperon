@@ -74,6 +74,7 @@ defmodule Chaperon.Scenario do
   performed `Chaperon.Actionable`s, including for all run actions run
   asynchronously as part of the scenario.
   """
+  @spec execute(atom, map) :: Session.t
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Session{
@@ -110,6 +111,7 @@ defmodule Chaperon.Scenario do
 
   Otherwise defaults to returning `{:ok, session}`.
   """
+  @spec init(atom, Session.t) :: {:ok, Session.t}
   def init(scenario_mod, session) do
     if function_exported?(scenario_mod, :init, 1) do
       session |> scenario_mod.init
@@ -128,6 +130,7 @@ defmodule Chaperon.Scenario do
       iex> Scenario.name %Scenario{module: Scenarios.Bruteforce.Login}
       "Scenarios.Bruteforce.Login"
   """
+  @spec name(Chaperon.Scenario.t) :: String.t
   def name(%Chaperon.Scenario{module: mod}) do
     mod
     |> Module.split
