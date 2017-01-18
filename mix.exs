@@ -23,8 +23,10 @@ defmodule Chaperon.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [
-      applications: [:logger],
-      mod: {Chaperon, [:httpoison]}
+      applications: [
+        :logger, :httpoison, :uuid, :poison, :hdr_histogram, :socket
+      ],
+      mod: {Chaperon, []}
     ]
   end
 
