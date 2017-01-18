@@ -1,4 +1,8 @@
 defmodule Chaperon do
+  @moduledoc """
+  Chaperon is a HTTP service load & performance testing tool.
+  """
+
   use Application
   require Logger
 
@@ -21,30 +25,59 @@ defmodule Chaperon do
     Supervisor.start_link(children, opts)
   end
 
-  def run_environment(env_mod, opts \\ []) do
+  @doc """
+  Runs a given environment module's scenarios concurrently, outputting metrics
+  at the end.
+
+  - `env_mod` Environment module to be executed
+  - `options` List of options to be used. Valid values are:
+      - `:print_results` If set to `true`, will print all action results.
+      - `:encode` Can be set to `:json`, defaults to `:csv`
+      - `:output` Can be set to a file path, defaults to `:stdio`
+
+  ## Example
+
+      Chaperon.run_environment MyEnvironment, print_results: true
+      # => Prints results & outputs metrics in CSV (default) format at the end
+
+      Chaperon.run_environment MyEnvironment, export: :json
+      # => Doesn't print results & outputs metrics in JSON format at the end
+
+      Chaperon.run_environment MyEnvironment, output: "metrics.csv"
+      # => Outputs metrics in CSV format to metrics.csv file
+
+      Chaperon.run_environment MyEnvironment, export: :json, output: "metrics.json"
+      # => Outputs metrics in JSON format to metrics.json file
+  """
+  def run_environment(env_mod, options \\ []) do
     sessions = apply(env_mod, :run, [])
 
-    if opts[:print_results] do
+    if options[:print_results] do
       print_results(sessions)
     end
 
     session = sessions
               |> Chaperon.Environment.merge_sessions
 
-    if opts[:print_metrics] do
+    if options[:print_metrics] do
       print_metrics(session)
     end
 
     print_separator
-    IO.puts apply(encoder(opts), :encode, [session])
+
+    apply(encoder(options), :encode, [session])
+    |> write_output(Keyword.get(options, :output, :stdio))
   end
 
-  def encoder(opts) do
-    case Keyword.get(opts, :export, :csv) do
+  defp encoder(options) do
+    case Keyword.get(options, :export, :csv) do
       :csv  -> Chaperon.Export.CSV
       :json -> Chaperon.Export.JSON
     end
   end
+
+  defp write_output(output, :stdio), do: IO.puts(output)
+  defp write_output(output, path),   do: File.write!(path, output)
 
   defp print_separator do
     IO.puts ""
