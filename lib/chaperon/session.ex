@@ -67,6 +67,12 @@ defmodule Chaperon.Session do
   @doc """
   Returns the session's configured timeout or the default timeout, if none
   specified.
+
+  ## Example
+
+      iex> session = %Chaperon.Session{config: %{timeout: 10}}
+      iex> session |> Chaperon.Session.timeout
+      10
   """
   @spec timeout(Session.t) :: non_neg_integer
   def timeout(session) do
@@ -248,7 +254,13 @@ defmodule Chaperon.Session do
 
   ## Example
 
-      iex> assign(%Session{}, foo: 1, bar: "hello").assigns
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{} |> assign(foo: 1, bar: "hello")
+      iex> session.assigns.foo
+      1
+      iex> session.assigns.bar
+      "hello"
+      iex> session.assigns
       %{foo: 1, bar: "hello"}
   """
   @spec assign(Session.t, Keyword.t) :: Session.t
@@ -262,6 +274,20 @@ defmodule Chaperon.Session do
   @doc """
   Updates assigns based on a given Keyword list of functions to be used for
   updating `assigns` in `session`.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{} |> assign(foo: 1, bar: "hello")
+      iex> session.assigns
+      %{foo: 1, bar: "hello"}
+      iex> session = session |> update_assign(foo: &(&1 + 2))
+      iex> session.assigns.foo
+      3
+      iex> session.assigns.bar
+      "hello"
+      iex> session.assigns
+      %{foo: 3, bar: "hello"}
   """
   @spec update_assign(Session.t, Keyword.t((any -> any))) :: Session.t
   def update_assign(session, assignments) do

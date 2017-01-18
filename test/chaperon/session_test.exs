@@ -1,6 +1,6 @@
 defmodule Chaperon.Session.Test do
   use ExUnit.Case
-  doctest Chaperon
+  doctest Chaperon.Session
   alias Chaperon.Session
 
   setup do
