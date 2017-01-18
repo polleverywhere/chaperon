@@ -1,6 +1,6 @@
 defmodule Chaperon.Scenario.Metrics do
   @moduledoc """
-  This module calculates histogram data for a sessions metrics.
+  This module calculates histogram data for a session's metrics.
   It uses the `:hdr_histogram` Erlang library to calculate the histograms.
   """
 
