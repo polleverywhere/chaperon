@@ -67,6 +67,13 @@ defmodule Chaperon.Scenario do
   require Logger
   alias Chaperon.Session
 
+  @doc """
+  Runs a given scenario module with a given config and returns the scenario's
+  session annotated with histogram metrics via the `Chaperon.Scenario.Metrics`
+  module. The returned `Chaperon.Session` will include histogram data for all
+  performed `Chaperon.Actionable`s, including for all run actions run
+  asynchronously as part of the scenario.
+  """
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
     session = %Session{
@@ -95,6 +102,14 @@ defmodule Chaperon.Scenario do
     |> Chaperon.Scenario.Metrics.add_histogram_metrics
   end
 
+  @doc """
+  Initializes a `Chaperon.Scenario` for a given `session`.
+
+  If `scenario_mod` defines an `init/1` callback function, calls it with
+  `session` and returns its return value.
+
+  Otherwise defaults to returning `{:ok, session}`.
+  """
   def init(scenario_mod, session) do
     if function_exported?(scenario_mod, :init, 1) do
       session |> scenario_mod.init
@@ -103,6 +118,16 @@ defmodule Chaperon.Scenario do
     end
   end
 
+  @doc """
+  Returns the name of a `Chaperon.Scenario` based on the `module` its referring
+  to.
+
+  ## Example
+
+      iex> alias Chaperon.Scenario
+      iex> Scenario.name %Scenario{module: Scenarios.Bruteforce.Login}
+      "Scenarios.Bruteforce.Login"
+  """
   def name(%Chaperon.Scenario{module: mod}) do
     mod
     |> Module.split
