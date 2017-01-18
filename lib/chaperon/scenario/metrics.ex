@@ -12,6 +12,7 @@ defmodule Chaperon.Scenario.Metrics do
 
     hist_vals = for {k, hist} <- histograms do
       {k, %{
+        :total_count => :hdr_histogram.get_total_count(hist),
         :min => :hdr_histogram.min(hist),
         :mean => :hdr_histogram.mean(hist),
         :median => :hdr_histogram.median(hist),
@@ -23,8 +24,7 @@ defmodule Chaperon.Scenario.Metrics do
         {:percentile, 99} => :hdr_histogram.percentile(hist, 99.0),
         {:percentile, 999} => :hdr_histogram.percentile(hist, 99.9),
         {:percentile, 9999} => :hdr_histogram.percentile(hist, 99.99),
-        {:percentile, 99999} => :hdr_histogram.percentile(hist, 99.999),
-        total_count: :hdr_histogram.get_total_count(hist)
+        {:percentile, 99999} => :hdr_histogram.percentile(hist, 99.999)
       }}
     end
     |> Enum.into(%{})
