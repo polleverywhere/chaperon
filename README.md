@@ -48,11 +48,13 @@ defmodule BasicAccountLogin do
   def logout_with_stuff(session) do
     session
     |> logout
-    |> meter(:post_logout, fn s ->
-      s
-      |> foo_bar
-      |> put("/baz", json: [data: "value"])
-    end)
+    >>> post_logout
+  end
+
+  def post_logout(session) do
+    session
+    |> foo_bar
+    |> put("/baz", json: [data: "value"])
   end
 
   def foo_bar(session) do
@@ -97,39 +99,16 @@ defmodule Environment.Production do
     run BasicAccountLogin, %{
       some_config: some_val
     }
+    run BasicAccountLogin, "custom_name", %{
+      some_config: some_val
+    }
   end
 end
 ```
 
-Here, the logout action adds metrics for the `GET /logout` automatically.
-It also tracks timing and metrics created inside the call to `meter` under `post_logout`.
-By default we label metrics under the scenario name.
-
-```elixir
-%{
-  BasicAccountLogin => %{
-    http: %{
-      put: %{
-        "/logout": [
-          duration: 200, # in μs
-          # more metrics here
-        ]
-      }
-    },
-    post_logout: %{
-      http: %{
-        get: %{
-          "/foo": [ duration: 150 ],
-          "/bar": [ duration: 120 ]
-        },
-        put: %{
-          "/baz": [ duration: 100 ]
-        }
-      }
-    }
-  }
-}
-```
+Here, the logout action adds metrics for the `GET /logout` (and all other web requests) automatically.
+It also tracks timing and metrics for all async actions (using `~>` and measured function calls using `>>>`).
+By default we label all metrics with the scenario name.
 
 ## Distributed Load-Testing (TODO - Still WIP)
 
