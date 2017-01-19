@@ -25,15 +25,24 @@ defmodule Chaperon.Export.JSON do
     |> Poison.encode!
   end
 
-  def metrics(vals) do
-    vals
-    |> Map.take(@columns)
-    |> Enum.map(fn
-      {{:percentile, p}, val} ->
-        {"percentile_#{p}", round(val)}
-      {k, v} ->
-        {k, round(v)}
-    end)
-    |> Enum.into(%{})
+  def metrics([]), do: %{}
+
+  def metrics([v | vals]) do
+    Map.merge(metrics(v), metrics(vals))
+  end
+
+  def metrics(vals) when is_map(vals) do
+    metrics =
+      vals
+      |> Map.take(@columns)
+      |> Enum.map(fn
+        {{:percentile, p}, val} ->
+          {"percentile_#{p}", round(val)}
+        {k, v} ->
+          {k, round(v)}
+      end)
+      |> Enum.into(%{})
+
+    %{vals[:session_name] => metrics}
   end
 end
