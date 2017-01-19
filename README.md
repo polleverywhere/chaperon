@@ -107,7 +107,7 @@ end
 ```
 
 Here, the logout action adds metrics for the `GET /logout` (and all other web requests) automatically.
-It also tracks timing and metrics for all async actions (using `~>` and measured function calls using `>>>`).
+It also tracks timing and metrics for all async actions (using `~>`) and measured function calls (using `>>>`).
 By default we label all metrics with the scenario name.
 
 ## Distributed Load-Testing (TODO - Still WIP)
