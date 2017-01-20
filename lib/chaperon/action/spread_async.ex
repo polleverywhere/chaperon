@@ -67,6 +67,6 @@ defimpl String.Chars, for: Chaperon.Action.SpreadAsync do
   end
 
   def to_string(%{func: func, rate: r, interval: i}) when is_function(func) do
-    "Function[#{inspect func}, #{r}, #{i}]"
+    "SpreadAsync[#{inspect func}, #{r}, #{i}]"
   end
 end
