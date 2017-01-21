@@ -44,14 +44,12 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
     {addr, opts} = Connect.opts(action, session)
     ws = Socket.Web.connect! addr, opts
 
-    session =
-      session
-      |> Session.assign(
-        websocket: ws,
-        websocket_url: ws_url
-      )
-
-    {:ok, session}
+    session
+    |> Session.assign(
+      websocket: ws,
+      websocket_url: ws_url
+    )
+    |> Session.ok
   end
 
   def abort(action, session) do
