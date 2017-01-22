@@ -6,7 +6,6 @@ defmodule Chaperon.Action.Function do
 
   defstruct [
     func: nil,
-    called: false,
     args: []
   ]
 
@@ -15,7 +14,6 @@ defmodule Chaperon.Action.Function do
 
   @type t :: %Chaperon.Action.Function{
     func: callback,
-    called: boolean,
     args: [any]
   }
 end
