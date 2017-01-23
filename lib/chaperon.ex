@@ -16,7 +16,7 @@ defmodule Chaperon do
     # Define workers and child supervisors to be supervised
     children = [
       # Starts a worker by calling: Chaperon.Worker.start_link(arg1, arg2, arg3)
-      # worker(Chaperon.Worker, [arg1, arg2, arg3]),
+      worker(Chaperon.Master, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
