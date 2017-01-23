@@ -15,33 +15,33 @@ defmodule Chaperon.Timing do
   @doc """
   Returns the correct amount of milliseconds for a given amount of seconds.
   """
-  @spec seconds(duration) :: duration
+  @spec seconds(duration) :: non_neg_integer
   def seconds(num), do: round(num * @second)
 
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of minutes.
   """
-  @spec minutes(duration) :: duration
+  @spec minutes(duration) :: non_neg_integer
   def minutes(num), do: round(num * @minute)
 
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of hours.
   """
-  @spec hours(duration) :: duration
+  @spec hours(duration) :: non_neg_integer
   def hours(num), do: round(num * @hour)
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of days.
   """
-  @spec days(duration) :: duration
+  @spec days(duration) :: non_neg_integer
   def days(num), do: round(num * @day)
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of weeks.
   """
-  @spec weeks(duration) :: duration
+  @spec weeks(duration) :: non_neg_integer
   def weeks(num), do: round(num * @week)
 
 
