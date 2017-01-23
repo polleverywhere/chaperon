@@ -6,11 +6,6 @@ defmodule Firehose.Scenario.SubscribeChannel do
     |> multi_subscribe_loop(session.config.subscriptions_per_loop)
   end
 
-  def run(session) do
-    session
-    |> multi_subscribe_loop(session.config.subscriptions_per_loop)
-  end
-
   def multi_subscribe_loop(session, 0) do
     session
     <~ subscribe_loop
