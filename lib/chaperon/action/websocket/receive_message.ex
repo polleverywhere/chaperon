@@ -34,6 +34,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
         result = action |> decode_message(message)
 
         session
+        |> Session.assign(last_action: action)
         |> Session.add_ws_result(action, result)
         |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp - start)
         |> Session.ok

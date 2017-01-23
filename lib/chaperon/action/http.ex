@@ -177,6 +177,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       {:ok, response} ->
         Logger.debug "HTTP Response #{action} : #{response.status_code}"
         session
+        |> Session.assign(last_action: action)
         |> Session.add_result(action, response)
         |> Session.add_metric([:duration, action.method, url], timestamp - start)
         |> Session.ok

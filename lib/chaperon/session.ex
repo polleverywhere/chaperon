@@ -426,6 +426,26 @@ defmodule Chaperon.Session do
     session
   end
 
+  @doc """
+  Calls a given callback with the `session`'s last performed HTTP or WebSocket
+  action's result.
+
+  ## Example
+
+      session
+      |> get("/foo")
+      |> with_result(fn (session, %HTTPoison.Response{body: body}) ->
+        # this will assign the above get request's response body
+        # to session.assigns.foo_body
+        session
+        |> assign(foo_body: body)
+      end)
+  """
+  @spec with_result(Session.t, (Session.t, any -> any)) :: Session.t
+  def with_result(session, callback) do
+    callback.(session, session.results[session.assigns.last_action])
+  end
+
   @spec async_results(Session.t, atom) :: map
   defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
