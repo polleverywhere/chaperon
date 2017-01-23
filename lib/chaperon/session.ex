@@ -358,18 +358,8 @@ defmodule Chaperon.Session do
   def add_result(session, action, result) do
     Logger.debug "Add result #{action}"
 
-    case session.results[action] do
-      nil ->
-        put_in session.results[action], result
-
-      results when is_list(results) ->
-        update_in session.results[action],
-                  &[result | &1]
-
-      _ ->
-        update_in session.results[action],
-                  &[result, &1]
-    end
+    session
+    |> do_add_result(action, result)
   end
 
   @doc """
@@ -379,6 +369,11 @@ defmodule Chaperon.Session do
   def add_ws_result(session, action, result) do
     Logger.debug "Add WS result #{action} : #{inspect result}"
 
+    session
+    |> do_add_result(action, result)
+  end
+
+  defp do_add_result(session, action, result) do
     case session.results[action] do
       nil ->
         put_in session.results[action], result
