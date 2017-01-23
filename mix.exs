@@ -13,6 +13,10 @@ defmodule Chaperon.Mixfile do
         plt_add_deps: :apps_direct,
         plt_add_apps: [
           :httpoison, :uuid, :poison, :hdr_histogram, :socket
+        ],
+        flags: [
+          # "-Woverspecs",
+          # "-Wunderspecs"
         ]
       ]
     ]
