@@ -409,19 +409,6 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Calls a given callback with a `session`'s task results when the async task
-  with a given `task_name` has finished.
-  """
-  @spec with_response(Session.t, atom, (Session.t, any -> any)) :: Session.t
-  def with_response(session, task_name, callback) do
-    session = session |> await(task_name)
-    for {:async, _action, resp} <- session.results[task_name] |> as_list do
-      callback.(session, resp)
-    end
-    session
-  end
-
-  @doc """
   Calls a given callback with the `session`'s last performed HTTP or WebSocket
   action's result.
 
@@ -609,19 +596,6 @@ defmodule Chaperon.Session do
     quote do
       unquote(session)
       |> Chaperon.Session.call(unquote(func), unquote(args))
-    end
-  end
-
-  defmacro session ~>> {task_name, _, args} do
-    size = args |> Enum.count
-    body = List.last(args)
-    args = args |> Enum.take(size - 1)
-    body = body[:do]
-    callback_fn = {:fn, [], [{:->, [], [args, body]}]}
-
-    quote do
-      unquote(session)
-      |> with_response(unquote(task_name), unquote(callback_fn))
     end
   end
 end

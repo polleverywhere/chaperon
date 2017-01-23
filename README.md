@@ -55,6 +55,11 @@ defmodule BasicAccountLogin do
     session
     |> foo_bar
     |> put("/baz", json: [data: "value"])
+    |> with_result(fn session, %HTTPoison.Response{body: body} ->
+      # do something with put request's response
+      session
+      |> assign(baz_body: body)
+    end)
   end
 
   def foo_bar(session) do
@@ -79,15 +84,6 @@ defmodule BasicAccountLogin do
     |> await(:foo_bar)
     # same as above but with helper macro:
     <~ foo_bar
-
-    # to get values out of async vals
-    |> with_resp(:logout, fn (session, resp) ->
-      # do something with logout response
-    end)
-    # same as above, but with helper macro
-    ~>> logout(session, resp) do
-      # do something with logout response
-    end
   end
 end
 

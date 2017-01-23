@@ -16,10 +16,6 @@ defmodule Example.Scenario.BackgroundNoise do
     ~> search("foo") # same as above
     |> await_all(:search)
     <~ search # same as above but has no effect since tasks already awaited
-    # ~>> search(session, resp) do
-    #   # do something with logout response
-    #   IO.puts "Got search response: #{inspect resp}"
-    # end
     |> spread_post_data
   end
 
