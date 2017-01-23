@@ -123,7 +123,11 @@ defmodule Chaperon do
     end
   end
 
-  defp print_result(action, res) do
-    Logger.info "#{action} -> #{res.status_code}"
+  defp print_result(action, %HTTPoison.Response{status_code: status_code}) do
+    Logger.info "#{action} -> #{status_code}"
+  end
+
+  defp print_result(action, result) when is_binary(result) do
+    Logger.info "#{action} -> #{result}"
   end
 end
