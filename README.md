@@ -125,6 +125,12 @@ Then enter the following code into the iex shell to connect to the master node:
 iex> Chaperon.connect_to_master :"chaperon@node1.myhost.com"
 ```
 
+For the master node, run this inside the iex shell instead:
+
+```elixir
+iex> Chaperon.Master.start_link
+```
+
 Pick one of the nodes as your master node and connect to it from the worker nodes (see above).  
 Before starting up the child nodes make sure you've given them the same VM cookie and config to point to the master node.  
 The master node can be identical to the worker nodes, the only difference being that it kicks off the load test and distributes the workload across all worker nodes. When a worker node is done with running a scenario / session task, it sends the results back to the master, which then merges all results to give the final metrics for display / output.

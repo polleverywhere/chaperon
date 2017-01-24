@@ -16,13 +16,22 @@ defmodule Chaperon do
     # Define workers and child supervisors to be supervised
     children = [
       # Starts a worker by calling: Chaperon.Worker.start_link(arg1, arg2, arg3)
-      worker(Chaperon.Master, []),
+      # worker(Chaperon.Master, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Chaperon.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  @spec connect_to_master(atom) :: :ok | {:error, any}
+  def connect_to_master(node_name) do
+    if Node.connect(node_name) do
+      :ok
+    else
+      {:error, "Connecting to Chaperon master node failed: #{node_name}"}
+    end
   end
 
   @doc """

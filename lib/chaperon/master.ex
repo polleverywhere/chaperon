@@ -12,8 +12,10 @@ defmodule Chaperon.Master do
   use GenServer
   require Logger
 
+  @name {:global, __MODULE__}
+
   def start_link do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+    GenServer.start_link(__MODULE__, [], name: @name)
   end
 
   def init([]) do
@@ -23,8 +25,9 @@ defmodule Chaperon.Master do
   end
 
   def run_environment(env_mod, options \\ []) do
+    Logger.info "Running Environment #{env_mod} @ Master #{Node.self}"
     # TODO: store result
-    GenServer.call(__MODULE__, {:run_environment, env_mod, options}, :infinity)
+    GenServer.call(@name, {:run_environment, env_mod, options}, :infinity)
   end
 
   def handle_call({:run_environment, env_mod, options}, _from, state) do
