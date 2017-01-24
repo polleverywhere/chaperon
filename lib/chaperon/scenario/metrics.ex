@@ -8,32 +8,38 @@ defmodule Chaperon.Scenario.Metrics do
   Replaces base metrics for a given `session` with the histogram values for them.
   """
   def add_histogram_metrics(session) do
-    histograms = session |> record_metrics
-
-    hist_vals = for {k, hist} <- histograms do
-      {k, %{
-        :total_count => :hdr_histogram.get_total_count(hist),
-        :min => :hdr_histogram.min(hist),
-        :mean => :hdr_histogram.mean(hist),
-        :median => :hdr_histogram.median(hist),
-        :max => :hdr_histogram.max(hist),
-        :stddev => :hdr_histogram.stddev(hist),
-        {:percentile, 75} => :hdr_histogram.percentile(hist, 75.0),
-        {:percentile, 90} => :hdr_histogram.percentile(hist, 90.0),
-        {:percentile, 95} => :hdr_histogram.percentile(hist, 95.0),
-        {:percentile, 99} => :hdr_histogram.percentile(hist, 99.0),
-        {:percentile, 999} => :hdr_histogram.percentile(hist, 99.9),
-        {:percentile, 9999} => :hdr_histogram.percentile(hist, 99.99),
-        {:percentile, 99999} => :hdr_histogram.percentile(hist, 99.999)
-      }}
-    end
-    |> Enum.into(%{})
-
-    put_in session.metrics, hist_vals
+    %{session | metrics: histogram_metrics(session) }
   end
 
   @doc false
-  def record_metrics(session) do
+  def histogram_metrics(session = %Chaperon.Session{}) do
+    session
+    |> record_histograms
+    |> Enum.map(&histogram_vals/1)
+    |> Enum.into(%{})
+  end
+
+  @doc false
+  def histogram_vals({k, hist}) do
+    {k, %{
+      :total_count => :hdr_histogram.get_total_count(hist),
+      :min => :hdr_histogram.min(hist),
+      :mean => :hdr_histogram.mean(hist),
+      :median => :hdr_histogram.median(hist),
+      :max => :hdr_histogram.max(hist),
+      :stddev => :hdr_histogram.stddev(hist),
+      {:percentile, 75} => :hdr_histogram.percentile(hist, 75.0),
+      {:percentile, 90} => :hdr_histogram.percentile(hist, 90.0),
+      {:percentile, 95} => :hdr_histogram.percentile(hist, 95.0),
+      {:percentile, 99} => :hdr_histogram.percentile(hist, 99.0),
+      {:percentile, 999} => :hdr_histogram.percentile(hist, 99.9),
+      {:percentile, 9999} => :hdr_histogram.percentile(hist, 99.99),
+      {:percentile, 99999} => :hdr_histogram.percentile(hist, 99.999)
+    }}
+  end
+
+  @doc false
+  def record_histograms(session) do
     session.metrics
     |> Enum.reduce(%{}, fn {k,v}, histograms ->
       case histograms[k] do
