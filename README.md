@@ -111,16 +111,18 @@ By default we label all metrics with the scenario name.
 Aside from running Chaperon scenarios from a single machine, you can also run them in a cluster.
 Since Chaperon is written in Elixir, it makes use of its built-in distribution mechanics (provided by the Erlang VM and OTP) to achieve this.
 
-To run a Chaperon scenario in distributed mode, you need to deploy your Chaperon scenario and environment code to all machines in the cluster, start them up and connect to the master node:
+To run a Chaperon scenario in distributed mode, you need to deploy your Chaperon scenario and environment code to all machines in the cluster, start them up and connect to the master node.
+
+To start any node simply load up the code in an iex shell:
+
+```
+$ iex --cookie my-secret-cluster-cookie --name "chaperon@mynode.com" -S mix
+```
+
+Then enter the following code into the iex shell to connect to the master node:
 
 ```elixir
-Chaperon.connect_to_master "chaperon@node1.myhost.com"
-```
-
-To start any node simply load up the code by running
-
-```
-$ iex --cookie my-secret-cookie --name "chaperon@mynode.com" -S mix run my_chaperon_scenario_code.ex
+iex> Chaperon.connect_to_master :"chaperon@node1.myhost.com"
 ```
 
 Pick one of the nodes as your master node and connect to it from the worker nodes (see above).  
