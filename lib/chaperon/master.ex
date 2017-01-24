@@ -25,7 +25,7 @@ defmodule Chaperon.Master do
   end
 
   def run_environment(env_mod, options \\ []) do
-    Logger.info "Running Environment #{env_mod} @ Master #{Node.self}"
+    Logger.info "Running Environment #{env_mod} @ Master #{get_state.id}"
     # TODO: store result
     GenServer.call(@name, {:run_environment, env_mod, options}, :infinity)
   end
@@ -34,5 +34,13 @@ defmodule Chaperon.Master do
     session = Chaperon.run_environment(env_mod, options)
     state = update_in state.sessions, &Map.put(&1, env_mod, session)
     {:reply, session, state}
+  end
+
+  def get_state do
+    GenServer.call(@name, :get_state)
+  end
+
+  def handle_call(:get_state, from, state) do
+    {:reply, state, state}
   end
 end
