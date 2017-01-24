@@ -428,7 +428,7 @@ defmodule Chaperon.Session do
   @spec with_result(Session.t, result_callback) :: Session.t
   def with_result(session, callback) when is_function(callback) do
     result = case session.results[session.assigns.last_action] do
-      [r | _ ] -> r
+      [r | _] -> r
       r        -> r
     end
     callback.(session, result)
