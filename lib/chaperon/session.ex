@@ -445,6 +445,7 @@ defmodule Chaperon.Session do
   end
 
   @doc false
+  @spec handle_json_response(Session.t, HTTPoison.Response.t, (Session.t, any -> Session.t)) :: Session.t
   defp handle_json_response(session, %HTTPoison.Response{body: body}, callback)
   do
     session
