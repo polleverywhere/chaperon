@@ -29,6 +29,7 @@ defmodule Chaperon.Session do
 
   require Logger
   alias Chaperon.Session
+  alias Chaperon.Session.Error
   alias Chaperon.Action
   alias Chaperon.Action.SpreadAsync
   import Chaperon.Timing
@@ -36,6 +37,7 @@ defmodule Chaperon.Session do
 
   @default_timeout seconds(10)
 
+  @type result_callback :: (Session.t, any -> Session.t)
 
   @doc """
   Concurrently spreads a given action with a given rate over a given time
@@ -423,9 +425,44 @@ defmodule Chaperon.Session do
         |> assign(foo_body: body)
       end)
   """
-  @spec with_result(Session.t, (Session.t, any -> any)) :: Session.t
-  def with_result(session, callback) do
-    callback.(session, session.results[session.assigns.last_action])
+  @spec with_result(Session.t, result_callback) :: Session.t
+  def with_result(session, callback) when is_function(callback) do
+    result = case session.results[session.assigns.last_action] do
+      [r | _ ] -> r
+      r        -> r
+    end
+    callback.(session, result)
+  end
+
+  @doc """
+  Calls a given callback with the session's last performed HTTP or WebSocket
+  action's JSON decoded result.
+  """
+  @spec with_result(Session.t, json: result_callback) :: Session.t
+  def with_result(session, json: callback) do
+    session
+    |> with_result(&handle_json_response(&1, &2, callback))
+  end
+
+  @doc false
+  defp handle_json_response(session, %HTTPoison.Response{body: body}, callback)
+  do
+    session
+    |> handle_json_response(body, callback)
+  end
+
+  @doc false
+  @spec handle_json_response(Session.t, String.t, (Session.t, any -> Session.t)) :: Session.t
+  defp handle_json_response(session, response, callback)
+  when is_binary(response)
+  do
+    case Poison.decode(response) do
+      {:ok, json} ->
+        callback.(session, json)
+      _ ->
+        error = session |> error("JSON response decoding failed: #{inspect response}")
+        put_in session.errors[session.assigns.last_action], error
+    end
   end
 
   @spec async_results(Session.t, atom) :: map
@@ -499,8 +536,6 @@ defmodule Chaperon.Session do
   def name(session) do
     session.config[:session_name] || session.id
   end
-
-  alias Chaperon.Session.Error
 
   @doc """
   Returns `{:ok, reason}`.
