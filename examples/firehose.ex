@@ -103,9 +103,8 @@ defmodule Firehose.Scenario.PublishChannel do
   end
 
   def publish(session) do
-    :timer.sleep(:rand.uniform(session.config.base_interval))
-
     session
+    |> delay(:rand.uniform(session.config.base_interval))
     ~> publish(session.config.channel)
   end
 
