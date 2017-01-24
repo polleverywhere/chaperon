@@ -18,13 +18,11 @@ defmodule Chaperon.Timing do
   @spec seconds(duration) :: non_neg_integer
   def seconds(num), do: round(num * @second)
 
-
   @doc """
   Returns the correct amount of milliseconds for a given amount of minutes.
   """
   @spec minutes(duration) :: non_neg_integer
   def minutes(num), do: round(num * @minute)
-
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of hours.
@@ -43,7 +41,6 @@ defmodule Chaperon.Timing do
   """
   @spec weeks(duration) :: non_neg_integer
   def weeks(num), do: round(num * @week)
-
 
   @doc """
   Returns a timestamp with the given time unit.
