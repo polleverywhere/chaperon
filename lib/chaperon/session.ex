@@ -359,9 +359,7 @@ defmodule Chaperon.Session do
   @spec add_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_result(session, action, result) do
     Logger.debug "Add result #{action}"
-
-    session
-    |> do_add_result(action, result)
+    update_in session.results[action], &[result | as_list(&1)]
   end
 
   @doc """
@@ -370,24 +368,7 @@ defmodule Chaperon.Session do
   @spec add_ws_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
   def add_ws_result(session, action, result) do
     Logger.debug "Add WS result #{action} : #{inspect result}"
-
-    session
-    |> do_add_result(action, result)
-  end
-
-  defp do_add_result(session, action, result) do
-    case session.results[action] do
-      nil ->
-        put_in session.results[action], result
-
-      results when is_list(results) ->
-        update_in session.results[action],
-                  &[result | &1]
-
-      _ ->
-        update_in session.results[action],
-                  &[result, &1]
-    end
+    update_in session.results[action], &[result | as_list(&1)]
   end
 
   @doc """
@@ -396,18 +377,7 @@ defmodule Chaperon.Session do
   @spec add_metric(Session.t, [any], any) :: Session.t
   def add_metric(session, name, val) do
     Logger.debug "Add metric #{inspect name} : #{val}"
-    case session.metrics[name] do
-      nil ->
-        put_in session.metrics[name], val
-
-      vals when is_list(vals) ->
-        update_in session.metrics[name],
-                  &[val | &1]
-
-      _ ->
-        update_in session.metrics[name],
-                  &[val | &1]
-    end
+    update_in session.metrics[name], &[val | as_list(&1)]
   end
 
   @doc """
