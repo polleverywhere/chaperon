@@ -59,7 +59,7 @@ defmodule Chaperon.Session do
   def loop(session, action_name, duration) do
     session
     |> run_action(%Action.Loop{
-      action: %Action.Function{func: action_name},
+      action: %Action.CallFunction{func: action_name},
       duration: duration
     })
   end
@@ -215,12 +215,12 @@ defmodule Chaperon.Session do
   Calls a given function or a function with the given name and args, then
   captures duration metrics in `session`.
   """
-  @spec call(Session.t, Action.Function.callback, [any]) :: Session.t
+  @spec call(Session.t, Action.CallFunction.callback, [any]) :: Session.t
   def call(session, func, args \\ [])
     when is_atom(func) or is_function(func)
   do
     session
-    |> run_action(%Action.Function{func: func, args: args})
+    |> run_action(%Action.CallFunction{func: func, args: args})
   end
 
   @doc """

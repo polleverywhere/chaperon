@@ -1,4 +1,4 @@
-defmodule Chaperon.Action.Function do
+defmodule Chaperon.Action.CallFunction do
   @moduledoc """
   Performs & measures a function call (with args) within a session's
   `Chaperon.Scenario` module.
@@ -12,13 +12,13 @@ defmodule Chaperon.Action.Function do
   @type callback :: atom
                     | (Chaperon.Session.t -> Chaperon.Session.t)
 
-  @type t :: %Chaperon.Action.Function{
+  @type t :: %Chaperon.Action.CallFunction{
     func: callback,
     args: [any]
   }
 end
 
-defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
+defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
   import Chaperon.Timing
   alias Chaperon.Session
 
@@ -33,7 +33,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Function do
   def abort(func, session),     do: {:ok, func, session}
 end
 
-defimpl String.Chars, for: Chaperon.Action.Function do
+defimpl String.Chars, for: Chaperon.Action.CallFunction do
   def to_string(%{func: func}) when is_atom(func) do
     "#{func}"
   end

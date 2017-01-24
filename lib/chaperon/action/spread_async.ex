@@ -14,7 +14,7 @@ defmodule Chaperon.Action.SpreadAsync do
   @type time :: non_neg_integer
 
   @type t :: %__MODULE__{
-    func: Chaperon.Function.callback,
+    func: Chaperon.CallFunction.callback,
     rate: rate,
     interval: time
   }
