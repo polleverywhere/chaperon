@@ -119,16 +119,16 @@ To start any node simply load up the code in an iex shell:
 $ iex --cookie my-secret-cluster-cookie --name "chaperon@mynode.com" -S mix
 ```
 
-Then enter the following code into the iex shell to connect to the master node:
-
-```elixir
-iex> Chaperon.connect_to_master :"chaperon@node1.myhost.com"
-```
-
-For the master node, run this inside the iex shell instead:
+For the master node, run this inside the iex shell:
 
 ```elixir
 iex> Chaperon.Master.start
+```
+
+Then enter the following code into any worker's iex shell to connect it to the master node:
+
+```elixir
+iex> Chaperon.connect_to_master :"chaperon@node1.myhost.com"
 ```
 
 Pick one of the nodes as your master node and connect to it from the worker nodes (see above).  
