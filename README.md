@@ -128,7 +128,7 @@ iex> Chaperon.connect_to_master :"chaperon@node1.myhost.com"
 For the master node, run this inside the iex shell instead:
 
 ```elixir
-iex> Chaperon.Master.start_link
+iex> Chaperon.Master.start
 ```
 
 Pick one of the nodes as your master node and connect to it from the worker nodes (see above).  
