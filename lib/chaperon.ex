@@ -9,20 +9,8 @@ defmodule Chaperon do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    import Supervisor.Spec, warn: false
-
     HTTPoison.start
-
-    # Define workers and child supervisors to be supervised
-    children = [
-      # Starts a worker by calling: Chaperon.Worker.start_link(arg1, arg2, arg3)
-      # worker(Chaperon.Master, []),
-    ]
-
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Chaperon.Supervisor]
-    Supervisor.start_link(children, opts)
+    Chaperon.Supervisor.start_link
   end
 
   @spec connect_to_master(atom) :: :ok | {:error, any}
@@ -59,7 +47,11 @@ defmodule Chaperon do
       # => Outputs metrics in JSON format to metrics.json file
   """
   def run_environment(env_mod, options \\ []) do
-    sessions = apply(env_mod, :run, [])
+    timeout = env_mod.default_config[:env_timeout] || :infinity
+
+    sessions =
+      Task.async(env_mod, :run, [])
+      |> Task.await(timeout)
 
     if options[:print_results] do
       print_results(sessions)

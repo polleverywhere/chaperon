@@ -77,14 +77,25 @@ defmodule Chaperon.Scenario do
   @spec execute(atom, map) :: Session.t
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
-    session = %Session{
-      id: "#{scenario |> name} #{UUID.uuid4}",
-      scenario: scenario,
-      config: config
-    }
+    session = scenario |> new_session(config)
 
     {:ok, session} = scenario_mod |> init(session)
 
+    scenario
+    |> run(session)
+  end
+
+  def run(scenario, {:ok, session}) do
+    scenario
+    |> run(session)
+  end
+
+  def run(scenario, {:error, reason}) do
+    Logger.error "Error running #{scenario}: #{inspect reason}"
+    {:error, reason}
+  end
+
+  def run(scenario, session) do
     session =
       case session.config[:delay] do
         nil ->
@@ -94,7 +105,7 @@ defmodule Chaperon.Scenario do
           session
           |> Session.delay(duration)
       end
-      |> scenario_mod.run
+      |> scenario.module.run
 
     session.async_tasks
     |> Enum.reduce(session, fn {k, v}, acc ->
@@ -118,6 +129,16 @@ defmodule Chaperon.Scenario do
     else
       {:ok, session}
     end
+  end
+
+  @spec new_session(Chaperon.Scenario.t, map) :: Session.t
+  def new_session(scenario, config) do
+    id = config[:id] || "#{scenario |> name} #{UUID.uuid4}"
+    %Session{
+      id: id,
+      scenario: scenario,
+      config: config
+    }
   end
 
   @doc """

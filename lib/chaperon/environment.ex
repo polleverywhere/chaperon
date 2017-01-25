@@ -133,6 +133,10 @@ defmodule Chaperon.Environment do
       def scenarios do
         unquote(scenarios)
       end
+
+      def default_config do
+        unquote(default_config)
+      end
     end
   end
 end
