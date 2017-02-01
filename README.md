@@ -106,7 +106,7 @@ Here, the logout action adds metrics for the `GET /logout` (and all other web re
 It also tracks timing and metrics for all async actions (using `~>`) and measured function calls (using `>>>`).
 By default we label all metrics with the scenario name.
 
-## Distributed Load-Testing (TODO - Still WIP)
+## Distributed Load-Testing
 
 Aside from running Chaperon scenarios from a single machine, you can also run them in a cluster.
 Since Chaperon is written in Elixir, it makes use of its built-in distribution mechanics (provided by the Erlang VM and OTP) to achieve this.
@@ -137,4 +137,4 @@ The master node can be identical to the worker nodes, the only difference being 
 
 ## How to run this in production?
 
-Don't yet. It's still WIP.
+Probably shouldn't yet. It's still WIP.
