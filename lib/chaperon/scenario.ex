@@ -99,14 +99,8 @@ defmodule Chaperon.Scenario do
     Logger.info "Running #{session.id}"
 
     session =
-      case session.config[:delay] do
-        nil ->
-          session
-
-        duration ->
-          session
-          |> Session.delay(duration)
-      end
+      session
+      |> initial_delay
       |> scenario.module.run
 
     session.async_tasks
@@ -115,6 +109,18 @@ defmodule Chaperon.Scenario do
     end)
     |> Chaperon.Scenario.Metrics.add_histogram_metrics
   end
+
+  def initial_delay(session = %Session{config: %{delay: delay}}) do
+    session
+    |> Session.delay(delay)
+  end
+
+  def initial_delay(session = %Session{config: %{random_delay: delay}}) do
+    session
+    |> Session.delay(:rand.uniform(delay))
+  end
+
+  def initial_delay(session), do: session
 
   @doc """
   Initializes a `Chaperon.Scenario` for a given `session`.
