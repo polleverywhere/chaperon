@@ -299,6 +299,67 @@ defmodule Chaperon.Session do
     end)
   end
 
+
+  @doc """
+  Updates a session's config based on a given Keyword list of functions to be
+  used for updating `config` in `session`.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{config: %{foo: 1, bar: "hello"}}
+      iex> session.config
+      %{foo: 1, bar: "hello"}
+      iex> session = session |> update_config(foo: &(&1 + 2))
+      iex> session.config.foo
+      3
+      iex> session.config.bar
+      "hello"
+      iex> session.config
+      %{foo: 3, bar: "hello"}
+  """
+  @spec update_config(Session.t, Keyword.t((any -> any))) :: Session.t
+  def update_config(session, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, func}, session ->
+      update_in session.config[k], func
+    end)
+  end
+
+  @doc """
+  Updates a session's config based on a given Keyword list of new values to be
+  used for `config` in `session`.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{config: %{foo: 1, bar: "hello"}}
+      iex> session.config
+      %{foo: 1, bar: "hello"}
+      iex> session = session |> set_config(foo: 10, baz: "wat")
+      iex> session.config.foo
+      10
+      iex> session.config.bar
+      "hello"
+      iex> session.config.baz
+      "wat"
+      iex> session.config
+      %{foo: 10, bar: "hello", baz: "wat"}
+  """
+  @spec set_config(Session.t, Keywort.t(any)) :: Session.t
+  def set_config(session, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, val}, session ->
+      put_in session.config[k], val
+    end)
+  end
+
+  @spec skip_metrics_in_query_params(Session.t) :: Session.t
+  def skip_metrics_in_query_params(session) do
+    session
+    |> set_config(skip_metrics_in_query_params: true)
+  end
+
   @doc """
   Runs a given function with args asynchronously from `session`.
   """
