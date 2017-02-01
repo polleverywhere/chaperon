@@ -12,8 +12,8 @@ defmodule Example.Scenario.BackgroundNoise do
   def run(session) do
     session
     |> async(:search, ["foo"])
-    |> async(:search, ["foo"])
     ~> search("foo") # same as above
+    # await async search results
     |> await_all(:search)
     <~ search # same as above but has no effect since tasks already awaited
     |> spread_post_data
@@ -31,6 +31,8 @@ defmodule Example.Scenario.BackgroundNoise do
   def search(session, query \\ "WHO AM I?") do
     session
     |> get("/", q: query)
+    # # we could store a potential JSON response inside the session for further use:
+    # |> with_result(json: &add_search_result(&1, query, &2))
   end
 
   def post_data(session) do
@@ -45,6 +47,11 @@ defmodule Example.Scenario.BackgroundNoise do
   def increase_noise(session) do
     session
     |> update_assign(rate: &(&1 * 1.025)) # increase by 2.5%
+  end
+
+  def add_search_result(session, query, result) do
+    session
+    |> update_assign(search_results: &Map.put(&1 || %{}, query, result))
   end
 end
 
