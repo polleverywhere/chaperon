@@ -467,20 +467,6 @@ defmodule Chaperon.Session do
     end
   end
 
-  def last_result(session) do
-    session
-    |> last_result(session.assigns[:last_action])
-  end
-
-  def last_result(session, nil), do: nil
-
-  def last_result(session, action) do
-    case session.results[action] do
-      [r | _] -> r
-      r       -> r
-    end
-  end
-
   @doc """
   Calls a given callback with the session's last performed HTTP or WebSocket
   action's JSON decoded result.
@@ -598,6 +584,20 @@ defmodule Chaperon.Session do
   @spec error(Session.t, any) :: {:error, Error.t}
   def error(session, reason) do
     {:error, %Error{reason: reason, session: session}}
+  end
+
+  defp last_result(session) do
+    session
+    |> last_result(session.assigns[:last_action])
+  end
+
+  defp last_result(session, nil), do: nil
+
+  defp last_result(session, action) do
+    case session.results[action] do
+      [r | _] -> r
+      r       -> r
+    end
   end
 
   @doc """
