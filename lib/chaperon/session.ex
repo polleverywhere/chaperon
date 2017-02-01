@@ -346,7 +346,7 @@ defmodule Chaperon.Session do
       iex> session.config
       %{foo: 10, bar: "hello", baz: "wat"}
   """
-  @spec set_config(Session.t, Keywort.t(any)) :: Session.t
+  @spec set_config(Session.t, Keyword.t(any)) :: Session.t
   def set_config(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, val}, session ->
