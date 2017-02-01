@@ -1,12 +1,14 @@
 defmodule Chaperon.Master do
   defstruct [
     id: nil,
-    sessions: %{}
+    sessions: %{},
+    tasks: %{}
   ]
 
   @type t :: %Chaperon.Master{
     id: atom,
-    sessions: %{atom => Chaperon.Session.t}
+    sessions: %{atom => Chaperon.Session.t},
+    tasks: %{atom => pid}
   }
 
   use GenServer
@@ -34,19 +36,23 @@ defmodule Chaperon.Master do
     GenServer.call(@name, {:run_environment, env_mod, options}, timeout)
   end
 
-  def get_state do
-    GenServer.call(@name, :get_state)
-  end
-
-  def handle_call({:run_environment, env_mod, options}, _from, state) do
+  def handle_call({:run_environment, env_mod, options}, client, state) do
     Logger.info "Running Environment #{env_mod} @ Master #{state.id}"
 
-    session = Chaperon.run_environment(env_mod, options)
-    state = update_in state.sessions, &Map.put(&1, env_mod, session)
-    {:reply, session, state}
+    {:ok, _} = Task.start_link fn ->
+      session = Chaperon.run_environment(env_mod, options)
+      # state = update_in state.sessions, &Map.put(&1, env_mod, session)
+      GenServer.cast @name, {:environment_finished, env_mod, session}
+    end
+    state = update_in state.tasks, &Map.put(&1, env_mod, client)
+    {:noreply, state}
   end
 
-  def handle_call(:get_state, from, state) do
-    {:reply, state, state}
+  def handle_cast({:environment_finished, env_mod, session}, state) do
+    Logger.info "Environment finished: #{env_mod}"
+    client = state.tasks[env_mod]
+    GenServer.reply(client, session)
+    state = update_in state.tasks, &Map.delete(&1, env_mod)
+    {:stop, :normal, state}
   end
 end
