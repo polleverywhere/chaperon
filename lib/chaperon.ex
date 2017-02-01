@@ -50,7 +50,7 @@ defmodule Chaperon do
     timeout = env_mod.default_config[:env_timeout] || :infinity
 
     sessions =
-      Task.async(env_mod, :run, [])
+      Task.async(Chaperon.Environment, :run, [env_mod])
       |> Task.await(timeout)
 
     if options[:print_results] do
@@ -68,6 +68,8 @@ defmodule Chaperon do
 
     apply(encoder(options), :encode, [session])
     |> write_output(Keyword.get(options, :output, :stdio))
+
+    session
   end
 
   defp encoder(options) do

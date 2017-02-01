@@ -46,21 +46,32 @@ defmodule Chaperon.Environment do
       require Chaperon.Environment
       import  Chaperon.Environment
       import  Chaperon.Timing
-
-      def run do
-        scenarios()
-        |> Enum.map(fn {scenario, config} ->
-          t = Task.async Chaperon.Scenario, :execute, [scenario, config]
-          {t, config}
-        end)
-        |> Enum.map(fn {t, config} ->
-          Task.await(t, config[:scenario_timeout] || :infinity)
-        end)
-      end
     end
   end
 
   alias Chaperon.Session
+  require Logger
+
+  def run(env_mod) do
+    env_mod.scenarios
+    |> Enum.map(fn
+      {concurrency, scenario, config} ->
+        Chaperon.Worker.start(concurrency, scenario, config)
+        |> Enum.map(&{&1, config})
+      {scenario, config} ->
+        w = Chaperon.Worker.start(scenario, config)
+        {w, config}
+    end)
+    |> List.flatten
+    |> Enum.map(fn {worker, config} ->
+      worker
+      |> Task.await(config[:scenario_timeout] || :infinity)
+    end)
+  end
+
+  def timeout(env_mod) do
+    env_mod.default_config[:environment_timeout] || :infinity
+  end
 
   @doc """
   Merges metrics & results of all `Chaperon.Session`s in a list.
@@ -111,8 +122,16 @@ defmodule Chaperon.Environment do
     end
 
     scenarios = for {:run, _, [scenario, config]} <- run_exprs do
-      quote do
-        {unquote(scenario), Map.merge(unquote(default_config), unquote(config))}
+      case scenario do
+        {num, scenario} ->
+          quote do
+            {unquote(num), unquote(scenario), Map.merge(unquote(default_config), unquote(config))}
+          end
+
+        scenario ->
+          quote do
+            {unquote(scenario), Map.merge(unquote(default_config), unquote(config))}
+          end
       end
     end
 
