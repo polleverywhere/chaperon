@@ -41,7 +41,6 @@ defmodule Chaperon.Master do
 
     {:ok, _} = Task.start_link fn ->
       session = Chaperon.run_environment(env_mod, options)
-      # state = update_in state.sessions, &Map.put(&1, env_mod, session)
       GenServer.cast @name, {:environment_finished, env_mod, session}
     end
     state = update_in state.tasks, &Map.put(&1, env_mod, client)
