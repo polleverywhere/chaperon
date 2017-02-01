@@ -6,7 +6,14 @@ defmodule Chaperon.Worker.Supervisor do
     Task.Supervisor.start_link(opts)
   end
 
-  def start_worker(scenario_mod, config) do
-    Task.Supervisor.start_child(@name, Chaperon.Worker, :start_link, [scenario_mod, config])
+  def start_workers(nodes, amount, scenario_mod, config) do
+    nodes
+    |> Stream.cycle
+    |> Stream.take(amount)
+    |> Enum.map(&start_worker(&1, scenario_mod, config))
+  end
+
+  def start_worker(node, scenario_mod, config) do
+    Task.Supervisor.async({@name, node}, Chaperon.Scenario, :execute, [scenario_mod, config])
   end
 end

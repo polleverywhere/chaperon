@@ -96,6 +96,8 @@ defmodule Chaperon.Scenario do
   end
 
   def run(scenario, session) do
+    Logger.info "Running #{session.id}"
+
     session =
       case session.config[:delay] do
         nil ->
@@ -133,9 +135,8 @@ defmodule Chaperon.Scenario do
 
   @spec new_session(Chaperon.Scenario.t, map) :: Session.t
   def new_session(scenario, config) do
-    id = config[:id] || "#{scenario |> name} #{UUID.uuid4}"
     %Session{
-      id: id,
+      id: session_id(scenario, config),
       scenario: scenario,
       config: config
     }
@@ -157,4 +158,14 @@ defmodule Chaperon.Scenario do
     |> Module.split
     |> Enum.join(".")
   end
+
+  @spec session_id(Chaperon.Scenario.t, map) :: String.t
+  def session_id(_scenario, %{id: id}),
+    do: id
+
+  def session_id(scenario, %{merge_scenario_sessions: true}),
+    do: scenario |> name
+
+  def session_id(scenario, _config),
+    do: "#{scenario |> name} #{UUID.uuid4}"
 end

@@ -1,37 +1,28 @@
 defmodule Chaperon.Worker do
-  use GenServer
-
-  defstruct [
-    id: nil,
-    session: nil
-  ]
-
-  @type t :: %Chaperon.Worker{
-    id: {atom, String.t},
-    session: Chaperon.Session.t
-  }
-
-  use GenServer
   require Logger
   alias Chaperon.Scenario
 
-  def start_link(scenario_mod, config) do
-    GenServer.start_link(__MODULE__, [scenario_mod, config])
+  def start(amount, scenario_mod, config)
+  when is_integer(amount) and amount > 0
+  do
+    Chaperon.Worker.Supervisor.start_workers(nodes, amount, scenario_mod, config)
   end
 
-  def init(scenario_mod, config) do
-    session =
-      %Scenario{module: scenario_mod}
-      |> Scenario.new_session(config)
-
-    id = {Node.self, session.id}
-    Logger.info "Starting Chaperon.Worker #{inspect id}"
-    GenServer.cast(self, :run)
-    {:ok, %Chaperon.Worker{id: id, session: session}}
+  def start(scenario_mod, config) do
+    Chaperon.Worker.Supervisor.start_worker(random_node, scenario_mod, config)
   end
 
-  def handle_cast(:run, state) do
-    # TODO
-    {:noreply, state}
+  def await(%Task{} = worker, timeout \\ 5000) do
+    Task.await(worker, timeout)
+  end
+
+  def random_node do
+    nodes
+    |> Enum.shuffle
+    |> List.first
+  end
+
+  def nodes do
+    [Node.self | Node.list]
   end
 end
