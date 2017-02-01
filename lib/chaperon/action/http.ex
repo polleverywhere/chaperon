@@ -88,6 +88,16 @@ defmodule Chaperon.Action.HTTP do
     end
   end
 
+  def metrics_url(action, session) do
+    if session.config[:skip_metrics_in_query_params] do
+      action
+      |> url(session)
+    else
+      action
+      |> full_url(session)
+    end
+  end
+
   def full_path(%{path: path, params: params}),
     do: path <> query_params_string(params)
 
@@ -179,7 +189,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         session
         |> Session.assign(last_action: action)
         |> Session.add_result(action, response)
-        |> Session.add_metric([:duration, action.method, url], timestamp - start)
+        |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
         |> Session.ok
 
       {:error, reason} ->
