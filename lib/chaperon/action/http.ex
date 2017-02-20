@@ -33,6 +33,7 @@ defmodule Chaperon.Action.HTTP do
       path: path,
       params: params
     }
+    |> add_options(params)
   end
 
   def post(path, opts) do
@@ -173,13 +174,13 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   require Logger
 
   def run(action, session) do
-    url = HTTP.full_url(action, session)
-    Logger.info "#{action.method |> to_string |> String.upcase} #{url}"
+    full_url = HTTP.full_url(action, session)
+    Logger.info "#{action.method |> to_string |> String.upcase} #{full_url}"
 
     start = timestamp
     case HTTPoison.request(
       action.method,
-      url,
+      HTTP.url(action, session),
       action.body || "",
       action.headers,
       HTTP.options(action, session)
