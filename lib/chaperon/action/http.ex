@@ -89,7 +89,7 @@ defmodule Chaperon.Action.HTTP do
   end
 
   def metrics_url(action, session) do
-    if session.config[:skip_metrics_in_query_params] do
+    if session.config[:skip_query_params_in_metrics] do
       action
       |> url(session)
     else

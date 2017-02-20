@@ -354,10 +354,10 @@ defmodule Chaperon.Session do
     end)
   end
 
-  @spec skip_metrics_in_query_params(Session.t) :: Session.t
-  def skip_metrics_in_query_params(session) do
+  @spec skip_query_params_in_metrics(Session.t) :: Session.t
+  def skip_query_params_in_metrics(session) do
     session
-    |> set_config(skip_metrics_in_query_params: true)
+    |> set_config(skip_query_params_in_metrics: true)
   end
 
   @doc """
