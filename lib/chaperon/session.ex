@@ -13,7 +13,8 @@ defmodule Chaperon.Session do
     config: %{},
     assigns: %{},
     metrics: %{},
-    scenario: nil
+    scenario: nil,
+    cookies: []
   ]
 
   @type t :: %Chaperon.Session{
@@ -24,7 +25,8 @@ defmodule Chaperon.Session do
     config: map,
     assigns: map,
     metrics: map,
-    scenario: Chaperon.Scenario.t
+    scenario: Chaperon.Scenario.t,
+    cookies: [String.t]
   }
 
   require Logger
@@ -475,6 +477,26 @@ defmodule Chaperon.Session do
   def with_result(session, json: callback) do
     session
     |> with_result(&handle_json_response(&1, &2, callback))
+  end
+
+  def store_response_cookies(session, resp) do
+    update_in session.cookies, fn
+      nil ->
+        resp |> response_cookies
+      c ->
+        c ++ (resp |> response_cookies)
+    end
+  end
+
+  def response_cookies(response) do
+    response.headers
+    |> Enum.filter(fn
+      {"Set-Cookie", _} ->
+        true
+      _ ->
+        false
+    end)
+    |> Enum.map(fn {_, val} -> val end)
   end
 
   @doc false

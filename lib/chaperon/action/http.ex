@@ -104,14 +104,28 @@ defmodule Chaperon.Action.HTTP do
 
   def query_params_string([]),
     do: ""
-  def query_params_string(params),
-    do: "?" <> URI.encode_query(params)
+  def query_params_string(params) do
+    case URI.encode_query(params) do
+      "" -> ""
+      q  -> "?" <> q
+    end
+  end
 
   def options(action, session) do
-    session.config
-    |> Map.get(:http, %{})
-    |> Enum.into([])
-    |> Keyword.merge(params: action.params)
+    opts =
+      session.config
+      |> Map.get(:http, %{})
+      |> Enum.into([])
+      |> Keyword.merge(params: action.params)
+
+    case session.cookies do
+      [] ->
+        opts
+
+      cookies ->
+        opts
+        |> Keyword.merge(hackney: [cookie: cookies])
+    end
   end
 
   def add_options(action, opts) do
@@ -153,14 +167,14 @@ defmodule Chaperon.Action.HTTP do
 
   defp json_body(data) do
     {
-      %{"Content-Type": "application/json"},
+      %{"Content-Type" => "application/json"},
       data |> Poison.encode!
     }
   end
 
   defp form_body(data) do
     {
-      %{"Content-Type": "x-www-form-urlencoded"},
+      %{"Content-Type" => "x-www-form-urlencoded"},
       data |> URI.encode_query
     }
   end
@@ -182,7 +196,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       action.method,
       HTTP.url(action, session),
       action.body || "",
-      action.headers,
+      action.headers |> Enum.into([]),
       HTTP.options(action, session)
     ) do
       {:ok, response} ->

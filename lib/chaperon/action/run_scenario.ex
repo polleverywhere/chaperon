@@ -40,20 +40,30 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   require Logger
 
   def run(action = %{scenario: scenario, config: config}, session) do
-    case scenario.start_link(config) do
-      {:ok, pid} ->
-        id = UUID.uuid4
-        put_in session.async_tasks[id], %{action | id: id, pid: pid}
-
-      {:error, reason} = error ->
-        Logger.error "Couldn't start Scenario #{inspect scenario}: #{inspect reason}"
-        error
-    end
+    scenario_session = Chaperon.Scenario.run(scenario, session)
+    {:ok, session |> merge_scenario_session(scenario_session)}
   end
 
   def abort(action = %{pid: pid}, session) do
     # TODO
     send pid, :abort
     {:ok, action, session}
+  end
+
+  defp merge_scenario_session(session, scenario_session) do
+    %{session |
+      config: Map.merge(session.config, scenario_session.config),
+      assigns: Map.merge(session.assigns, scenario_session.assigns)
+    }
+  end
+end
+
+
+
+defimpl String.Chars, for: Chaperon.Action.RunScenario do
+  alias Chaperon.Action.RunScenario
+
+  def to_string(%{scenario: scenario}) do
+    "RunScenario[#{scenario.module}]"
   end
 end
