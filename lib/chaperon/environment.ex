@@ -15,7 +15,7 @@ defmodule Chaperon.Environment do
           }
 
           # session name is "my_session_name"
-          run MyScenarioModule, "my_session_name" %{
+          run MyScenarioModule, "my_session_name", %{
             delay: 2 |> seconds,
             my_config_key: "my_config_val"
           }
@@ -23,6 +23,13 @@ defmodule Chaperon.Environment do
           # will get an assigned session name based on module name and UUID
           run MyScenarioModule, %{
             delay: 10 |> seconds,
+            my_config_key: "my_config_val"
+          }
+
+
+          # same as above but spawned 10 times (across the cluster):
+          run {10, MyScenarioModule}, "my_session_name", %{
+            random_delay: 5 |> seconds,
             my_config_key: "my_config_val"
           }
         end
@@ -136,13 +143,27 @@ defmodule Chaperon.Environment do
     end
 
     scenarios_with_name = for {:run, _, [scenario, name, config]} <- run_exprs do
-      quote do
-        {
-          unquote(scenario),
-          unquote(default_config)
-          |> Map.merge(%{session_name: unquote(name)})
-          |> Map.merge(unquote(config))
-        }
+      case scenario do
+        {num, scenario} ->
+          quote do
+            {
+              unquote(num),
+              unquote(scenario),
+              unquote(default_config)
+              |> Map.merge(%{session_name: unquote(name)})
+              |> Map.merge(unquote(config))
+            }
+          end
+
+        scenario ->
+          quote do
+            {
+              unquote(scenario),
+              unquote(default_config)
+              |> Map.merge(%{session_name: unquote(name)})
+              |> Map.merge(unquote(config))
+            }
+          end
       end
     end
 
