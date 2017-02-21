@@ -10,7 +10,13 @@ An environment is a combination of target web services & scenarios to run agains
 Chaperon supports running both HTTP & WebSocket actions against a web server.
 Have a look at the `examples/firehose.ex` example file to see an example of both HTTP and WebSocket commands in action.
 
+## Where can I find our Poll Everywhere specific chaperon scenarios?
+[Click HERE](https://github.com/polleverywhere/pollev_scenarios).
+This repo contains only the generic implementation code for `Chaperon` and some generic examples. It is used as a dependency in the other repository.
+
 ## Custom Scenario Sample
+
+Below is an example scenario that shows a number of different features:
 
 ```elixir
 defmodule BasicAccountLogin do
