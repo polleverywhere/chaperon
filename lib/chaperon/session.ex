@@ -231,7 +231,9 @@ defmodule Chaperon.Session do
   Runs & captures metrics of running another `Chaperon.Scenario` from `session`.
   """
   @spec run_scenario(Session.t, Action.RunScenario.scenario, map) :: Session.t
-  def run_scenario(session, scenario, config \\ %{}) do
+  def run_scenario(session, scenario, config \\ nil) do
+    config = config || session.config
+
     session
     |> run_action(Action.RunScenario.new(scenario, config))
   end
