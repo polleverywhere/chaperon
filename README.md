@@ -116,7 +116,7 @@ To run a Chaperon scenario in distributed mode, you need to deploy your Chaperon
 To start any node simply load up the code in an iex shell:
 
 ```
-$ iex --cookie my-secret-cluster-cookie --name "chaperon@mynode.com" -S mix
+$ iex --cookie my-secret-cluster-cookie --name "chaperon@node1.myhost.com" -S mix
 ```
 
 For the master node, run this inside the iex shell:
