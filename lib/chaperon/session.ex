@@ -482,23 +482,18 @@ defmodule Chaperon.Session do
   end
 
   def store_response_cookies(session, resp) do
-    update_in session.cookies, fn
-      nil ->
-        resp |> response_cookies
-      c ->
-        c ++ (resp |> response_cookies)
-    end
+    put_in session.cookies, response_cookies(resp)
   end
 
   def response_cookies(response) do
     response.headers
-    |> Enum.filter(fn
-      {"Set-Cookie", _} ->
-        true
+    |> Enum.map(fn
+      {"Set-Cookie", cookie} ->
+        cookie
       _ ->
-        false
+        nil
     end)
-    |> Enum.map(fn {_, val} -> val end)
+    |> Enum.reject(&is_nil/1)
   end
 
   @doc false
