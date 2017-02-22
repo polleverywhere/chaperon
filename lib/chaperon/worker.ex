@@ -1,6 +1,5 @@
 defmodule Chaperon.Worker do
   require Logger
-  alias Chaperon.Scenario
 
   def start(amount, scenario_mod, config)
   when is_integer(amount) and amount > 0

@@ -619,7 +619,7 @@ defmodule Chaperon.Session do
     |> last_result(session.assigns[:last_action])
   end
 
-  defp last_result(session, nil), do: nil
+  defp last_result(_session, nil), do: nil
 
   defp last_result(session, action) do
     case session.results[action] do

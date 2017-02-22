@@ -40,7 +40,7 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   require Logger
 
-  def run(action = %{scenario: scenario, config: config}, session) do
+  def run(%{scenario: scenario}, session) do
     scenario_session = Chaperon.Scenario.run(scenario, session)
     {:ok, session |> merge_scenario_session(scenario_session)}
   end
@@ -64,7 +64,7 @@ end
 defimpl String.Chars, for: Chaperon.Action.RunScenario do
   alias Chaperon.Action.RunScenario
 
-  def to_string(%{scenario: scenario}) do
+  def to_string(%RunScenario{scenario: scenario}) do
     "RunScenario[#{scenario.module}]"
   end
 end
