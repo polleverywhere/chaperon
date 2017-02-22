@@ -471,6 +471,18 @@ defmodule Chaperon.Session do
         session
         |> assign(foo_body: body)
       end)
+
+  It's possible to automatically decode JSON responses like this:
+
+      session
+      |> get("/user/smith.json")
+      |> with_result(json: fn (session, json) ->
+        session
+        |> assign(user: json)
+      end)
+
+      session.assigns.user
+      # => %{"name" => "Mr Smith", "job" => "Agent", ...}
   """
   @spec with_result(Session.t, result_callback) :: Session.t
   def with_result(session, callback) when is_function(callback) do
@@ -483,10 +495,6 @@ defmodule Chaperon.Session do
     end
   end
 
-  @doc """
-  Calls a given callback with the session's last performed HTTP or WebSocket
-  action's JSON decoded result.
-  """
   @spec with_result(Session.t, json: result_callback) :: Session.t
   def with_result(session, json: callback) do
     session
