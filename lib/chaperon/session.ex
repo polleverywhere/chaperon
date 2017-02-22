@@ -412,14 +412,7 @@ defmodule Chaperon.Session do
   """
   @spec add_async_task(Session.t, atom, Task.t) :: Session.t
   def add_async_task(session, name, task) do
-    case session.async_tasks[name] do
-      nil ->
-        put_in session.async_tasks[name], task
-      tasks when is_list(tasks) ->
-        update_in session.async_tasks[name], &[task | &1]
-      _ ->
-        update_in session.async_tasks[name], &[task, &1]
-    end
+    update_in session.async_tasks[name], &[task | as_list(&1)]
   end
 
   @doc """
@@ -430,12 +423,10 @@ defmodule Chaperon.Session do
     case session.async_tasks[task_name] do
       nil ->
         session
+      [^task] ->
+        update_in session.async_tasks, &Map.delete(&1, task_name)
       tasks when is_list(tasks) ->
-        update_in session.async_tasks[task_name],
-                  &List.delete(&1, task)
-      _ ->
-        update_in session.async_tasks,
-                  &Map.delete(&1, task_name)
+        update_in session.async_tasks[task_name], &List.delete(&1, task)
     end
   end
 
