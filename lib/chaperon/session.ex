@@ -215,12 +215,24 @@ defmodule Chaperon.Session do
     |> run_action(Action.WebSocket.recv(options))
   end
 
+
+  @doc """
+  Calls a function inside the `session`'s scenario module with the given name
+  and args, returning the resulting session.
+  """
+  @spec call(Session.t, atom, [any]) :: Session.t
+  def call(session, func, args \\ [])
+    when is_atom(func)
+  do
+    apply(session.scenario.module, func, [session | args])
+  end
+
   @doc """
   Calls a given function or a function with the given name and args, then
   captures duration metrics in `session`.
   """
-  @spec call(Session.t, Action.CallFunction.callback, [any]) :: Session.t
-  def call(session, func, args \\ [])
+  @spec call_traced(Session.t, Action.CallFunction.callback, [any]) :: Session.t
+  def call_traced(session, func, args \\ [])
     when is_atom(func) or is_function(func)
   do
     session
@@ -681,7 +693,7 @@ defmodule Chaperon.Session do
 
   @doc """
   Wraps a function call with `session` as an arg in a call to
-  `Chaperon.Session.call` and captures function call duration metrics in
+  `Chaperon.Session.call_traced` and captures function call duration metrics in
   `session`.
 
   ## Example
@@ -693,20 +705,20 @@ defmodule Chaperon.Session do
   Is the same as:
 
       session
-      |> call(:foo)
-      |> call(:bar, [1,2,3])
+      |> call_traced(:foo)
+      |> call_traced(:bar, [1,2,3])
   """
   defmacro session >>> {func, _, nil} do
     quote do
       unquote(session)
-      |> Chaperon.Session.call(unquote(func))
+      |> Chaperon.Session.call_traced(unquote(func))
     end
   end
 
   defmacro session >>> {func, _, args} do
     quote do
       unquote(session)
-      |> Chaperon.Session.call(unquote(func), unquote(args))
+      |> Chaperon.Session.call_traced(unquote(func), unquote(args))
     end
   end
 end
