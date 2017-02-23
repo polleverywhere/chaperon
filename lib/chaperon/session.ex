@@ -501,11 +501,23 @@ defmodule Chaperon.Session do
     |> with_result(&handle_json_response(&1, &2, callback))
   end
 
-  def store_response_cookies(session, resp) do
-    put_in session.cookies, response_cookies(resp)
+  @doc """
+  Stores HTTP response cookies in `session` cookie store for further outgoing
+  requests.
+
+
+  ## Example:
+
+      session = %Chaperon.Session{}
+      |> post("/login", form: [login: "chaperon", password: "secret123"])
+      |> with_result(&store_cookies/2)
+  """
+  @spec store_cookies(Session.t, HTTPoison.Response.t) :: Session.t
+  def store_cookies(session, response = %HTTPoison.Response{}) do
+    put_in session.cookies, response_cookies(response)
   end
 
-  def response_cookies(response) do
+  defp response_cookies(response = %HTTPoison.Response{}) do
     response.headers
     |> Enum.map(fn
       {"Set-Cookie", cookie} ->
