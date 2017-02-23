@@ -528,6 +528,19 @@ defmodule Chaperon.Session do
     |> Enum.reject(&is_nil/1)
   end
 
+  @doc """
+  Deletes all cookies from `session`'s cookie store.
+
+      iex> session = %Chaperon.Session{cookies: ["cookie_val1", "cookie_val2"]}
+      iex> session = session |> Chaperon.Session.delete_cookies
+      iex> session.cookies
+      []
+  """
+  @spec delete_cookies(Session.t) :: Session.t
+  def delete_cookies(session) do
+    put_in session.cookies, []
+  end
+
   @doc false
   @spec handle_json_response(Session.t, HTTPoison.Response.t, (Session.t, any -> Session.t)) :: Session.t
   defp handle_json_response(session, %HTTPoison.Response{body: body}, callback)
