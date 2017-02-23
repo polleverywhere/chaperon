@@ -100,14 +100,22 @@ defmodule Chaperon.Scenario do
 
     session =
       session
-      |> initial_delay
-      |> scenario.module.run
+      |> with_scenario(scenario, fn session ->
+        session
+        |> initial_delay
+        |> scenario.module.run
+      end)
 
     session.async_tasks
     |> Enum.reduce(session, fn {k, v}, acc ->
       acc |> Session.await(k, v)
     end)
     |> Chaperon.Scenario.Metrics.add_histogram_metrics
+  end
+
+  defp with_scenario(session, scenario, func) do
+    s2 = func.(%{session | scenario: scenario})
+    %{s2 | scenario: session.scenario}
   end
 
   def initial_delay(session = %Session{config: %{delay: delay}}) do
