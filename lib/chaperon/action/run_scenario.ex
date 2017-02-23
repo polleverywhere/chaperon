@@ -39,10 +39,23 @@ end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   require Logger
+  import Chaperon.Session, only: [set_config: 2, merge: 2]
 
-  def run(%{scenario: scenario}, session) do
-    scenario_session = Chaperon.Scenario.run(scenario, session)
-    {:ok, session |> merge_scenario_session(scenario_session)}
+  def run(%{scenario: scenario, config: config}, session) do
+    scenario_config =
+      config
+      |> Map.merge(%{merge_scenario_sessions: true})
+
+    scenario_session =
+      scenario
+      |> Chaperon.Scenario.execute_nested(session, scenario_config)
+
+    merged_session =
+      session
+      |> merge_scenario_session(scenario_session)
+      |> set_config(merge_scenario_sessions: session.config[:merge_scenario_sessions])
+
+    {:ok, merged_session}
   end
 
   def abort(action = %{pid: pid}, session) do
@@ -56,6 +69,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       config: Map.merge(session.config, scenario_session.config),
       assigns: Map.merge(session.assigns, scenario_session.assigns)
     }
+    |> merge(scenario_session)
   end
 end
 

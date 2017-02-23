@@ -77,12 +77,21 @@ defmodule Chaperon.Scenario do
   @spec execute(atom, map) :: Session.t
   def execute(scenario_mod, config) do
     scenario = %Chaperon.Scenario{module: scenario_mod}
-    session = scenario |> new_session(config)
-
-    {:ok, session} = scenario_mod |> init(session)
+    session =
+      scenario
+      |> new_session(config)
 
     scenario
-    |> run(session)
+    |> run(scenario_mod |> init(session))
+  end
+
+  def execute_nested(scenario, session, config) do
+    session =
+      scenario
+      |> nested_session(session, config)
+
+    scenario
+    |> run(scenario.module |> init(session))
   end
 
   def run(scenario, {:ok, session}) do
@@ -96,7 +105,7 @@ defmodule Chaperon.Scenario do
   end
 
   def run(scenario, session) do
-    Logger.info "Running #{session.id}"
+    Logger.info "Running #{session_id(scenario, session.config)}"
 
     session =
       session
@@ -106,11 +115,18 @@ defmodule Chaperon.Scenario do
         |> scenario.module.run
       end)
 
-    session.async_tasks
-    |> Enum.reduce(session, fn {k, v}, acc ->
-      acc |> Session.await(k, v)
-    end)
-    |> Chaperon.Scenario.Metrics.add_histogram_metrics
+    session =
+      session.async_tasks
+      |> Enum.reduce(session, fn {k, v}, acc ->
+        acc |> Session.await(k, v)
+      end)
+
+    if session.config[:merge_scenario_sessions] do
+      session
+    else
+      session
+      |> Chaperon.Scenario.Metrics.add_histogram_metrics
+    end
   end
 
   defp with_scenario(session, scenario, func) do
@@ -150,6 +166,15 @@ defmodule Chaperon.Scenario do
   @spec new_session(Chaperon.Scenario.t, map) :: Session.t
   def new_session(scenario, config) do
     %Session{
+      id: session_id(scenario, config),
+      scenario: scenario,
+      config: config
+    }
+  end
+
+  def nested_session(scenario, session, config) do
+    config = session.config |> Map.merge(config)
+    %{session |
       id: session_id(scenario, config),
       scenario: scenario,
       config: config

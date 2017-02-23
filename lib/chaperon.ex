@@ -60,6 +60,14 @@ defmodule Chaperon do
     session = sessions
               |> Chaperon.Environment.merge_sessions
 
+    session =
+      if session.config[:merge_scenario_sessions] do
+        session
+        |> Chaperon.Scenario.Metrics.add_histogram_metrics
+      else
+        session
+      end
+
     if options[:print_metrics] do
       print_metrics(session)
     end
