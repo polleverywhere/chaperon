@@ -74,8 +74,10 @@ defmodule Chaperon do
 
     print_separator
 
-    apply(encoder(options), :encode, [session])
-    |> write_output(Keyword.get(options, :output, :stdio))
+    options
+    |> encoder
+    |> apply(:encode, [session])
+    |> write_output(options |> output)
 
     session
   end
@@ -85,6 +87,10 @@ defmodule Chaperon do
       :csv  -> Chaperon.Export.CSV
       :json -> Chaperon.Export.JSON
     end
+  end
+
+  defp output(options) do
+    Keyword.get(options, :output, :stdio)
   end
 
   defp write_output(output, :stdio), do: IO.puts(output)
