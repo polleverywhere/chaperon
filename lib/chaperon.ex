@@ -53,6 +53,16 @@ defmodule Chaperon do
       Task.async(Chaperon.Environment, :run, [env_mod])
       |> Task.await(timeout)
 
+    duration_s = results.duration_ms / 1_000
+    duration_min = Float.round(results.duration_ms / 60_000, 2)
+    Logger.info "#{env_mod} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
+
+    if results.timed_out > 0 do
+      succeeded = Enum.count(results.sessions)
+      Logger.warn "#{env_mod} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
+    end
+
+
     if options[:print_results] do
       print_results(results)
     end

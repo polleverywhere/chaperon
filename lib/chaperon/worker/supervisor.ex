@@ -1,4 +1,6 @@
 defmodule Chaperon.Worker.Supervisor do
+  require Logger
+
   @name Chaperon.Worker.Supervisor
 
   def start_link do
@@ -6,14 +8,41 @@ defmodule Chaperon.Worker.Supervisor do
     Task.Supervisor.start_link(opts)
   end
 
-  def start_workers(nodes, amount, scenario_mod, config) do
+  def start_workers(nodes, amount, scenario_mod, config, timeout) do
     nodes
     |> Stream.cycle
     |> Stream.take(amount)
-    |> Enum.map(&start_worker(&1, scenario_mod, config))
+    |> Enum.map(&start_worker(&1, scenario_mod, config, timeout))
   end
 
-  def start_worker(node, scenario_mod, config) do
-    Task.Supervisor.async({@name, node}, Chaperon.Scenario, :execute, [scenario_mod, config])
+  def start_worker(node, scenario_mod, config, timeout) do
+    # wrap worker
+    async node, fn ->
+      t = async(node, Chaperon.Scenario, :execute, [scenario_mod, config])
+      case Task.yield(t, timeout) do
+        {:ok, session} ->
+          Logger.info "Worker finished: #{session.id}"
+          session
+        {:exit, reason} ->
+          Logger.info "Worker exited with reason: #{scenario_mod} : #{inspect reason}"
+          nil
+
+        nil ->
+          Logger.info "Worker timed out: #{scenario_mod}"
+          nil
+      end
+    end
+  end
+
+  def async(node, mod, func, args) do
+    Task.Supervisor.async({@name, node}, mod, func, args)
+  end
+
+  def async(func) do
+    Task.Supervisor.async(@name, func)
+  end
+
+  def async(node, func) do
+    Task.Supervisor.async({@name, node}, func)
   end
 end
