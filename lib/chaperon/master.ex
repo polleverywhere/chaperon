@@ -52,6 +52,6 @@ defmodule Chaperon.Master do
     client = state.tasks[env_mod]
     GenServer.reply(client, session)
     state = update_in state.tasks, &Map.delete(&1, env_mod)
-    {:stop, :normal, state}
+    {:noreply, state}
   end
 end
