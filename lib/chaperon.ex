@@ -49,15 +49,15 @@ defmodule Chaperon do
   def run_environment(env_mod, options \\ []) do
     timeout = env_mod.default_config[:env_timeout] || :infinity
 
-    sessions =
+    results =
       Task.async(Chaperon.Environment, :run, [env_mod])
       |> Task.await(timeout)
 
     if options[:print_results] do
-      print_results(sessions)
+      print_results(results)
     end
 
-    session = sessions
+    session = results
               |> Chaperon.Environment.merge_sessions
 
     session =

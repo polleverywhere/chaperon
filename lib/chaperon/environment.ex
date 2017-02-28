@@ -48,6 +48,24 @@ defmodule Chaperon.Environment do
     config: map
   }
 
+  defmodule Results do
+    defstruct [
+      environment: nil,
+      start_ms: nil,
+      end_ms: nil,
+      duration_ms: nil,
+      sessions: []
+    ]
+
+    @type t :: %Chaperon.Environment.Results{
+      environment: atom,
+      start_ms: integer,
+      end_ms: integer,
+      duration_ms: integer,
+      sessions: [Chaperon.Session.t]
+    }
+  end
+
   defmacro __using__(_opts) do
     quote do
       require Chaperon.Environment
@@ -57,9 +75,30 @@ defmodule Chaperon.Environment do
   end
 
   alias Chaperon.Session
+  alias Chaperon.Environment.Results
   require Logger
 
+  @spec run(atom) :: Chaperon.Environment.Result.t
   def run(env_mod) do
+    start_time = Chaperon.Timing.timestamp
+
+    sessions =
+      env_mod
+      |> start_workers_with_config
+      |> await_workers
+
+    end_time = Chaperon.Timing.timestamp
+
+    %Results{
+      environment: env_mod,
+      start_ms: start_time,
+      end_ms: end_time,
+      duration_ms: end_time - start_time,
+      sessions: sessions
+    }
+  end
+
+  defp start_workers_with_config(env_mod) do
     env_mod.scenarios
     |> Enum.map(fn
       {concurrency, scenario, config} ->
@@ -70,10 +109,68 @@ defmodule Chaperon.Environment do
         {w, config}
     end)
     |> List.flatten
-    |> Enum.map(fn {worker, config} ->
-      worker
-      |> Task.await(config[:scenario_timeout] || :infinity)
-    end)
+  end
+
+  def await_workers(tasks_with_config) do
+    IO.puts "max_timeout: #{inspect(tasks_with_config |> max_timeout)}"
+    case tasks_with_config |> max_timeout do
+      :infinity ->
+        sessions =
+          tasks_with_config
+          |> Enum.map(fn {task, config} ->
+            Task.await(task, config |> scenario_timeout)
+          end)
+
+
+      max_timeout when is_integer(max_timeout) ->
+        tasks_with_results =
+          tasks_with_config
+          |> worker_tasks
+          |> Task.yield_many()
+
+        results =
+          tasks_with_results
+          |> Enum.map(fn {task, res} ->
+            res || Task.shutdown(task, :brutal_kill)
+          end)
+
+        sessions = for {:ok, session} <- results, do: session
+    end
+  end
+
+  defp worker_tasks(tasks_with_config) do
+    for {task, _config} <- tasks_with_config, do: task
+  end
+
+  defp scenario_timeout(config) do
+    config[:scenario_timeout] || :infinity
+  end
+
+  defp max_timeout(tasks_with_config) do
+    timeout =
+      tasks_with_config
+      |> Enum.reduce(nil, fn {_, config}, last_timeout ->
+        case {last_timeout, config |> scenario_timeout} do
+          {:infinity, _} ->
+            :infinity
+
+          {_, :infinity} ->
+            :infinity
+
+          {nil, t} when is_integer(t) ->
+            t
+
+          {last, t} when is_integer(last)
+                     and is_integer(t)
+                     and t > last ->
+            t
+
+          _ ->
+            last_timeout
+        end
+      end)
+
+    timeout || :infinity
   end
 
   def timeout(env_mod) do
@@ -83,8 +180,8 @@ defmodule Chaperon.Environment do
   @doc """
   Merges metrics & results of all `Chaperon.Session`s in a list.
   """
-  @spec merge_sessions([Session.t]) :: Session.t
-  def merge_sessions([s | sessions]) when is_list(sessions) do
+  @spec merge_sessions(Results.t) :: Session.t
+  def merge_sessions(result = %Results{sessions: [s | sessions]}) do
     sessions
     |> Enum.reduce(s |> prepare_merge, &Session.merge(&2, &1))
   end
