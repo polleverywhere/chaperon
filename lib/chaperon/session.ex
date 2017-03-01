@@ -299,6 +299,31 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Assigns a given list of key-value pairs (as a `Keyword` list) under a given
+  namespace in `session` for further usage later.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{} |> assign(:api, auth_token: "auth123", login: "foo@bar.com")
+      iex> session.assigns.api
+      %{auth_token: "auth123", login: "foo@bar.com"}
+      iex> session.assigns.api.auth_token
+      "auth123"
+      iex> session.assigns.api.login
+      "foo@bar.com"
+      iex> session.assigns
+      %{api: %{auth_token: "auth123", login: "foo@bar.com"}}
+  """
+  @spec assign(Session.t, atom, Keyword.t) :: Session.t
+  def assign(session, namespace, assignments) do
+    assignments = assignments |> Enum.into(%{})
+
+    session
+    |> update_assign([{namespace, &Map.merge(&1 || %{}, assignments)}])
+  end
+
+  @doc """
   Updates assigns based on a given Keyword list of functions to be used for
   updating `assigns` in `session`.
 
@@ -321,6 +346,30 @@ defmodule Chaperon.Session do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
       update_in session.assigns[k], func
+    end)
+  end
+
+  @doc """
+  Updates assigns based on a given Keyword list of functions to be used for
+  updating `assigns` within `namespace` in `session`.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{} |> assign(:api, auth_token: "auth123", login: "foo@bar.com")
+      iex> session.assigns.api
+      %{auth_token: "auth123", login: "foo@bar.com"}
+      iex> session = session |> update_assign(:api, login: &("test" <> &1))
+      iex> session.assigns.api.login
+      "testfoo@bar.com"
+      iex> session.assigns.api
+      %{auth_token: "auth123", login: "testfoo@bar.com"}
+  """
+  @spec update_assign(Session.t, atom, Keyword.t((any -> any))) :: Session.t
+  def update_assign(session, namespace, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, func}, session ->
+      update_in session.assigns[namespace][k], func
     end)
   end
 
