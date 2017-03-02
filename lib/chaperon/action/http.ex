@@ -205,6 +205,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         |> Session.assign(last_action: action)
         |> Session.add_result(action, response)
         |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
+        |> Session.store_cookies(response)
         |> Session.ok
 
       {:error, reason} ->
