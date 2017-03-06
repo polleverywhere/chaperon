@@ -227,14 +227,31 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         |> Session.add_result(action, response)
         |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
         |> Session.store_cookies(response)
-        |> Session.run_callback(action, action.callback, response)
+        |> Session.run_callback(action, callback(action), response)
         |> Session.ok
 
       {:error, reason} ->
         Logger.error "HTTP action #{action} failed: #{inspect reason}"
+        session =
+          session
+          |> Session.run_callback(action, error_callback(action), reason)
+
         {:error, %Error{reason: reason, action: action, session: session}}
     end
   end
+
+
+  def callback(%{callback: %{ok: cb}}),
+    do: cb
+  def callback(%{callback: cb}),
+    do: cb
+
+  def error_callback(%{callback: cb}) when is_function(cb),
+    do: nil
+  def error_callback(%{callback: %{error: cb}}),
+    do: cb
+  def error_callback(_),
+    do: nil
 
   def abort(action, session) do
     # TODO
