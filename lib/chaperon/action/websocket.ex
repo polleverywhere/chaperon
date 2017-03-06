@@ -24,9 +24,25 @@ defmodule Chaperon.Action.WebSocket do
   end
 
   @doc """
-  Returns a `Chaperon.WebSocket.ReceiveMessages` action with `options`.
+  Returns a `Chaperon.WebSocket.ReceiveMessage` action with `options`.
+
+  `options` can include a result handler callback to be called once the message
+  arrived.
+
+  Example:
+
+      Chaperon.Action.WebSocket.recv(with_result: fn (session, result) ->
+        session
+        |> Chaperon.Session.assign(ws_message: result)
+      end)
   """
   def recv(options \\ []) do
-    %WebSocket.ReceiveMessage{options: options}
+    callback = Keyword.get(options, :with_result, nil)
+    options = Keyword.delete(options, :with_result)
+
+    %WebSocket.ReceiveMessage{
+      options: options,
+      callback: callback
+    }
   end
 end
