@@ -118,13 +118,13 @@ defmodule Chaperon.Action.HTTP do
       |> Enum.into([])
       |> Keyword.merge(params: action.params)
 
-    case session.cookies do
+    case hackney_opts(action, session) do
       [] ->
         opts
 
-      cookies ->
+      hackney_opts ->
         opts
-        |> Keyword.merge(hackney: [cookie: cookies])
+        |> Keyword.merge(hackney: hackney_opts)
     end
   end
 
@@ -149,6 +149,24 @@ defmodule Chaperon.Action.HTTP do
       body: body
     }
   end
+
+  defp hackney_opts(action, session) do
+    opts = [
+      cookie: session.cookies,
+      basic_auth: session.config[:basic_auth]
+    ]
+
+    opts
+    |> Enum.map(&hackney_opt/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  # don't pass if no value set
+  defp hackney_opt({key, nil}),    do: nil
+  # don't pass empty list of cookies
+  defp hackney_opt({:cookie, []}), do: nil
+  # pass everything else as hackney option
+  defp hackney_opt(opt),           do: opt
 
   defp parse_body([]), do: {%{}, ""}
   defp parse_body(json: data) when is_list(data) do
