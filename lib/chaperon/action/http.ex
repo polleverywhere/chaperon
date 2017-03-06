@@ -32,8 +32,7 @@ defmodule Chaperon.Action.HTTP do
   def get(path, params) do
     %Chaperon.Action.HTTP{
       method: :get,
-      path: path,
-      params: params
+      path: path
     }
     |> add_options(params)
   end
