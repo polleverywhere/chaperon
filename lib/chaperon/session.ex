@@ -667,6 +667,19 @@ defmodule Chaperon.Session do
     {:error, %Error{reason: reason, session: session}}
   end
 
+  def run_callback(session, action, nil, _),
+    do: session
+
+  def run_callback(session, action, cb, response) when is_function(cb),
+    do: cb.(session, response)
+
+  def run_callback(session, action, [json: cb], response)
+    when is_function(cb)
+  do
+    session
+    |> handle_json_response(action, response, cb)
+  end
+
   defp last_result(session) do
     session
     |> last_result(session.assigns[:last_action])

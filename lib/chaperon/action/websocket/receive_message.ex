@@ -12,13 +12,6 @@ defmodule Chaperon.Action.WebSocket.ReceiveMessage do
     options: [any],
     callback: Chaperon.Session.result_callback
   }
-
-  def decode_message(action, message) do
-    case action.options[:decode] do
-      nil   -> message
-      :json -> Poison.decode!(message)
-    end
-  end
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
@@ -37,12 +30,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
 
     case Socket.Web.recv(socket, action.options) do
       {:ok, {:text, message}} ->
-        result = action |> decode_message(message)
-
         session
-        |> Session.add_ws_result(action, result)
+        |> Session.add_ws_result(action, message)
         |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp - start)
-        |> run_callback(action, result)
+        |> Session.run_callback(action, action.callback, message)
         |> Session.ok
 
       {:error, reason} ->
@@ -50,12 +41,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
         {:error, %Error{reason: reason, action: action, session: session}}
     end
   end
-
-  def run_callback(session, %{callback: nil}, _),
-    do: session
-
-  def run_callback(session, %{callback: cb}, result) when is_function(cb),
-    do: cb.(session, result)
 
   def abort(action, session) do
     {:ok, action, session}
