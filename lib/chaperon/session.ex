@@ -540,16 +540,16 @@ defmodule Chaperon.Session do
   end
 
   @doc false
-  @spec handle_json_response(Session.t, HTTPoison.Response.t, (Session.t, any -> Session.t)) :: Session.t
-  def handle_json_response(session, %HTTPoison.Response{body: body}, callback)
+  @spec handle_json_response(Session.t, Chaperon.Actionable.t, HTTPoison.Response.t, (Session.t, any -> Session.t)) :: Session.t
+  def handle_json_response(session, action, %HTTPoison.Response{body: body}, callback)
   do
     session
-    |> handle_json_response(body, callback)
+    |> handle_json_response(action, body, callback)
   end
 
   @doc false
-  @spec handle_json_response(Session.t, String.t, (Session.t, any -> Session.t)) :: Session.t
-  def handle_json_response(session, response, callback)
+  @spec handle_json_response(Session.t, Chaperon.Actionable.t, String.t, (Session.t, any -> Session.t)) :: Session.t
+  def handle_json_response(session, action, response, callback)
   when is_binary(response)
   do
     case Poison.decode(response) do
@@ -558,7 +558,7 @@ defmodule Chaperon.Session do
       err ->
         Logger.error "JSON decode error: #{inspect err}"
         error = session |> error("JSON response decoding failed: #{inspect response}")
-        put_in session.errors[session.assigns.last_action], error
+        put_in session.errors[action], error
     end
   end
 

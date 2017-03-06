@@ -225,7 +225,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       {:ok, response} ->
         Logger.debug "HTTP Response #{action} : #{response.status_code}"
         session
-        |> Session.assign(last_action: action)
         |> Session.add_result(action, response)
         |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
         |> Session.store_cookies(response)
@@ -244,9 +243,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   def run_callback(session, %{callback: cb}, response) when is_function(cb),
     do: cb.(session, response)
 
-  def run_callback(session, %{callback: [json: cb]}, response) when is_function(cb) do
+  def run_callback(session, action = %{callback: [json: cb]}, response) when is_function(cb) do
     session
-    |> Session.handle_json_response(response, cb)
+    |> Session.handle_json_response(action, response, cb)
   end
 
   def abort(action, session) do
