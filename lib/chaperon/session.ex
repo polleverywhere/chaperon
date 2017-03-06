@@ -606,7 +606,8 @@ defmodule Chaperon.Session do
     case Poison.decode(response) do
       {:ok, json} ->
         callback.(session, json)
-      _ ->
+      {:error, reason} ->
+        Logger.error "JSON decode error: #{inspect reason}"
         error = session |> error("JSON response decoding failed: #{inspect response}")
         put_in session.errors[session.assigns.last_action], error
     end
@@ -633,6 +634,7 @@ defmodule Chaperon.Session do
     session
     |> merge_results(task_session.results)
     |> merge_metrics(task_session.metrics)
+    |> merge_errors(task_session.errors)
   end
 
   @doc """
@@ -643,6 +645,7 @@ defmodule Chaperon.Session do
     session
     |> merge_results(other_session |> session_results)
     |> merge_metrics(other_session |> session_metrics)
+    |> merge_errors(other_session |> session_errors)
   end
 
   @doc """
@@ -661,6 +664,14 @@ defmodule Chaperon.Session do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
   end
 
+
+  @doc """
+  Merges errors of two sessions.
+  """
+  def merge_errors(session, errors) do
+    update_in session.errors, &preserve_vals_merge(&1, errors)
+  end
+
   @doc """
   Returns `session`'s results wrapped with `session`'s name.
   """
@@ -674,6 +685,14 @@ defmodule Chaperon.Session do
   """
   def session_metrics(session) do
     session.metrics
+    |> map_nested_put(:session_name, session |> name)
+  end
+
+  @doc """
+  Returns `session`'s errors wrapped with `session`'s name.
+  """
+  def session_errors(session) do
+    session.errors
     |> map_nested_put(:session_name, session |> name)
   end
 
