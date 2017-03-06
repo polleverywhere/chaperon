@@ -23,7 +23,6 @@ defmodule Chaperon.Action.RunScenario do
 
   @type scenario :: atom | Scenario.t
 
-  @spec new(scenario, map) :: Session.t
   def new(scenario, config) do
     %RunScenario{
       scenario: scenario |> as_scenario,

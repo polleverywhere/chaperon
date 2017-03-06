@@ -32,7 +32,7 @@ defmodule Example.Scenario.BackgroundNoise do
     session
     |> get("/", q: query)
     # # we could store a potential JSON response inside the session for further use:
-    # |> with_result(json: &add_search_result(&1, query, &2))
+    # |> get("/", q: query, with_result: [json: &add_search_result(&1, query, &2)])
   end
 
   def post_data(session) do

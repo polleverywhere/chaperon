@@ -507,59 +507,8 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Calls a given callback with the `session`'s last performed HTTP or WebSocket
-  action's result.
-
-  ## Example
-
-      session
-      |> get("/foo")
-      |> with_result(fn (session, %HTTPoison.Response{body: body}) ->
-        # this will assign the above get request's response body
-        # to session.assigns.foo_body
-        session
-        |> assign(foo_body: body)
-      end)
-
-  It's possible to automatically decode JSON responses like this:
-
-      session
-      |> get("/user/smith.json")
-      |> with_result(json: fn (session, json) ->
-        session
-        |> assign(user: json)
-      end)
-
-      session.assigns.user
-      # => %{"name" => "Mr Smith", "job" => "Agent", ...}
-  """
-  @spec with_result(Session.t, result_callback) :: Session.t
-  def with_result(session, callback) when is_function(callback) do
-    case session |> last_result do
-      nil ->
-        session
-
-      result ->
-        callback.(session, result)
-    end
-  end
-
-  @spec with_result(Session.t, json: result_callback) :: Session.t
-  def with_result(session, json: callback) do
-    session
-    |> with_result(&handle_json_response(&1, &2, callback))
-  end
-
-  @doc """
   Stores HTTP response cookies in `session` cookie store for further outgoing
   requests.
-
-
-  ## Example:
-
-      session = %Chaperon.Session{}
-      |> post("/login", form: [login: "chaperon", password: "secret123"])
-      |> with_result(&store_cookies/2)
   """
   @spec store_cookies(Session.t, HTTPoison.Response.t) :: Session.t
   def store_cookies(session, response = %HTTPoison.Response{}) do
@@ -592,7 +541,7 @@ defmodule Chaperon.Session do
 
   @doc false
   @spec handle_json_response(Session.t, HTTPoison.Response.t, (Session.t, any -> Session.t)) :: Session.t
-  defp handle_json_response(session, %HTTPoison.Response{body: body}, callback)
+  def handle_json_response(session, %HTTPoison.Response{body: body}, callback)
   do
     session
     |> handle_json_response(body, callback)
@@ -600,7 +549,7 @@ defmodule Chaperon.Session do
 
   @doc false
   @spec handle_json_response(Session.t, String.t, (Session.t, any -> Session.t)) :: Session.t
-  defp handle_json_response(session, response, callback)
+  def handle_json_response(session, response, callback)
   when is_binary(response)
   do
     case Poison.decode(response) do

@@ -13,7 +13,8 @@ defmodule Chaperon.Action.HTTP do
     headers: %{},
     params: %{},
     response: nil,
-    body: nil
+    body: nil,
+    callback: nil
   ]
 
   @type method :: :get | :post | :put | :patch | :delete | :head
@@ -24,7 +25,8 @@ defmodule Chaperon.Action.HTTP do
     headers: map,
     params: map,
     response: HTTPoison.Response.t | HTTPoison.AsyncResponse.t,
-    body: binary
+    body: binary,
+    callback: Chaperon.Session.result_callback
   }
 
   def get(path, params) do
@@ -134,11 +136,13 @@ defmodule Chaperon.Action.HTTP do
 
     headers = opts[:headers] || %{}
     params  = opts[:params] || %{}
+    callback = opts[:with_result] || nil
 
     {new_headers, body} =
       opts
       |> KW.delete(:headers)
       |> KW.delete(:params)
+      |> KW.delete(:with_result)
       |> parse_body
 
     headers = action.headers |> merge(headers) |> merge(new_headers)
@@ -146,7 +150,8 @@ defmodule Chaperon.Action.HTTP do
     %{ action |
       headers: headers,
       params: params,
-      body: body
+      body: body,
+      callback: callback
     }
   end
 
@@ -224,12 +229,24 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         |> Session.add_result(action, response)
         |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
         |> Session.store_cookies(response)
+        |> run_callback(action, response)
         |> Session.ok
 
       {:error, reason} ->
         Logger.error "HTTP action #{action} failed: #{inspect reason}"
         {:error, %Error{reason: reason, action: action, session: session}}
     end
+  end
+
+  def run_callback(session, %{callback: nil}, response),
+    do: session
+
+  def run_callback(session, %{callback: cb}, response) when is_function(cb),
+    do: cb.(session, response)
+
+  def run_callback(session, %{callback: [json: cb]}, response) when is_function(cb) do
+    session
+    |> Session.handle_json_response(response, cb)
   end
 
   def abort(action, session) do

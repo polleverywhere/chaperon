@@ -60,8 +60,7 @@ defmodule BasicAccountLogin do
   def post_logout(session) do
     session
     |> foo_bar
-    |> put("/baz", json: [data: "value"])
-    |> with_result(fn session, %HTTPoison.Response{body: body} ->
+    |> put("/baz", json: [data: "value"], with_result: fn (session, %HTTPoison.Response{body: body}) ->
       # do something with put request's response
       session
       |> assign(baz_body: body)
