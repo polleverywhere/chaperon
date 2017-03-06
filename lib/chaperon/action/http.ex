@@ -166,7 +166,7 @@ defmodule Chaperon.Action.HTTP do
   end
 
   # don't pass if no value set
-  defp hackney_opt({key, nil}),    do: nil
+  defp hackney_opt({_key, nil}),   do: nil
   # don't pass empty list of cookies
   defp hackney_opt({:cookie, []}), do: nil
   # pass everything else as hackney option

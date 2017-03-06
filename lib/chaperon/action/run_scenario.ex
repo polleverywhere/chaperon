@@ -19,7 +19,6 @@ defmodule Chaperon.Action.RunScenario do
 
   alias __MODULE__
   alias Chaperon.Scenario
-  alias Chaperon.Session
 
   @type scenario :: atom | Scenario.t
 
