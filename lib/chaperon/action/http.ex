@@ -150,7 +150,7 @@ defmodule Chaperon.Action.HTTP do
     }
   end
 
-  defp hackney_opts(action, session) do
+  defp hackney_opts(_action, session) do
     opts = [
       cookie: session.cookies,
       basic_auth: session.config[:basic_auth]

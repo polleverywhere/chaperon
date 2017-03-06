@@ -81,7 +81,7 @@ defmodule Chaperon.Environment do
   alias Chaperon.Environment.Results
   require Logger
 
-  @spec run(atom) :: Chaperon.Environment.Result.t
+  @spec run(atom) :: Chaperon.Environment.Results.t
   def run(env_mod) do
     start_time = Chaperon.Timing.timestamp
 
@@ -187,7 +187,7 @@ defmodule Chaperon.Environment do
     %Session{}
   end
 
-  def merge_sessions(result = %Results{sessions: [s | sessions]}) do
+  def merge_sessions(%Results{sessions: [s | sessions]}) do
     sessions
     |> Enum.reduce(s |> prepare_merge, &Session.merge(&2, &1))
   end
