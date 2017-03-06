@@ -606,8 +606,8 @@ defmodule Chaperon.Session do
     case Poison.decode(response) do
       {:ok, json} ->
         callback.(session, json)
-      {:error, reason} ->
-        Logger.error "JSON decode error: #{inspect reason}"
+      err ->
+        Logger.error "JSON decode error: #{inspect err}"
         error = session |> error("JSON response decoding failed: #{inspect response}")
         put_in session.errors[session.assigns.last_action], error
     end
