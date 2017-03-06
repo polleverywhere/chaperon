@@ -124,12 +124,12 @@ defmodule Chaperon do
     end
   end
 
-  defp print_results(sessions) do
+  defp print_results(results) do
     print_separator
     Logger.info("Results:")
-    for session <- sessions do
+    for session <- results.sessions do
       for {action, results} <- session.results do
-        for res <- results |> Chaperon.Util.as_list do
+        for res <- results |> Chaperon.Util.as_list |> List.flatten do
           case res do
             {:async, name, results} when is_list(results) ->
               results
