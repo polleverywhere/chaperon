@@ -238,7 +238,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
     end
   end
 
-  def run_callback(session, %{callback: nil}, response),
+  def run_callback(session, %{callback: nil}, _),
     do: session
 
   def run_callback(session, %{callback: cb}, response) when is_function(cb),
