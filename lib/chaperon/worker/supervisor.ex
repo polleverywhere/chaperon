@@ -24,21 +24,26 @@ defmodule Chaperon.Worker.Supervisor do
   end
 
   defp start_worker_via(node, scenario_mod, function, args, timeout) do
-    # wrap worker
-    async node, fn ->
-      t = async(node, Chaperon.Scenario, function, [scenario_mod | args])
-      case Task.yield(t, timeout) do
-        {:ok, session} ->
-          Logger.info "Worker finished: #{session.id}"
-          session
-        {:exit, reason} ->
-          Logger.info "Worker exited with reason: #{scenario_mod} : #{inspect reason}"
-          nil
+    async(node, __MODULE__, :worker_task, [node, scenario_mod, function, args, timeout])
+  end
 
-        nil ->
-          Logger.info "Worker timed out: #{scenario_mod}"
-          nil
-      end
+  def worker_task(node, scenario_mod, function, args, timeout) do
+    # This starts the actual worker scenario task and yields to it for the given
+    # timeout. if the task hasn't finished within the timeout, return nil,
+    # otherwise return the worker task's session return value.
+    t = async(node, Chaperon.Scenario, function, [scenario_mod | args])
+    case Task.yield(t, timeout) do
+      {:ok, session} ->
+        Logger.info "Worker finished: #{session.id}"
+        session
+
+      {:exit, reason} ->
+        Logger.info "Worker exited with reason: #{scenario_mod} : #{inspect reason}"
+        nil
+
+      nil ->
+        Logger.info "Worker timed out: #{scenario_mod}"
+        nil
     end
   end
 
