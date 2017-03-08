@@ -129,6 +129,10 @@ defmodule Chaperon.Action.HTTP do
     end
   end
 
+  @default_headers %{
+    "User-Agent" => "chaperon"
+  }
+
   def add_options(action, opts) do
     alias Keyword, as: KW
     import Map, only: [merge: 2]
@@ -144,7 +148,11 @@ defmodule Chaperon.Action.HTTP do
       |> KW.delete(:with_result)
       |> parse_body
 
-    headers = action.headers |> merge(headers) |> merge(new_headers)
+    headers =
+      action.headers
+      |> merge(@default_headers)
+      |> merge(headers)
+      |> merge(new_headers)
 
     %{ action |
       headers: headers,
