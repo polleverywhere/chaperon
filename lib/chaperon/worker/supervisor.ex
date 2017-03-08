@@ -16,9 +16,17 @@ defmodule Chaperon.Worker.Supervisor do
   end
 
   def start_worker(node, scenario_mod, config, timeout) do
+    start_worker_via(node, scenario_mod, :execute, [config], timeout)
+  end
+
+  def start_nested_worker(node, scenario_mod, session, config, timeout) do
+    start_worker_via(node, scenario_mod, :execute_nested, [session, config], timeout)
+  end
+
+  defp start_worker_via(node, scenario_mod, function, args, timeout) do
     # wrap worker
     async node, fn ->
-      t = async(node, Chaperon.Scenario, :execute, [scenario_mod, config])
+      t = async(node, Chaperon.Scenario, function, [scenario_mod | args])
       case Task.yield(t, timeout) do
         {:ok, session} ->
           Logger.info "Worker finished: #{session.id}"

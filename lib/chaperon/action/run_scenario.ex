@@ -46,8 +46,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       |> Map.merge(%{merge_scenario_sessions: true})
 
     scenario_session =
-      scenario
-      |> Chaperon.Scenario.execute_nested(session, scenario_config)
+      Chaperon.Worker.start_nested(scenario, session, scenario_config)
+      |> Chaperon.Worker.await(Chaperon.Worker.timeout(config))
 
     merged_session =
       session
