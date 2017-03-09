@@ -29,14 +29,16 @@ defmodule Chaperon.Util do
 
   @spec preserve_vals_merge(map, map) :: map
   def preserve_vals_merge(map1, map2) do
-    new_map = for {k,v} <- map2 do
+    new_map = for {k,v2} <- map2 do
       case map1[k] do
         nil ->
-          {k, v}
-        vals when is_list(vals) ->
-          {k, [v|vals]}
-        val ->
-          {k, [v, val]}
+          {k, v2}
+        v1 when is_list(v1) and is_list(v2) ->
+          {k, v2 ++ v1}
+        v1 when is_list(v1) ->
+          {k, [v2 | v1]}
+        v1 ->
+          {k, [v2, v1]}
       end
     end
     |> Enum.into(%{})

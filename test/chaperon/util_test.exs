@@ -37,5 +37,12 @@ defmodule Chaperon.Util.Test do
       bar: 2,
       baz: 3
     }
+
+    m1 = %{foo: [1,2], bar: [10,20,30]}
+    m2 = %{foo: 0, bar: [0, 100, 200]}
+    assert preserve_vals_merge(m1, m2) == %{
+      foo: [0,1,2],
+      bar: [0,100,200,10,20,30]
+    }
   end
 end
