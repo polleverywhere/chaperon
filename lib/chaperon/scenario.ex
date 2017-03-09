@@ -40,6 +40,40 @@ defmodule Chaperon.Scenario do
     module: atom
   }
 
+  defmodule Sequence do
+    @moduledoc """
+    Implements `Chaperon.Scenario` and runs a configured list of scenarios
+    in sequence, passing along any session assignments as config values to the
+    next scenario in the list. Makes it easy to define a new scenario as a
+    pipeline of a list of existing scenarios.
+
+    Example usage:
+
+        alias Chaperon.Scenario
+        alias MyScenarios.{A, B, C}
+
+        Chaperon.Worker.start(
+          Scenario.Sequence,
+          Scenario.Sequence.config_for([A, B, C])
+        )
+    """
+
+    alias Chaperon.Session
+
+    def config_for(scenarios, config \\ %{}) do
+      config
+      |> Map.merge(%{compound_scenarios: scenarios})
+    end
+
+    def run(session = %{config: %{compound_scenarios: scenarios}}) do
+      scenarios
+      |> Enum.reduce(session, fn(scenario, session) ->
+        session
+        |> Session.run_scenario(scenario, session.assigns)
+      end)
+    end
+  end
+
   defmacro __using__(_opts) do
     quote do
       require Logger

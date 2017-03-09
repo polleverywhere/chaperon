@@ -26,11 +26,20 @@ defmodule Chaperon.Environment do
             my_config_key: "my_config_val"
           }
 
-
           # same as above but spawned 10 times (across the cluster):
           run {10, MyScenarioModule}, "my_session_name", %{
             random_delay: 5 |> seconds,
             my_config_key: "my_config_val"
+          }
+
+          # run Scenario A, followed by Scenario B as a new scenario
+          run [A, B], %{
+            # ...
+          }
+
+          # same as above, but spawned 10 times
+          run {10, [A, B]}, %{
+            # ...
           }
         end
       end
@@ -77,7 +86,7 @@ defmodule Chaperon.Environment do
     end
   end
 
-  alias Chaperon.Session
+  alias Chaperon.{Session, Scenario, Worker}
   alias Chaperon.Environment.Results
   require Logger
 
@@ -106,11 +115,22 @@ defmodule Chaperon.Environment do
   defp start_workers_with_config(env_mod) do
     env_mod.scenarios
     |> Enum.map(fn
-      {concurrency, scenario, config} ->
-        Chaperon.Worker.start(concurrency, scenario, config)
+      {concurrency, scenarios, config} when is_list(scenarios) ->
+        config = Scenario.Sequence.config_for(scenarios, config)
+        Worker.start(concurrency, Scenario.Sequence, config)
         |> Enum.map(&{&1, config})
+
+      {concurrency, scenario, config} ->
+        Worker.start(concurrency, scenario, config)
+        |> Enum.map(&{&1, config})
+
+      {scenarios, config} when is_list(scenarios) ->
+        config = Scenario.Sequence.config_for(scenarios, config)
+        w = Worker.start(Scenario.Sequence, config)
+        {w, config}
+
       {scenario, config} ->
-        w = Chaperon.Worker.start(scenario, config)
+        w = Worker.start(scenario, config)
         {w, config}
     end)
     |> List.flatten

@@ -1,4 +1,9 @@
 defmodule Chaperon.Worker do
+  @moduledoc """
+  Wraps supervised `Task`s running `Chaperon.Scenario` sessions that run on any
+  of the nodes in the cluster.
+  """
+
   require Logger
 
   def start(amount, scenario_mod, config)
