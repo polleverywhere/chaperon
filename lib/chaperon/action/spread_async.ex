@@ -42,8 +42,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
   end
 
   defp execute_task(action, session, delay) do
-    session
-    |> Session.delay(delay)
+    session =
+      session
+      |> Session.delay(delay)
+      |> Session.reset
 
     Task.async fn ->
       start = timestamp

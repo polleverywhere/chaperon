@@ -48,7 +48,7 @@ defmodule Chaperon.Session do
   @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
   def cc_spread(session, func_name, rate, interval) do
     session
-    |> Session.run_action(%SpreadAsync{
+    |> run_action(%SpreadAsync{
       func: func_name,
       rate: rate,
       interval: interval
@@ -269,9 +269,9 @@ defmodule Chaperon.Session do
       {:error, reason} ->
         Logger.error "Session.run_action failed: #{inspect reason}"
         put_in session.errors[action], reason
-      {:ok, session} ->
+      {:ok, new_session} ->
         Logger.debug "SUCCESS #{action}"
-        session
+        new_session
     end
   end
 
@@ -678,6 +678,10 @@ defmodule Chaperon.Session do
   do
     session
     |> handle_json_response(action, response, cb)
+  end
+
+  def reset(session) do
+    %{session | metrics: %{}, results: %{}, errors: %{}}
   end
 
   @doc """
