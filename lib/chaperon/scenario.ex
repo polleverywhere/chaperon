@@ -65,9 +65,9 @@ defmodule Chaperon.Scenario do
       |> Map.merge(%{compound_scenarios: scenarios})
     end
 
-    def run(session = %{config: %{compound_scenarios: scenarios}}) do
+    def run(initial_session = %{config: %{compound_scenarios: scenarios}}) do
       scenarios
-      |> Enum.reduce(session, fn(scenario, session) ->
+      |> Enum.reduce(initial_session, fn(scenario, session) ->
         session
         |> Session.run_scenario(scenario, session.assigns)
       end)
