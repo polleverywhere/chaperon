@@ -67,13 +67,12 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   defp merge_scenario_session(session, scenario_session) do
     %{session |
       config: Map.merge(session.config, scenario_session.config),
-      assigns: Map.merge(session.assigns, scenario_session.assigns)
+      assigns: Map.merge(session.assigns, scenario_session.assigns),
+      cookies: scenario_session.cookies
     }
     |> merge(scenario_session)
   end
 end
-
-
 
 defimpl String.Chars, for: Chaperon.Action.RunScenario do
   alias Chaperon.Action.RunScenario
