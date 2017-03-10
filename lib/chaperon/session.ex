@@ -179,10 +179,10 @@ defmodule Chaperon.Session do
   Performs a HTTP DELETE request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec delete(Session.t, String.t) :: Session.t
-  def delete(session, path) do
+  @spec delete(Session.t, String.t, Keyword.t) :: Session.t
+  def delete(session, path, opts) do
     session
-    |> run_action(Action.HTTP.delete(path))
+    |> run_action(Action.HTTP.delete(path, opts))
   end
 
   @doc """
