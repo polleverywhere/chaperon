@@ -45,7 +45,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
     session =
       session
       |> Session.delay(delay)
-      |> Session.reset
+      |> Session.reset_action_metadata
 
     Task.async fn ->
       start = timestamp

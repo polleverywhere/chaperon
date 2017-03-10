@@ -692,7 +692,7 @@ defmodule Chaperon.Session do
     |> handle_json_response(action, response, cb)
   end
 
-  def reset(session) do
+  def reset_action_metadata(session) do
     %{session | metrics: %{}, results: %{}, errors: %{}}
   end
 

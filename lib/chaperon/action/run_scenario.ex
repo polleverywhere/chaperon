@@ -38,7 +38,7 @@ end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   require Logger
-  import Chaperon.Session, only: [set_config: 2, merge: 2, reset: 1]
+  import Chaperon.Session, only: [set_config: 2, merge: 2, reset_action_metadata: 1]
   alias Chaperon.Worker
 
   def run(%{scenario: scenario, config: config}, session) do
@@ -46,10 +46,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       config
       |> Map.merge(%{merge_scenario_sessions: true})
 
-    scenario_session = reset(session)
-
     scenario_session =
-      Worker.start_nested(scenario, scenario_session, scenario_config)
+      Worker.start_nested(scenario, session |> reset_action_metadata, scenario_config)
       |> Worker.await(Worker.timeout(config))
 
     merged_session =
