@@ -486,7 +486,7 @@ defmodule Chaperon.Session do
   def add_result(session, action, result) do
     case session.config[:store_results] do
       true ->
-        Logger.info "Add result #{action}"
+        Logger.debug "Add result #{action}"
         update_in session.results[action], &[result | as_list(&1)]
 
       _ ->
@@ -501,7 +501,7 @@ defmodule Chaperon.Session do
   def add_ws_result(session, action, result) do
     case session.config[:store_results] do
       true ->
-        Logger.info "Add WS result #{action} : #{inspect result}"
+        Logger.debug "Add WS result #{action} : #{inspect result}"
         update_in session.results[action], &[result | as_list(&1)]
 
       _ ->
