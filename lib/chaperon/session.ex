@@ -693,7 +693,7 @@ defmodule Chaperon.Session do
   end
 
   def reset_action_metadata(session) do
-    %{session | metrics: %{}, results: %{}, errors: %{}}
+    %{session | metrics: %{}, results: %{}, errors: %{}, async_tasks: %{}}
   end
 
   @doc """
