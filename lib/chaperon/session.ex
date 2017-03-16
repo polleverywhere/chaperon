@@ -68,6 +68,39 @@ defmodule Chaperon.Session do
     })
   end
 
+
+  @doc """
+  Repeats a given action, returning the resulting session at the end.
+
+  ## Example
+
+      session |> repeat(:foo, 2)
+      # same as:
+      session |> foo |> foo
+  """
+  def repeat(session, _, 0), do: session
+  def repeat(session, func, amount) when amount > 0 do
+    session
+    |> call(func)
+    |> repeat(func, amount - 1)
+  end
+
+  @doc """
+  Repeats a given action with args, returning the resulting session at the end.
+
+  ## Example
+
+      session |> repeat(:foo, ["bar", "baz"], 2)
+      # same as:
+      session |> foo("bar", "baz") |> foo("bar", "baz")
+  """
+  def repeat(session, _, _, 0), do: session
+  def repeat(session, func, args, amount) when amount > 0 do
+    session
+    |> call(func, args)
+    |> repeat(func, args, amount - 1)
+  end
+
   @doc """
   Returns the session's configured timeout or the default timeout, if none
   specified.
