@@ -28,7 +28,7 @@ defmodule Chaperon.Mixfile do
   def application do
     [
       applications: [
-        :logger, :httpoison, :uuid, :poison, :hdr_histogram, :socket
+        :logger, :httpoison, :uuid, :poison, :hdr_histogram, :gun
       ],
       mod: {Chaperon, []}
     ]
@@ -49,7 +49,7 @@ defmodule Chaperon.Mixfile do
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:hdr_histogram, "~> 0.2.0"},
-      {:socket, "~> 0.3.5"},
+      {:gun, "~> 1.0.0-pre.2"},
       {:dialyxir, "~> 0.4", only: [:dev]},
       {:ex_doc, "~> 0.14", only: :dev}
     ]

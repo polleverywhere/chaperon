@@ -9,10 +9,8 @@ defmodule Chaperon.Action.WebSocket.SendMessage do
     options: []
   ]
 
-  def encoded_message(%{message: [json: data]}) do
-    {:text, Poison.encode!(data)}
-  end
-
+  def encoded_message(%{message: [json: data]}),
+    do: Poison.encode!(data)
   def encoded_message(%{message: msg}),
     do: msg
 end
@@ -25,7 +23,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
   def run(action, session = %{assigns: %{websocket: socket}}) do
     Logger.debug "WS_SEND #{session.assigns.websocket_url} #{inspect action.message}"
 
-    case Socket.Web.send(socket, action |> encoded_message, action.options) do
+    case :gun.ws_send(socket, {:binary, action |> encoded_message}) do
       :ok ->
         {:ok, session}
 

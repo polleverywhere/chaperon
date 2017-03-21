@@ -28,18 +28,39 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
     Logger.debug "WS_RECV #{ws_url}"
     start = timestamp
 
-    case Socket.Web.recv(socket, action.options) do
-      {:ok, {:text, message}} ->
-        session
-        |> Session.add_ws_result(action, message)
-        |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp - start)
-        |> Session.run_callback(action, action.callback, message)
-        |> Session.ok
+    receive do
+      {:gun_down, ^socket, _, _, _, _} ->
+        Logger.error "WS: received down event"
+        {:error, %Error{reason: "WS socket down", action: action, session: session}}
 
-      {:error, reason} ->
-        Logger.error "#{action} failed: #{inspect reason}"
-        {:error, %Error{reason: reason, action: action, session: session}}
+      {:gun_ws, ^socket, {:binary, message}} ->
+        Logger.debug "WS_RECV binary (#{byte_size message} bytes)"
+        session
+        |> handle_message(action, message, start)
+
+      {:gun_ws, ^socket, {:text, message}} ->
+        Logger.debug "WS_RECV: #{message}"
+        session
+        |> handle_message(action, message, start)
+
+      other ->
+        Logger.warn "WS_RECV unexpected message: #{inspect other}"
+        session
+        |> Session.ok
     end
+  end
+
+  def handle_message(
+    session = %{assigns: %{websocket_url: ws_url}},
+    action,
+    message,
+    start_time
+  ) do
+    session
+    |> Session.add_ws_result(action, message)
+    |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp - start_time)
+    |> Session.run_callback(action, action.callback, message)
+    |> Session.ok
   end
 
   def abort(action, session) do

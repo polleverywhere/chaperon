@@ -21,35 +21,46 @@ defmodule Chaperon.Action.WebSocket.Connect do
     end
   end
 
-  def opts(%{path: path}, %Chaperon.Session{config: %{base_url: base_url}}) do
+  def opts(_action, %Chaperon.Session{config: %{base_url: base_url}}) do
     uri = URI.parse(base_url)
     opts = case uri.scheme do
-      "http"  -> [path: path]
-      "https" -> [path: path, secure: true]
+      "http"  -> %{transport: :tcp}
+      "https" -> %{transport: :ssl}
     end
 
-    {{uri.host, uri.port}, opts}
+    {uri.host, uri.port, opts}
   end
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket.Connect
+  alias Chaperon.Action.Error
   require Logger
 
   def run(action, session) do
     ws_url = Connect.url(action, session)
     Logger.info "WS_CONN #{ws_url}"
 
-    {addr, opts} = Connect.opts(action, session)
-    ws = Socket.Web.connect! addr, opts
+    timeout = Session.timeout(session)
+    {host, port, opts} = Connect.opts(action, session)
+    {:ok, conn}  = :gun.open(host |> String.to_charlist, port, opts)
+    {:ok, :http} = :gun.await_up(conn)
+    :gun.ws_upgrade(conn, action.path)
 
-    session
-    |> Session.assign(
-      websocket: ws,
-      websocket_url: ws_url
-    )
-    |> Session.ok
+    receive do
+      {:gun_ws_upgrade, ^conn, :ok, _} ->
+        Logger.info "Connected via WS to #{ws_url}"
+        session
+        |> Session.assign(
+          websocket: conn,
+          websocket_url: ws_url
+        )
+        |> Session.ok
+
+    after timeout ->
+      {:error, %Error{reason: "WS_CONN timeout: #{timeout}", action: action, session: session}}
+    end
   end
 
   def abort(action, session) do
