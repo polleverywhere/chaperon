@@ -3,6 +3,7 @@ defmodule Chaperon.Export.CSV do
   CSV metrics export module.
   """
 
+  alias Chaperon.Util
   alias Chaperon.Scenario.Metrics
 
   @separator ";"
@@ -36,12 +37,22 @@ defmodule Chaperon.Export.CSV do
   defp encode_rows(session, separator, delimiter) do
     session.metrics
     |> Enum.flat_map(fn
+      {[:duration, :call, {mod, func}], vals} ->
+        mod_name = scenario_mod_name(mod)
+        encode_runs(vals, "call(#{mod_name}.#{func})", separator)
       {[:duration, action, url], vals} ->
         encode_runs(vals, "#{action}(#{url})", separator)
       {[:duration, action], vals} ->
         encode_runs(vals, "#{action}", separator)
     end)
     |> Enum.join(delimiter)
+  end
+
+  defp scenario_mod_name(mod) do
+    mod
+    |> Module.split
+    |> Util.last(2)
+    |> Enum.join(".")
   end
 
   defp encode_runs(runs, action_name, separator) when is_list(runs) do

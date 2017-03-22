@@ -26,7 +26,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
     start = timestamp
     session = apply(session.scenario.module, f, [session | args])
     session
-    |> Session.add_metric([:duration, :call, f], timestamp - start)
+    |> Session.add_metric([:duration, :call, {session.scenario.module, f}], timestamp - start)
     |> Session.ok
   end
   def run(%{func: f}, session), do: f.(session)

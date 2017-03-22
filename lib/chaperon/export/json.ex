@@ -15,6 +15,8 @@ defmodule Chaperon.Export.JSON do
   def encode(session, _opts \\ []) do
     session.metrics
     |> Enum.map(fn
+      {[:duration, :call, {mod, func}], vals} ->
+        %{action: :call, module: (inspect mod), function: func, metrics: metrics(vals)}
       {[:duration, :call, func], vals} ->
         %{action: :call, function: func, metrics: metrics(vals)}
       {[:duration, action, url], vals} ->

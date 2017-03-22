@@ -87,4 +87,36 @@ defmodule Chaperon.Util do
     end
     |> Enum.into(%{})
   end
+
+
+  @doc """
+  Returns last `amount` elements in a given `Enum` as a `List`.
+
+  ## Example
+
+      iex> alias Chaperon.Util
+      iex> [] |> Util.last(1)
+      []
+      iex> [1] |> Util.last(1)
+      [1]
+      iex> [1,2,3,4] |> Util.last(1)
+      [4]
+      iex> [1,2,3,4] |> Util.last(2)
+      [3,4]
+      iex> [1,2,3,4] |> Util.last(3)
+      [2,3,4]
+      iex> [1,2,3,4] |> Util.last(4)
+      [1,2,3,4]
+      iex> [1,2,3,4] |> Util.last(5)
+      [1,2,3,4]
+  """
+  def last(enum, amount) when is_list(enum) do
+    case Enum.count(enum) - amount do
+      n when n > 0 ->
+        enum
+        |> Enum.drop(n)
+      _ ->
+        enum
+    end
+  end
 end
