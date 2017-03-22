@@ -3,11 +3,11 @@ defmodule Chaperon.Export.JSON do
   JSON metrics export module.
   """
 
+  alias Chaperon.Scenario.Metrics
+
   @columns [
-    :total_count, :max, :mean, :median, :min, :stddev,
-    {:percentile, 75}, {:percentile, 90}, {:percentile, 95}, {:percentile, 99},
-    {:percentile, 999}, {:percentile, 9999}, {:percentile, 99999}
-  ]
+    :total_count, :max, :mean, :median, :min, :stddev
+  ] ++ (for p <- Metrics.percentiles, do: {:percentile, p})
 
   @doc """
   Encodes metrics of given `session` into JSON format.

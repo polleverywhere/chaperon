@@ -19,23 +19,30 @@ defmodule Chaperon.Scenario.Metrics do
     |> Enum.into(%{})
   end
 
+  @percentiles [50.0, 60.0, 75.0, 90.0, 95.0, 99.0, 99.9, 99.99, 99.999]
+
+  def percentiles, do: @percentiles
+
   @doc false
   def histogram_vals({k, hist}) do
-    {k, %{
+    {k, histogram_vals(hist)}
+  end
+
+  def histogram_vals(hist) do
+    Map.merge(percentiles(hist), %{
       :total_count => :hdr_histogram.get_total_count(hist),
       :min => :hdr_histogram.min(hist),
       :mean => :hdr_histogram.mean(hist),
       :median => :hdr_histogram.median(hist),
       :max => :hdr_histogram.max(hist),
       :stddev => :hdr_histogram.stddev(hist),
-      {:percentile, 75} => :hdr_histogram.percentile(hist, 75.0),
-      {:percentile, 90} => :hdr_histogram.percentile(hist, 90.0),
-      {:percentile, 95} => :hdr_histogram.percentile(hist, 95.0),
-      {:percentile, 99} => :hdr_histogram.percentile(hist, 99.0),
-      {:percentile, 999} => :hdr_histogram.percentile(hist, 99.9),
-      {:percentile, 9999} => :hdr_histogram.percentile(hist, 99.99),
-      {:percentile, 99999} => :hdr_histogram.percentile(hist, 99.999)
-    }}
+    })
+  end
+
+  def percentiles(hist) do
+    @percentiles
+    |> Enum.map(&{{:percentile, &1}, :hdr_histogram.percentile(hist, &1)})
+    |> Enum.into(%{})
   end
 
   @doc false

@@ -3,6 +3,8 @@ defmodule Chaperon.Export.CSV do
   CSV metrics export module.
   """
 
+  alias Chaperon.Scenario.Metrics
+
   @separator ";"
   @delimiter "\n"
 
@@ -19,16 +21,12 @@ defmodule Chaperon.Export.CSV do
   end
 
   @header_fields [
-    "session_action_name", "total_count", "max", "mean", "median", "min", "stddev",
-    "percentile_75", "percentile_90", "percentile_95", "percentile_99",
-    "percentile_999", "percentile_9999", "percentile_99999"
-  ]
+    "session_action_name", "total_count", "max", "mean", "median", "min", "stddev"
+  ] ++ (for p <- Metrics.percentiles, do: "percentile_#{p}")
 
   @columns [
     :total_count, :max, :mean, :median, :min, :stddev,
-    {:percentile, 75}, {:percentile, 90}, {:percentile, 95}, {:percentile, 99},
-    {:percentile, 999}, {:percentile, 9999}, {:percentile, 99999}
-  ]
+  ] ++ (for p <- Metrics.percentiles, do: {:percentile, p})
 
   defp encode_header(separator) do
     @header_fields
