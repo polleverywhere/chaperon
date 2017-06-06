@@ -16,21 +16,13 @@ defmodule Chaperon.Action.WebSocket.SendMessage do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
-  alias Chaperon.Action.Error
   require Logger
   import Chaperon.Action.WebSocket.SendMessage
 
   def run(action, session = %{assigns: %{websocket: socket}}) do
     Logger.debug "WS_SEND #{session.assigns.websocket_url} #{inspect action.message}"
-
-    case :gun.ws_send(socket, {:binary, action |> encoded_message}) do
-      :ok ->
-        {:ok, session}
-
-      {:error, reason} ->
-        Logger.error "#{action} failed: #{inspect reason}"
-        {:error, %Error{reason: reason, action: action, session: session}}
-    end
+    :ok = :gun.ws_send(socket, {:binary, action |> encoded_message})
+    {:ok, session}
   end
 
   def abort(action, session) do
