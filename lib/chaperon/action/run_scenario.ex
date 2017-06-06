@@ -60,10 +60,13 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
           |> Worker.await(Worker.timeout(config))
 
         _ ->
-          # In cases with a high amount of nested scenarios being executes
-          # per running session, running the nested scenario inside the current
+          # In cases with a high amount of nested scenarios being executed per
+          # running session, running the nested scenario inside the current
           # session's process is going to be alot faster and have less
-          # communication overhead.
+          # communication overhead. Also, this won't ensure the nested scenario
+          # times out after a configured worker timeout. Instead, the execution
+          # time of the nested scenario will be added to this session's
+          # execution time.
           Chaperon.Scenario.execute_nested(
             scenario,
             session |> reset_action_metadata,
