@@ -44,7 +44,7 @@ defmodule Environment.Staging do
 
   scenarios do
     default_config %{
-      scenario_timeout: 15_000,
+      scenario_timeout: 25_000,
       base_url: "http://localhost:7474",
       channel: "/testchannel"
     }
