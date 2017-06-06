@@ -12,12 +12,13 @@ defmodule Chaperon.Mixfile do
       dialyzer: [
         plt_add_deps: :apps_direct,
         plt_add_apps: [
-          :httpoison, :uuid, :poison, :hdr_histogram, :socket
+          :httpoison, :uuid, :poison, :hdr_histogram
         ],
         flags: [
           # "-Woverspecs",
           # "-Wunderspecs"
-        ]
+        ],
+        remove_defaults: [:unknown] # skip unkown function warnings
       ]
     ]
   end
@@ -50,7 +51,7 @@ defmodule Chaperon.Mixfile do
       {:poison, "~> 3.0"},
       {:hdr_histogram, "~> 0.2.0"},
       {:gun, "~> 1.0.0-pre.2"},
-      {:dialyxir, "~> 0.4", only: [:dev]},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
