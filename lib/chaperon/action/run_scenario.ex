@@ -52,7 +52,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
           # The code below runs the nested scenario on a random worker node
           # in the cluster. This can be alot slower if the amount of nested
           # scenarios being run is high.
-          Worker.start_nested(scenario, session |> reset_action_metadata, scenario_config)
+          Worker.start_nested(
+            scenario,
+            session |> reset_action_metadata,
+            scenario_config
+          )
           |> Worker.await(Worker.timeout(config))
 
         _ ->
@@ -60,7 +64,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
           # per running session, running the nested scenario inside the current
           # session's process is going to be alot faster and have less
           # communication overhead.
-          Chaperon.Scenario.execute_nested(scenario, session |> reset_action_metadata, scenario_config)
+          Chaperon.Scenario.execute_nested(
+            scenario,
+            session |> reset_action_metadata,
+            scenario_config
+          )
       end
 
     merged_session =
