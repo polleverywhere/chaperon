@@ -89,9 +89,10 @@ defmodule Chaperon.Scenario do
       #   end
       # end
 
+      @spec new_session(map) :: Session.t
       def new_session(config) do
         %Chaperon.Session{
-          scenario: __MODULE__,
+          scenario: %Chaperon.Scenario{module: __MODULE__},
           config: config
         }
       end
@@ -100,6 +101,7 @@ defmodule Chaperon.Scenario do
 
   require Logger
   alias Chaperon.Session
+  alias Chaperon.Scenario
 
   @doc """
   Runs a given scenario module with a given config and returns the scenario's
@@ -110,7 +112,7 @@ defmodule Chaperon.Scenario do
   """
   @spec execute(atom, map) :: Session.t
   def execute(scenario_mod, config) do
-    scenario = %Chaperon.Scenario{module: scenario_mod}
+    scenario = %Scenario{module: scenario_mod}
     session =
       scenario
       |> new_session(config)
@@ -119,6 +121,7 @@ defmodule Chaperon.Scenario do
     |> run(scenario_mod |> init(session))
   end
 
+  @spec execute_nested(Scenario.t, Session.t, map) :: Session.t
   def execute_nested(scenario, session, config) do
     session =
       scenario
@@ -128,6 +131,7 @@ defmodule Chaperon.Scenario do
     |> run(scenario.module |> init(session))
   end
 
+  @spec run(Scenario.t, Session.t | {:ok, Session.t} | {:error, any}) :: Session.t | {:error, any}
   def run(scenario, {:ok, session}) do
     scenario
     |> run(session)
@@ -159,7 +163,7 @@ defmodule Chaperon.Scenario do
       session
     else
       session
-      |> Chaperon.Scenario.Metrics.add_histogram_metrics
+      |> Scenario.Metrics.add_histogram_metrics
     end
   end
 
@@ -168,6 +172,7 @@ defmodule Chaperon.Scenario do
     %{s2 | scenario: session.scenario}
   end
 
+  @spec initial_delay(Session.t) :: Session.t
   def initial_delay(session = %Session{config: %{delay: delay}}) do
     session
     |> Session.delay(delay)
@@ -197,7 +202,7 @@ defmodule Chaperon.Scenario do
     end
   end
 
-  @spec new_session(Chaperon.Scenario.t, map) :: Session.t
+  @spec new_session(Scenario.t, map) :: Session.t
   def new_session(scenario, config) do
     %Session{
       id: session_id(scenario, config),
@@ -206,6 +211,7 @@ defmodule Chaperon.Scenario do
     }
   end
 
+  @spec nested_session(Scenario.t, Session.t, map) :: Session.t
   def nested_session(scenario, session, config) do
     config = session.config |> Map.merge(config)
     %{session |
@@ -225,14 +231,14 @@ defmodule Chaperon.Scenario do
       iex> Scenario.name %Scenario{module: Scenarios.Bruteforce.Login}
       "Scenarios.Bruteforce.Login"
   """
-  @spec name(Chaperon.Scenario.t) :: String.t
-  def name(%Chaperon.Scenario{module: mod}) do
+  @spec name(Scenario.t) :: String.t
+  def name(%Scenario{module: mod}) do
     mod
     |> Module.split
     |> Enum.join(".")
   end
 
-  @spec session_id(Chaperon.Scenario.t, map) :: String.t
+  @spec session_id(Scenario.t, map) :: String.t
   def session_id(_scenario, %{id: id}),
     do: id
 
