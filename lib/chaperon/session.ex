@@ -299,8 +299,14 @@ defmodule Chaperon.Session do
   @spec run_action(Session.t, Chaperon.Actionable.t) :: Session.t
   def run_action(session, action) do
     case Chaperon.Actionable.run(action, session) do
+      {:error, %Chaperon.Session.Error{reason: reason}} ->
+        Logger.error "Session.run_action #{action} failed: #{inspect reason}"
+        put_in session.errors[action], reason
+      {:error, %Chaperon.Action.Error{reason: reason}} ->
+        Logger.error "Session.run_action #{action} failed: #{inspect reason}"
+        put_in session.errors[action], reason
       {:error, reason} ->
-        Logger.error "Session.run_action failed: #{inspect reason}"
+        Logger.error "Session.run_action #{action} failed: #{inspect reason}"
         put_in session.errors[action], reason
       {:ok, new_session} ->
         Logger.debug "SUCCESS #{action}"
