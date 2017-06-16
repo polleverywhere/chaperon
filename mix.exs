@@ -29,7 +29,7 @@ defmodule Chaperon.Mixfile do
   def application do
     [
       applications: [
-        :logger, :httpoison, :uuid, :poison, :hdr_histogram, :gun
+        :logger, :httpoison, :uuid, :poison, :hdr_histogram, :websockex, :ssl, :crypto
       ],
       mod: {Chaperon, []}
     ]
@@ -46,11 +46,11 @@ defmodule Chaperon.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:httpoison, "~> 0.10.0"},
+      {:httpoison, "~> 0.11.1"},
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:hdr_histogram, "~> 0.2.0"},
-      {:gun, "~> 1.0.0-pre.2"},
+      {:websockex, "~> 0.2"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev}
     ]

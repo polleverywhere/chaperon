@@ -17,6 +17,7 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   import Chaperon.Timing
   import Chaperon.Action.WebSocket.ReceiveMessage
+  alias Chaperon.Action.WebSocket
   alias Chaperon.Session
   alias Chaperon.Action.Error
   require Logger
@@ -28,20 +29,21 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
     Logger.debug "WS_RECV #{ws_url}"
     start = timestamp
 
-    receive do
-      {:gun_down, ^socket, _, _, _, _} ->
-        Logger.error "WS: received down event"
-        {:error, %Error{reason: "WS socket down", action: action, session: session}}
-
-      {:gun_ws, ^socket, {:binary, message}} ->
+    case WebSocket.Client.recv_message(socket, action.options[:timeout]) do
+      {:binary, message} ->
         Logger.debug "WS_RECV binary (#{byte_size message} bytes)"
         session
         |> handle_message(action, message, start)
 
-      {:gun_ws, ^socket, {:text, message}} ->
+      {:text, message} ->
         Logger.debug "WS_RECV: #{message}"
         session
         |> handle_message(action, message, start)
+
+      {:error, {:timeout, timeout}} ->
+        Logger.error "WS_RECV timeout: #{timeout}"
+        session
+        |> Session.error({:timeout, timeout})
 
       other ->
         Logger.warn "WS_RECV unexpected message: #{inspect other}"
