@@ -467,6 +467,43 @@ defmodule Chaperon.Session do
     end)
   end
 
+
+  @doc """
+  Get a (possibly nested) config value.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{config: %{foo: 1, bar: %{val1: "V1", val2: "V2"}}}
+      iex> session.config
+      %{foo: 1, bar: %{val1: "V1", val2: "V2"}}
+      iex> session |> config(:foo)
+      1
+      iex> session |> config(:invalid)
+      nil
+      iex> session |> config(:invalid, "default")
+      "default"
+      iex> session |> config([:bar, :val1])
+      "V1"
+      iex> session |> config([:bar, :val2])
+      "V2"
+  """
+  @spec config(Session.t, Keyword.t(any), any) :: Session.t
+  def config(session, key, default_val \\ nil) do
+    case key do
+      [key1 | rest] ->
+        rest
+        |> Enum.reduce(session.config[key1], (fn key, acc ->
+          case acc do
+            map when is_map(map) -> Map.get(map, key, default_val)
+            _ -> acc
+          end
+        end))
+      _ ->
+        Map.get session.config, key, default_val
+    end
+  end
+
   @spec skip_query_params_in_metrics(Session.t) :: Session.t
   def skip_query_params_in_metrics(session) do
     session
