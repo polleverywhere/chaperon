@@ -8,7 +8,6 @@ config :logger, :console,
   metadata: [:user_id]
 
 # Custom per env config files override values defined here (if they exist)
-env_config = "#{__DIR__}/#{Mix.env}.exs"
-if File.exists?(env_config) do
-  import_config env_config
+if File.exists?("#{__DIR__}/#{Mix.env}.exs") do
+  import_config "#{Mix.env}.exs"
 end
