@@ -5,6 +5,7 @@ defmodule Chaperon.Action.WebSocket.ReceiveMessage do
 
   defstruct [
     options: [],
+    decode: nil,
     callback: nil
   ]
 

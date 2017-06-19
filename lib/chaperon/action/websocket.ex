@@ -37,11 +37,13 @@ defmodule Chaperon.Action.WebSocket do
       end)
   """
   def recv(options \\ []) do
+    decode = Keyword.get(options, :decode, nil)
     callback = Keyword.get(options, :with_result, nil)
     options = Keyword.delete(options, :with_result)
 
     %WebSocket.ReceiveMessage{
       options: options,
+      decode: decode,
       callback: callback
     }
   end

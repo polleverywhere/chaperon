@@ -14,6 +14,7 @@ defmodule Chaperon.Action.HTTP do
     params: %{},
     response: nil,
     body: nil,
+    decode: nil,
     callback: nil
   ]
 
@@ -26,6 +27,7 @@ defmodule Chaperon.Action.HTTP do
     params: map,
     response: HTTPoison.Response.t | HTTPoison.AsyncResponse.t,
     body: binary,
+    decode: (HTTPoison.Response.t -> any),
     callback: Chaperon.Session.result_callback
   }
 
@@ -139,12 +141,14 @@ defmodule Chaperon.Action.HTTP do
 
     headers = opts[:headers] || %{}
     params  = opts[:params] || %{}
-    callback = opts[:with_result] || nil
+    decode = opts[:decode]
+    callback = opts[:with_result]
 
     {new_headers, body} =
       opts
       |> KW.delete(:headers)
       |> KW.delete(:params)
+      |> KW.delete(:decode)
       |> KW.delete(:with_result)
       |> parse_body
 
@@ -158,6 +162,7 @@ defmodule Chaperon.Action.HTTP do
       headers: headers,
       params: params,
       body: body,
+      decode: decode,
       callback: callback
     }
   end
@@ -248,7 +253,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         {:error, %Error{reason: reason, action: action, session: session}}
     end
   end
-
 
   def callback(%{callback: %{ok: cb}}),
     do: cb

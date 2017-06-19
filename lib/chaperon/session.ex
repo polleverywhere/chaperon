@@ -590,29 +590,6 @@ defmodule Chaperon.Session do
     put_in session.cookies, []
   end
 
-  @doc false
-  @spec handle_json_response(Session.t, Chaperon.Actionable.t, HTTPoison.Response.t, (Session.t, any -> Session.t)) :: Session.t
-  def handle_json_response(session, action, %HTTPoison.Response{body: body}, callback)
-  do
-    session
-    |> handle_json_response(action, body, callback)
-  end
-
-  @doc false
-  @spec handle_json_response(Session.t, Chaperon.Actionable.t, String.t, (Session.t, any -> Session.t)) :: Session.t
-  def handle_json_response(session, action, response, callback)
-  when is_binary(response)
-  do
-    case Poison.decode(response) do
-      {:ok, json} ->
-        callback.(session, json)
-      err ->
-        Logger.error "JSON decode error: #{inspect err}"
-        error = session |> error("JSON response decoding failed: #{inspect response}")
-        put_in session.errors[action], error
-    end
-  end
-
   @spec async_results(Session.t, atom) :: map
   defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
@@ -721,14 +698,42 @@ defmodule Chaperon.Session do
   def run_callback(session, _, nil, _),
     do: session
 
-  def run_callback(session, _, cb, response) when is_function(cb),
-    do: cb.(session, response)
 
-  def run_callback(session, action, [json: cb], response)
+  def run_callback(session, action = %{decode: decode}, cb, response)
     when is_function(cb)
   do
-    session
-    |> handle_json_response(action, response, cb)
+    case decode_response(session, action, response) do
+      {:ok, result} ->
+        cb.(session, result)
+
+      err ->
+        error = session |> error("Response decoding failed: #{inspect response}")
+        put_in session.errors[action], error
+    end
+  end
+
+  def run_callback(session, action, cb, response) when is_function(cb),
+    do: cb.(session, response)
+
+  defp decode_response(session, action, response) do
+    response_body =
+      case response do
+        %HTTPoison.Response{body: body} ->
+          body
+        s when is_binary(s) ->
+          s
+      end
+
+    case action.decode do
+      nil ->
+        {:ok, response}
+
+      :json ->
+        Poison.decode(response_body, keys: :atoms)
+
+      decode when is_function(decode) ->
+        decode.(response_body)
+    end
   end
 
   def reset_action_metadata(session) do
