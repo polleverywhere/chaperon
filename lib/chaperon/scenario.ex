@@ -195,7 +195,9 @@ defmodule Chaperon.Scenario do
   """
   @spec init(atom, Session.t) :: {:ok, Session.t}
   def init(scenario_mod, session) do
-    if function_exported?(scenario_mod, :init, 1) do
+    # for some reason Kernel.function_exported? only works on first compile
+    # but not for successive runs. Must be some bug in the compiler ??
+    if scenario_mod.module_info(:exports)[:init] do
       session |> scenario_mod.init
     else
       {:ok, session}
