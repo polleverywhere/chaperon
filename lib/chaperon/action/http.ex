@@ -72,8 +72,8 @@ defmodule Chaperon.Action.HTTP do
   alias __MODULE__
   alias Chaperon.Session
 
-  def url(%{path: "/"}, %Session{config: %{base_url: base_url}}) do
-    base_url
+  def url(%{path: ""}, %Session{config: %{base_url: base_url}}) do
+    base_url <> "/"
   end
 
   def url(%{path: path}, %Session{config: %{base_url: base_url}}) do
