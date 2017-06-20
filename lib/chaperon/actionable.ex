@@ -8,8 +8,9 @@ defprotocol Chaperon.Actionable do
   alias Chaperon.Session
   alias Chaperon.Action.Error
 
-  @type result :: {:ok, Session.t} | {:error, Error.t}
-  @type abort_result :: {:ok, Chaperon.Actionable.t, Session.t} | {:error, Error.t}
+  @type error :: {:error, Error.t} | {:error, Chaperon.Session.Error.t} | {:error, any}
+  @type result :: {:ok, Session.t} | error
+  @type abort_result :: {:ok, Chaperon.Actionable.t, Session.t} | error
 
   @doc """
   Attempts to run a `Chaperon.Actionable` within a `Chaperon.Session` and
