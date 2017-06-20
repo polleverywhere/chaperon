@@ -324,7 +324,7 @@ defmodule Chaperon.Session do
       {:error, reason} ->
         Logger.error "Session.run_action #{action} failed: #{inspect reason}"
         put_in session.errors[action], reason
-      {:ok, new_session} ->
+      {:ok, new_session = %Chaperon.Session{}} ->
         Logger.debug "SUCCESS #{action}"
         new_session
     end
