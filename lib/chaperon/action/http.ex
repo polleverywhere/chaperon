@@ -236,7 +236,14 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       HTTP.options(action, session)
     ) do
       {:ok, response} ->
-        Logger.debug "HTTP Response #{action} : #{response.status_code}"
+        case response.status_code do
+          code when code in 200..399 ->
+            Logger.debug "HTTP Response #{action} : #{code}"
+          code ->
+            Logger.warn "HTTP Response #{action} failed with status code: #{code}"
+            Logger.warn response.body
+        end
+
         session
         |> Session.add_result(action, response)
         |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
