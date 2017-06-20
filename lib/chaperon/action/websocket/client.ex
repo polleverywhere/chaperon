@@ -66,6 +66,10 @@ defmodule Chaperon.Action.WebSocket.Client do
     end
   end
 
+  def handle_info(:close, state) do
+    {:close, state}
+  end
+
   def recv_message(pid, timeout \\ nil) do
     # ask for next frame frmo WebSockex process and then await response
     send pid, {:next_frame, self}
@@ -85,5 +89,9 @@ defmodule Chaperon.Action.WebSocket.Client do
             {:error, {:timeout, timeout}}
         end
     end
+  end
+
+  def close(pid) do
+    send pid, :close
   end
 end
