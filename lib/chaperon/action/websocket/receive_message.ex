@@ -23,10 +23,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   alias Chaperon.Action.Error
   require Logger
 
-  def run(
-    action,
-    session = %{assigns: %{websocket: socket, websocket_url: ws_url}}
-  ) do
+  def run(action, session) do
+    {socket, ws_url} =
+      session
+      |> WebSocket.for_action(action)
+
     Logger.debug "WS_RECV #{ws_url}"
     start = timestamp
 
@@ -54,11 +55,15 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   end
 
   def handle_message(
-    session = %{assigns: %{websocket_url: ws_url}},
+    session,
     action,
     message,
     start_time
   ) do
+    {_, ws_url} =
+      session
+      |> WebSocket.for_action(action)
+
     session
     |> Session.add_ws_result(action, message)
     |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp - start_time)

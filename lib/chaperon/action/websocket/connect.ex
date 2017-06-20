@@ -11,7 +11,8 @@ defmodule Chaperon.Action.WebSocket.Connect do
   """
 
   defstruct [
-    path: nil
+    path: nil,
+    options: []
   ]
 
   def url(action, session) do
@@ -39,10 +40,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
     Logger.info "Connected via WS to #{ws_url}"
 
     session
-    |> Session.assign(
-      websocket: ws_conn,
-      websocket_url: ws_url
-    )
+    |> WebSocket.assign_for_action(action, ws_conn, ws_url)
     |> Session.ok
   end
 

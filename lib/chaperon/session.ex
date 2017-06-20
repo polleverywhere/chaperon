@@ -222,10 +222,10 @@ defmodule Chaperon.Session do
   Performs a WebSocket connection attempt on `session`'s base_url and
   `path`.
   """
-  @spec ws_connect(Session.t, String.t) :: Session.t
-  def ws_connect(session, path) do
+  @spec ws_connect(Session.t, String.t, Keyword.t) :: Session.t
+  def ws_connect(session, path, options \\ []) do
     session
-    |> run_action(Action.WebSocket.connect(path))
+    |> run_action(Action.WebSocket.connect(path, options))
   end
 
   @doc """
@@ -248,6 +248,15 @@ defmodule Chaperon.Session do
     |> run_action(Action.WebSocket.recv(options))
   end
 
+  @doc """
+  Closes the session's websocket connection.
+  Takes an optional list of `options` to be passed along to `Socket.Web.close/2`.
+  """
+  @spec ws_close(Session.t) :: Session.t
+  def ws_close(session, options \\ []) do
+    session
+    |> run_action(Action.WebSocket.close(options))
+  end
 
   @doc """
   Calls a function inside the `session`'s scenario module with the given name
@@ -286,10 +295,17 @@ defmodule Chaperon.Session do
   Runs & captures metrics of running another `Chaperon.Scenario` from `session`
   with a given `config`.
   """
-  @spec run_scenario(Session.t, Action.RunScenario.scenario, map) :: Session.t
-  def run_scenario(session, scenario, config) do
+  @spec run_scenario(Session.t, Action.RunScenario.scenario, map, boolean) :: Session.t
+  def run_scenario(session, scenario, config, merge_config \\ true) do
+    scenario_config =
+      if merge_config do
+        Map.merge(session.config, config)
+      else
+        config
+      end
+
     session
-    |> run_action(Action.RunScenario.new(scenario, Map.merge(session.config, config)))
+    |> run_action(Action.RunScenario.new(scenario, scenario_config))
   end
 
   @doc """
@@ -410,6 +426,14 @@ defmodule Chaperon.Session do
     |> Enum.reduce(session, fn {k, func}, session ->
       update_in session.assigns[namespace][k], func
     end)
+  end
+
+  def delete_assign(session, key) do
+    update_in session.assigns, &Map.delete(&1, key)
+  end
+
+  def delete_assign(session, namespace, key) do
+    update_in session.assigns[namespace], &Map.delete(&1, key)
   end
 
 

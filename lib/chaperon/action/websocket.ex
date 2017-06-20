@@ -4,12 +4,13 @@ defmodule Chaperon.Action.WebSocket do
   """
 
   alias __MODULE__
+  alias Chaperon.Session
 
   @doc """
   Returns a `Chaperon.WebSocket.Connect` action for a given `path`.
   """
-  def connect(path) do
-    %WebSocket.Connect{path: path}
+  def connect(path, options \\ []) do
+    %WebSocket.Connect{path: path, options: options}
   end
 
   @doc """
@@ -46,5 +47,64 @@ defmodule Chaperon.Action.WebSocket do
       decode: decode,
       callback: callback
     }
+  end
+
+
+  @doc """
+  Returns a `Chaperon.WebSocket.Close` action with `options`.
+  """
+  def close(options \\ []) do
+    %WebSocket.Close{
+      options: options
+    }
+  end
+
+  def for_action(session, action) do
+    case action.options[:name] do
+      nil ->
+        {session.assigns.websocket.connection, session.assigns.websocket.url}
+
+      name ->
+        Map.get(session.assigns.websocket.named_connections, name)
+    end
+  end
+
+  def assign_for_action(session, action, ws_conn, ws_url) do
+    case action.options[:name] do
+      nil ->
+        IO.puts "assign auto"
+        session
+        |> Session.assign(:websocket,
+          connection: ws_conn,
+          url: ws_url
+        )
+
+      name ->
+        session
+        |> Session.update_assign(websocket: &(&1 || %{}))
+        |> Session.update_assign(:websocket,
+          named_connections: fn
+            nil ->
+              %{ name => {ws_conn, ws_url} }
+            sockets ->
+              Map.put(sockets, name, {ws_conn, ws_url})
+          end
+        )
+    end
+  end
+
+  def delete_for_action(session, action) do
+    case action.options[:name] do
+      nil ->
+        session
+        |> Session.delete_assign(:websocket, :connection)
+        |> Session.delete_assign(:websocket, :url)
+
+      name ->
+        session
+        |> Session.update_assign(:websocket,
+          named_connections: &Map.delete(&1, name)
+        )
+    end
   end
 end
