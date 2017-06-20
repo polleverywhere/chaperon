@@ -289,7 +289,7 @@ defmodule Chaperon.Session do
   @spec run_scenario(Session.t, Action.RunScenario.scenario, map) :: Session.t
   def run_scenario(session, scenario, config) do
     session
-    |> run_action(Action.RunScenario.new(scenario, config))
+    |> run_action(Action.RunScenario.new(scenario, Map.merge(session.config, config)))
   end
 
   @doc """
