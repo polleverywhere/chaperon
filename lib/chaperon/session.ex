@@ -915,7 +915,12 @@ defmodule Chaperon.Session do
 end
 
 defimpl String.Chars, for: Chaperon.Session do
-  def to_string(%{id: id, scenario: %Chaperon.Scenario{module: scenario}}) do
-    "Session{id: #{inspect id}, scenario: #{inspect scenario}}"
+  def to_string(session) do
+    case session.scenario do
+      %Chaperon.Scenario{module: scenario_mod} ->
+        "Session{id: #{inspect session.id}, scenario: #{inspect scenario_mod}}"
+      nil ->
+        "Session{id: #{inspect session.id}}"
+    end
   end
 end
