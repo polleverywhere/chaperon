@@ -503,8 +503,12 @@ defmodule Chaperon.Session do
       %{foo: 1, bar: %{val1: "V1", val2: "V2"}}
       iex> session |> config(:foo)
       1
-      iex> session |> config(:invalid)
-      nil
+      iex> try do
+      iex>   session |> config(:invalid) # no default value given
+      iex> rescue
+      iex>   e in RuntimeError -> :failed
+      iex> end
+      :failed
       iex> session |> config(:invalid, "default")
       "default"
       iex> session |> config([:bar, :val1])
@@ -513,18 +517,44 @@ defmodule Chaperon.Session do
       "V2"
   """
   @spec config(Session.t, Keyword.t(any), any) :: Session.t
-  def config(session, key, default_val \\ nil) do
+  def config(session, key, default_val \\ :no_default_given) do
     case key do
       [key1 | rest] ->
         rest
         |> Enum.reduce(session.config[key1], (fn key, acc ->
           case acc do
-            map when is_map(map) -> Map.get(map, key, default_val)
-            _ -> acc
+            map when is_map(map) ->
+              case default_val do
+                :no_default_given ->
+                  session
+                  |> required_config(map, key)
+
+                default ->
+                  Map.get(map, key, default)
+              end
+            _ ->
+              acc
           end
         end))
       _ ->
-        Map.get session.config, key, default_val
+        case default_val do
+          :no_default_given ->
+            session
+            |> required_config(session.config, key)
+
+          default ->
+            Map.get session.config, key, default
+        end
+    end
+  end
+
+  defp required_config(session, map, key) do
+    case Map.fetch(map, key) do
+      {:ok, val} ->
+        val
+
+      :error ->
+        raise "Invalid config key #{inspect key} for session: #{inspect session}"
     end
   end
 
