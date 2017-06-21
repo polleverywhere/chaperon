@@ -40,6 +40,22 @@ defmodule Chaperon.Action.WebSocket.Client do
     end
   end
 
+  def handle_ping(:ping, state) do
+    {:reply, {:ping, "pong"}, state}
+  end
+
+  def handle_ping({:ping, msg}, state) do
+    {:reply, {:ping, msg}, state}
+  end
+
+  def handle_pong(:pong, state) do
+    {:ok, state}
+  end
+
+  def handle_pong({:pong, _}, state) do
+    {:ok, state}
+  end
+
   def handle_disconnect(%{reason: {:local, reason}}, state) do
     Logger.debug("WS Client | Local close with reason: #{inspect reason}")
     {:ok, state}
