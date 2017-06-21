@@ -554,7 +554,7 @@ defmodule Chaperon.Session do
         val
 
       :error ->
-        raise "Invalid config key #{inspect key} for session: #{inspect session}"
+        raise "Invalid config key #{inspect key} for session: #{session}"
     end
   end
 
@@ -911,5 +911,11 @@ defmodule Chaperon.Session do
       unquote(session)
       |> Chaperon.Session.call_traced(unquote(func), unquote(args))
     end
+  end
+end
+
+defimpl String.Chars, for: Chaperon.Session do
+  def to_string(%{id: id, scenario: %Chaperon.Scenario{module: scenario}}) do
+    "Session{id: #{inspect id}, scenario: #{inspect scenario}}"
   end
 end
