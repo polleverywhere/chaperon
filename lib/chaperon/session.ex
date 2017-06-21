@@ -288,7 +288,7 @@ defmodule Chaperon.Session do
   Performs a WebSocket message send on `session`s WebSocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.send/3`.
   """
-  @spec ws_send(Session.t, any) :: Session.t
+  @spec ws_send(Session.t, any, Keyword.t) :: Session.t
   def ws_send(session, msg, options \\ []) do
     session
     |> run_action(Action.WebSocket.send(msg, options))
@@ -298,7 +298,7 @@ defmodule Chaperon.Session do
   Performs a WebSocket message receive on `session`s WebSocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.recv/2`.
   """
-  @spec ws_recv(Session.t) :: Session.t
+  @spec ws_recv(Session.t, Keyword.t) :: Session.t
   def ws_recv(session, options \\ []) do
     session
     |> run_action(Action.WebSocket.recv(options))
@@ -308,7 +308,7 @@ defmodule Chaperon.Session do
   Closes the session's websocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.close/2`.
   """
-  @spec ws_close(Session.t) :: Session.t
+  @spec ws_close(Session.t, Keyword.t) :: Session.t
   def ws_close(session, options \\ []) do
     session
     |> run_action(Action.WebSocket.close(options))
