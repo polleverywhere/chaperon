@@ -3,8 +3,8 @@ defmodule Chaperon.Action.WebSocket.Client do
   require Logger
 
   defmodule State  do
-    defstruct messages: [],
-              awaiting: []
+    defstruct messages: EQueue.new,
+              awaiting_clients: EQueue.new
   end
 
   alias __MODULE__.State
@@ -27,17 +27,16 @@ defmodule Chaperon.Action.WebSocket.Client do
   def handle_frame(msg, state) do
     Logger.debug("WS Client | Received Frame")
 
-    case state.awaiting do
-      [] ->
-        state = update_in state.messages, &[msg | &1]
-        {:ok, state}
+    if EQueue.empty?(state.awaiting_clients) do
+      state = update_in state.messages, &EQueue.push(&1, msg)
+      {:ok, state}
+    else
+      state.awaiting_clients
+      |> EQueue.to_list
+      |> Enum.each(&send(&1, {:next_frame, msg}))
 
-      clients ->
-        for pid <- clients do
-          send pid, {:recv_message, msg}
-        end
-        state = put_in state.awaiting, []
-        {:ok, state}
+      state = put_in state.awaiting_clients, EQueue.new
+      {:ok, state}
     end
   end
 
@@ -55,13 +54,13 @@ defmodule Chaperon.Action.WebSocket.Client do
   end
 
   def handle_info({:next_frame, pid}, state) do
-    case Enum.reverse(state.messages) do
-      [m1 | rest] ->
-        state = put_in state.messages, Enum.reverse(rest)
-        send pid, {:next_frame, m1}
+    case EQueue.pop(state.messages) do
+      {{:value, msg}, remaining} ->
+        state = put_in state.messages, remaining
+        send pid, {:next_frame, msg}
         {:ok, state}
-      [] ->
-        state = update_in state.awaiting, &[pid | &1]
+      {:empty, _} ->
+        state = update_in state.awaiting_clients, &EQueue.push(&1, pid)
         {:ok, state}
     end
   end

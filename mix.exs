@@ -51,6 +51,7 @@ defmodule Chaperon.Mixfile do
       {:poison, "~> 3.0"},
       {:hdr_histogram, "~> 0.2.0"},
       {:websockex, "~> 0.2"},
+      {:e_queue, "~> 1.1.0", github: "bakkdoor/e_queue"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev}
     ]
