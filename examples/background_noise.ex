@@ -55,9 +55,9 @@ defmodule Example.Scenario.BackgroundNoise do
   end
 end
 
-defmodule Environment.Production do
+defmodule LoadTest.Production do
   alias Example.Scenario.BackgroundNoise
-  use Chaperon.Environment
+  use Chaperon.LoadTest
 
   scenarios do
     default_config %{
@@ -76,4 +76,4 @@ defmodule Environment.Production do
   end
 end
 
-Chaperon.run_environment(Environment.Production, print_results: true)
+Chaperon.run_load_test(LoadTest.Production, print_results: true)

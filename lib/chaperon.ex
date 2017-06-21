@@ -23,10 +23,10 @@ defmodule Chaperon do
   end
 
   @doc """
-  Runs a given environment module's scenarios concurrently, outputting metrics
+  Runs a given load_test module's scenarios concurrently, outputting metrics
   at the end.
 
-  - `env_mod` Environment module to be executed
+  - `lt_mod` LoadTest module to be executed
   - `options` List of options to be used. Valid values are:
       - `:print_results` If set to `true`, will print all action results.
       - `:encode` Can be set to `:json`, defaults to `:csv`
@@ -34,41 +34,40 @@ defmodule Chaperon do
 
   ## Example
 
-      Chaperon.run_environment MyEnvironment, print_results: true
+      Chaperon.run_load_test MyLoadTest, print_results: true
       # => Prints results & outputs metrics in CSV (default) format at the end
 
-      Chaperon.run_environment MyEnvironment, export: :json
+      Chaperon.run_load_test MyLoadTest, export: :json
       # => Doesn't print results & outputs metrics in JSON format at the end
 
-      Chaperon.run_environment MyEnvironment, output: "metrics.csv"
+      Chaperon.run_load_test MyLoadTest, output: "metrics.csv"
       # => Outputs metrics in CSV format to metrics.csv file
 
-      Chaperon.run_environment MyEnvironment, export: :json, output: "metrics.json"
+      Chaperon.run_load_test MyLoadTest, export: :json, output: "metrics.json"
       # => Outputs metrics in JSON format to metrics.json file
   """
-  def run_environment(env_mod, options \\ []) do
-    timeout = env_mod.default_config[:env_timeout] || :infinity
+  def run_load_test(lt_mod, options \\ []) do
+    timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
 
     results =
-      Task.async(Chaperon.Environment, :run, [env_mod])
+      Task.async(Chaperon.LoadTest, :run, [lt_mod])
       |> Task.await(timeout)
 
     duration_s = results.duration_ms / 1_000
     duration_min = Float.round(results.duration_ms / 60_000, 2)
-    Logger.info "#{env_mod} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
+    Logger.info "#{lt_mod} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
 
     if results.timed_out > 0 do
       succeeded = Enum.count(results.sessions)
-      Logger.warn "#{env_mod} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
+      Logger.warn "#{lt_mod} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
     end
-
 
     if options[:print_results] do
       print_results(results)
     end
 
     session = results
-              |> Chaperon.Environment.merge_sessions
+              |> Chaperon.LoadTest.merge_sessions
 
     session =
       if session.config[:merge_scenario_sessions] do

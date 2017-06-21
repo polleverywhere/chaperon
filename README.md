@@ -3,9 +3,10 @@
 ## HTTP Service Performance Testing Framework
 
 This is a framework / library & tool for doing load and performance tests on HTTP based web services.
-It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per environment.
+It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per load test.
 
-An environment is a combination of target web services & scenarios to run against them, optional connection metadata (like headers for authentication) for each of the services, optional custom metrics and service interaction logic.
+A load test is a combination of target web services & scenarios to run against them.
+It also defines session & HTTP / WebSocket connection configuration (like authentication credentials, custom headers, etc.) for each of the services.
 
 Chaperon supports running both HTTP & WebSocket actions against a web server.
 Have a look at the `examples/firehose.ex` example file to see an example of both HTTP and WebSocket commands in action.
@@ -92,9 +93,9 @@ defmodule BasicAccountLogin do
   end
 end
 
-# our environment definition:
-defmodule Environment.Production do
-  use Chaperon.Environment
+# our load test definition:
+defmodule LoadTest.Production do
+  use Chaperon.LoadTest
 
   scenarios do
     run BasicAccountLogin, %{
@@ -116,7 +117,7 @@ By default we label all metrics with the scenario name.
 Aside from running Chaperon scenarios from a single machine, you can also run them in a cluster.
 Since Chaperon is written in Elixir, it makes use of its built-in distribution mechanics (provided by the Erlang VM and OTP) to achieve this.
 
-To run a Chaperon scenario in distributed mode, you need to deploy your Chaperon scenario and environment code to all machines in the cluster, start them up and connect to the master node.
+To run a Chaperon scenario in distributed mode, you need to deploy your Chaperon scenario and load test code to all machines in the cluster, start them up and connect to the master node.
 
 To start any node simply load up the code in an iex shell:
 

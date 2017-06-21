@@ -1,12 +1,12 @@
-defmodule Chaperon.Environment do
+defmodule Chaperon.LoadTest do
   @moduledoc """
-  Implementation & helper module for defining environments.
-  Environments define a list of scenarios and their config to run them with.
+  Implementation & helper module for defining load_tests.
+  LoadTests define a list of scenarios and their config to run them with.
 
   ## Example
 
-      defmodule Environment.Staging do
-        use Chaperon.Environment
+      defmodule LoadTest.Staging do
+        use Chaperon.LoadTest
 
         scenarios do
           default_config %{
@@ -51,7 +51,7 @@ defmodule Chaperon.Environment do
     config: %{}
   ]
 
-  @type t :: %Chaperon.Environment{
+  @type t :: %Chaperon.LoadTest{
     name: atom,
     scenarios: [Chaperon.Scenario.t],
     config: map
@@ -59,7 +59,7 @@ defmodule Chaperon.Environment do
 
   defmodule Results do
     defstruct [
-      environment: nil,
+      load_test: nil,
       start_ms: nil,
       end_ms: nil,
       duration_ms: nil,
@@ -68,8 +68,8 @@ defmodule Chaperon.Environment do
       timed_out: nil
     ]
 
-    @type t :: %Chaperon.Environment.Results{
-      environment: atom,
+    @type t :: %Chaperon.LoadTest.Results{
+      load_test: atom,
       start_ms: integer,
       end_ms: integer,
       duration_ms: integer,
@@ -80,29 +80,29 @@ defmodule Chaperon.Environment do
 
   defmacro __using__(_opts) do
     quote do
-      require Chaperon.Environment
-      import  Chaperon.Environment
+      require Chaperon.LoadTest
+      import  Chaperon.LoadTest
       import  Chaperon.Timing
     end
   end
 
   alias Chaperon.{Session, Scenario, Worker}
-  alias Chaperon.Environment.Results
+  alias Chaperon.LoadTest.Results
   require Logger
 
-  @spec run(atom) :: Chaperon.Environment.Results.t
-  def run(env_mod) do
+  @spec run(atom) :: Chaperon.LoadTest.Results.t
+  def run(lt_mod) do
     start_time = Chaperon.Timing.timestamp
 
     {timeout, sessions, timed_out} =
-      env_mod
+      lt_mod
       |> start_workers_with_config
       |> await_workers
 
     end_time = Chaperon.Timing.timestamp
 
     %Results{
-      environment: env_mod,
+      load_test: lt_mod,
       start_ms: start_time,
       end_ms: end_time,
       duration_ms: end_time - start_time,
@@ -112,8 +112,8 @@ defmodule Chaperon.Environment do
     }
   end
 
-  defp start_workers_with_config(env_mod) do
-    env_mod.scenarios
+  defp start_workers_with_config(lt_mod) do
+    lt_mod.scenarios
     |> Enum.map(fn
       {concurrency, scenarios, config} when is_list(scenarios) ->
         config = Scenario.Sequence.config_for(scenarios, config)
@@ -194,8 +194,8 @@ defmodule Chaperon.Environment do
     timeout || :infinity
   end
 
-  def timeout(env_mod) do
-    env_mod.default_config[:environment_timeout] || :infinity
+  def timeout(lt_mod) do
+    lt_mod.default_config[:load_test_timeout] || :infinity
   end
 
   @doc """
@@ -203,7 +203,7 @@ defmodule Chaperon.Environment do
   """
   @spec merge_sessions(Results.t) :: Session.t
   def merge_sessions(results = %Results{sessions: [], max_timeout: timeout}) do
-    Logger.warn "No scenario task finished in time (timeout = #{timeout}) for environment: #{results.environment}"
+    Logger.warn "No scenario task finished in time (timeout = #{timeout}) for load_test: #{results.load_test}"
     %Session{}
   end
 
@@ -228,12 +228,12 @@ defmodule Chaperon.Environment do
 
   @doc """
   Helper macro for defining `Chaperon.Scenario` implementation modules to be run
-  as sessions within the calling Environment.
+  as sessions within the calling LoadTest.
 
   ## Example
 
-      defmodule MyEnvironment do
-        use Chaperon.Environment
+      defmodule MyLoadTest do
+        use Chaperon.LoadTest
 
         scenarios do
           default_config %{

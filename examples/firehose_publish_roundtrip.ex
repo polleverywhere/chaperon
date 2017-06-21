@@ -37,10 +37,10 @@ defmodule Firehose.Scenario.PublishRountrip do
   end
 end
 
-defmodule Environment.Staging do
+defmodule LoadTest.Staging do
   alias Firehose.Scenario.PublishRountrip
 
-  use Chaperon.Environment
+  use Chaperon.LoadTest
 
   scenarios do
     default_config %{
@@ -55,4 +55,4 @@ defmodule Environment.Staging do
   end
 end
 
-Chaperon.run_environment(Environment.Staging)
+Chaperon.run_load_test(LoadTest.Staging)
