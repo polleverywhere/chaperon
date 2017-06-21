@@ -70,14 +70,20 @@ defmodule Chaperon.Session do
 
 
   @doc """
-  Repeats a given action, returning the resulting session at the end.
+  Repeats calling a given function with session a given amount of times,
+  returning the resulting session at the end.
 
   ## Example
 
-      session |> repeat(:foo, 2)
+      session
+      |> repeat(:foo, 2)
+
       # same as:
-      session |> foo |> foo
+      session
+      |> foo
+      |> foo
   """
+  @spec repeat(Session.t, atom, non_neg_integer) :: Session.t
   def repeat(session, _, 0), do: session
   def repeat(session, func, amount) when amount > 0 do
     session
@@ -86,19 +92,69 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Repeats a given action with args, returning the resulting session at the end.
+  Repeats calling a given function with session and additional args a given
+  amount of times, returning the resulting session at the end.
 
   ## Example
 
-      session |> repeat(:foo, ["bar", "baz"], 2)
+      session
+      |> repeat(:foo, ["bar", "baz"], 2)
+
       # same as:
-      session |> foo("bar", "baz") |> foo("bar", "baz")
+      session
+      |> foo("bar", "baz") |> foo("bar", "baz")
   """
+  @spec repeat(Session.t, atom, [any], non_neg_integer) :: Session.t
   def repeat(session, _, _, 0), do: session
   def repeat(session, func, args, amount) when amount > 0 do
     session
     |> call(func, args)
     |> repeat(func, args, amount - 1)
+  end
+
+  @doc """
+  Repeats calling a given function with session a given amount of times,
+  returning the resulting session at the end. Also traces durations for all
+  calls to the given function.
+
+  ## Example
+
+      session
+      |> repeat_traced(:foo, 2)
+
+      # same as:
+      session
+      |> call_traced(:foo)
+      |> call_traced(:foo)
+  """
+  @spec repeat_traced(Session.t, atom, non_neg_integer) :: Session.t
+  def repeat_traced(session, _, 0), do: session
+  def repeat_traced(session, func, amount) when amount > 0 do
+    session
+    |> call_traced(func)
+    |> repeat_traced(func, amount - 1)
+  end
+
+  @doc """
+  Repeats calling a given function with session and additional args a given
+  amount of times, returning the resulting session at the end.
+
+  ## Example
+
+      session
+      |> repeat_traced(:foo, ["bar", "baz"], 2)
+
+      # same as:
+      session
+      |> call_traced(:foo, ["bar", "baz"])
+      |> call_traced(:foo, ["bar", "baz"])
+  """
+  @spec repeat_traced(Session.t, atom, [any], non_neg_integer) :: Session.t
+  def repeat_traced(session, _, _, 0), do: session
+  def repeat_traced(session, func, args, amount) when amount > 0 do
+    session
+    |> call_traced(func, args)
+    |> repeat_traced(func, args, amount - 1)
   end
 
   @doc """
