@@ -305,6 +305,41 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Performs a WebSocket message receive on `session`s WebSocket connection.
+  Takes an optional list of `options` to be passed along to `Socket.Web.recv/2`.
+  """
+  @spec ws_await_recv(Session.t, any, Keyword.t) :: Session.t
+  def ws_await_recv(session, expected_message, options \\ []) do
+    callback = options[:with_result]
+
+    opts =
+      options
+      |> Keyword.merge([
+        with_result: &ws_await_recv_loop(&1, expected_message, &2, callback)
+      ])
+
+    session
+    |> ws_recv(opts)
+  end
+
+  defp ws_await_recv_loop(session, expected_msg, msg, callback) do
+    case msg do
+      ^expected_msg ->
+        if callback do
+          callback.(session)
+        else
+          session
+        end
+
+      _ ->
+        Logger.warn "Ignoring unexpected message: #{msg}"
+
+        session
+        |> ws_await_recv(expected_msg, with_result: callback)
+    end
+  end
+
+  @doc """
   Closes the session's websocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.close/2`.
   """
