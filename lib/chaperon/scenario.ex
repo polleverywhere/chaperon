@@ -101,6 +101,7 @@ defmodule Chaperon.Scenario do
 
   require Logger
   alias Chaperon.Session
+  require Chaperon.Session
   alias Chaperon.Scenario
 
   @doc """
@@ -143,7 +144,8 @@ defmodule Chaperon.Scenario do
   end
 
   def run(scenario, session) do
-    Logger.info "Running #{session_id(scenario, session.config)}"
+    session
+    |> Session.log_info("Starting")
 
     session =
       session
@@ -207,7 +209,8 @@ defmodule Chaperon.Scenario do
   @spec new_session(Scenario.t, map) :: Session.t
   def new_session(scenario, config) do
     %Session{
-      id: session_id(scenario, config),
+      id: UUID.uuid4,
+      name: session_name(scenario, config),
       scenario: scenario,
       config: config
     }
@@ -217,7 +220,8 @@ defmodule Chaperon.Scenario do
   def nested_session(scenario, session, config) do
     config = session.config |> Map.merge(config)
     %{session |
-      id: session_id(scenario, config),
+      id: session.id,
+      name: session_name(scenario, config),
       scenario: scenario,
       config: config
     }
@@ -240,13 +244,10 @@ defmodule Chaperon.Scenario do
     |> Enum.join(".")
   end
 
-  @spec session_id(Scenario.t, map) :: String.t
-  def session_id(_scenario, %{id: id}),
-    do: id
+  @spec session_name(Scenario.t, map) :: String.t
+  def session_name(_scenario, %{name: name}),
+    do: name
 
-  def session_id(scenario, %{merge_scenario_sessions: true}),
+  def session_name(scenario, _config),
     do: scenario |> name
-
-  def session_id(scenario, _config),
-    do: "#{scenario |> name} #{UUID.uuid4}"
 end

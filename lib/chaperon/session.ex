@@ -7,6 +7,7 @@ defmodule Chaperon.Session do
 
   defstruct [
     id: nil,
+    name: nil,
     results: %{},
     errors: %{},
     async_tasks: %{},
@@ -19,6 +20,7 @@ defmodule Chaperon.Session do
 
   @type t :: %Chaperon.Session{
     id: String.t,
+    name: String.t,
     results: map,
     errors: map,
     async_tasks: map,
@@ -934,7 +936,7 @@ defmodule Chaperon.Session do
     quote do
       require Logger
       session = unquote(session)
-      Logger.info "#{session.id} | #{unquote(message)} "
+      Logger.info "#{session.id} #{session.name} | #{unquote(message)} "
       session
     end
   end
@@ -943,7 +945,7 @@ defmodule Chaperon.Session do
     quote do
       require Logger
       session = unquote(session)
-      Logger.debug "#{session.id} | #{unquote(message)} "
+      Logger.debug "#{session.id} #{session.name} | #{unquote(message)} "
       session
     end
   end
@@ -952,7 +954,7 @@ defmodule Chaperon.Session do
     quote do
       require Logger
       session = unquote(session)
-      Logger.error "#{session.id} | #{unquote(message)} "
+      Logger.error "#{session.id} #{session.name} | #{unquote(message)} "
       session
     end
   end
@@ -961,7 +963,7 @@ defmodule Chaperon.Session do
     quote do
       require Logger
       session = unquote(session)
-      Logger.warn "#{session.id} | #{unquote(message)} "
+      Logger.warn "#{session.id} #{session.name} | #{unquote(message)} "
       session
     end
   end
