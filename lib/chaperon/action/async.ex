@@ -18,12 +18,14 @@ defmodule Chaperon.Action.Async do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
-  require Logger
   alias Chaperon.Session
+  import Chaperon.Session, only: [log_debug: 2]
   import Chaperon.Timing
 
   def run(action = %{function: func_name, args: args}, session) do
-    Logger.debug "Async: #{func_name} #{inspect args}"
+    session
+    |> log_debug("Async: #{func_name} #{inspect args}")
+
     task = action |> execute_task(session)
 
     session

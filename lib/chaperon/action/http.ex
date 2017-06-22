@@ -219,13 +219,15 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   alias Chaperon.Action.Error
   alias Chaperon.Action.HTTP
-  alias Chaperon.Session
   import Chaperon.Timing
-  require Logger
+  import Chaperon.Session
+  require Chaperon.Session
 
   def run(action, session) do
     full_url = HTTP.full_url(action, session)
-    Logger.info "#{action.method |> to_string |> String.upcase} #{full_url}"
+
+    session
+    |> log_info("#{action.method |> to_string |> String.upcase} #{full_url}")
 
     start = timestamp()
     case HTTPoison.request(
@@ -238,24 +240,28 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       {:ok, response} ->
         case response.status_code do
           code when code in 200..399 ->
-            Logger.debug "HTTP Response #{action} : #{code}"
+            session
+            |> log_debug("HTTP Response #{action} : #{code}")
+
           code ->
-            Logger.warn "HTTP Response #{action} failed with status code: #{code}"
-            Logger.warn response.body
+            session
+            |> log_warn("HTTP Response #{action} failed with status code: #{code}")
+            |> log_warn(response.body)
         end
 
         session
-        |> Session.add_result(action, response)
-        |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp() - start)
-        |> Session.store_cookies(response)
-        |> Session.run_callback(action, callback(action), response)
-        |> Session.ok
+        |> add_result(action, response)
+        |> add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp() - start)
+        |> store_cookies(response)
+        |> run_callback(action, callback(action), response)
+        |> ok
 
       {:error, reason} ->
-        Logger.error "HTTP action #{action} failed: #{inspect reason}"
+        session
+        |> log_error "HTTP action #{action} failed: #{inspect reason}"
         session =
           session
-          |> Session.run_callback(action, error_callback(action), reason)
+          |> run_callback(action, error_callback(action), reason)
 
         {:error, %Error{reason: reason, action: action, session: session}}
     end

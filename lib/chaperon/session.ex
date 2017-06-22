@@ -41,6 +41,14 @@ defmodule Chaperon.Session do
 
   @type result_callback :: (Session.t, any -> Session.t)
 
+  defmacro __using__(_opts) do
+    quote do
+      require Logger
+      require Chaperon.Session
+      import  Chaperon.Session
+    end
+  end
+
   @doc """
   Concurrently spreads a given action with a given rate over a given time
   interval within `session`.
@@ -924,6 +932,7 @@ defmodule Chaperon.Session do
 
   defmacro log_info(session, message) do
     quote do
+      require Logger
       session = unquote(session)
       Logger.info "#{session.id} | #{unquote(message)} "
       session
@@ -932,14 +941,16 @@ defmodule Chaperon.Session do
 
   defmacro log_debug(session, message) do
     quote do
+      require Logger
       session = unquote(session)
-      Logger.info "#{session.id} | #{unquote(message)} "
+      Logger.debug "#{session.id} | #{unquote(message)} "
       session
     end
   end
 
   defmacro log_error(session, message) do
     quote do
+      require Logger
       session = unquote(session)
       Logger.error "#{session.id} | #{unquote(message)} "
       session
@@ -948,6 +959,7 @@ defmodule Chaperon.Session do
 
   defmacro log_warn(session, message) do
     quote do
+      require Logger
       session = unquote(session)
       Logger.warn "#{session.id} | #{unquote(message)} "
       session

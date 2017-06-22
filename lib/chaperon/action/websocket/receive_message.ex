@@ -18,37 +18,40 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   import Chaperon.Timing
   import Chaperon.Action.WebSocket.ReceiveMessage
+  import Chaperon.Session, only: [log_debug: 2, log_error: 2, log_warn: 2]
   alias Chaperon.Action.WebSocket
   alias Chaperon.Session
-  require Logger
 
   def run(action, session) do
     {socket, ws_url} =
       session
       |> WebSocket.for_action(action)
 
-    Logger.debug "WS_RECV #{ws_url}"
+
+    session
+    |> log_debug("WS_RECV #{ws_url}")
+
     start = timestamp()
 
     case WebSocket.Client.recv_message(socket, action.options[:timeout]) do
       {:binary, message} ->
-        Logger.debug "WS_RECV binary (#{byte_size message} bytes)"
         session
+        |> log_debug("WS_RECV binary (#{byte_size message} bytes)")
         |> handle_message(action, message, start)
 
       {:text, message} ->
-        Logger.debug "WS_RECV: #{message}"
         session
+        |> log_debug("WS_RECV: #{message}")
         |> handle_message(action, message, start)
 
       {:error, {:timeout, timeout}} ->
-        Logger.error "WS_RECV timeout: #{timeout}"
         session
+        |> log_error("WS_RECV timeout: #{timeout}")
         |> Session.error({:timeout, timeout})
 
       other ->
-        Logger.warn "WS_RECV unexpected message: #{inspect other}"
         session
+        |> log_warn("WS_RECV unexpected message: #{inspect other}")
         |> Session.ok
     end
   end

@@ -33,16 +33,19 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket
   alias Chaperon.Action.WebSocket.Connect
-  require Logger
+  import Chaperon.Session, only: [log_info: 2]
 
   def run(action, session) do
     ws_url = Connect.url(action, session)
-    Logger.info "WS_CONN #{ws_url}"
+
+    session
+    |> log_info("WS_CONN #{ws_url}")
 
     timeout = Session.timeout(session)
     {:ok, ws_conn} = WebSocket.Client.start_link(ws_url)
 
-    Logger.info "Connected via WS to #{ws_url}"
+    session
+    |> log_info("Connected via WS to #{ws_url}")
 
     session
     |> WebSocket.assign_for_action(action, ws_conn, ws_url)

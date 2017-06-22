@@ -37,7 +37,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
-    Logger.info "Running LoadTest #{lt_mod} @ Master #{state.id}"
+    Logger.info "Starting LoadTest #{lt_mod} @ Master #{state.id}"
 
     {:ok, _} = Task.start_link fn ->
       session = Chaperon.run_load_test(lt_mod, options)

@@ -22,12 +22,14 @@ end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
   alias Chaperon.Session
+  import Chaperon.Session, only: [log_info: 2]
   import Chaperon.Timing
-  require Logger
 
   def run(action, session) do
     delay = round(action.interval / action.rate)
-    Logger.info "SpreadAsync[#{action.rate} / #{action.interval} @ #{delay}]"
+
+    session
+    |> log_info("SpreadAsync[#{action.rate} / #{action.interval} @ #{delay}]")
 
     1..action.rate
     |> Enum.map(fn _ ->

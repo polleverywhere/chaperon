@@ -37,7 +37,6 @@ defmodule Chaperon.Action.RunScenario do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
-  require Logger
   import Chaperon.Session, only: [set_config: 2, merge: 2, reset_action_metadata: 1]
   alias Chaperon.Worker
 

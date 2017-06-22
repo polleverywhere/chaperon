@@ -15,7 +15,7 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket
-  require Logger
+  import Chaperon.Session, only: [log_info: 2]
 
   def run(action, session) do
     {ws_conn, ws_url} = WebSocket.for_action(session, action)
@@ -23,10 +23,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
 
     WebSocket.Client.close(ws_conn)
 
-    Logger.info "WS_CLOSE #{ws_url}"
-    Logger.info "Closed WS connection to #{ws_url}"
-
     session
+    |> log_info("WS_CLOSE #{ws_url}")
     |> WebSocket.delete_for_action(action)
     |> Session.ok
   end
