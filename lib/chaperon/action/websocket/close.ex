@@ -39,6 +39,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
 end
 
 defimpl String.Chars, for: Chaperon.Action.WebSocket.Close do
-  def to_string(%{path: path}),
-    do: "WS Close[#{path}]"
+  def to_string(%{options: options}) do
+    "WS Close#{inspect options}"
+  end
 end
