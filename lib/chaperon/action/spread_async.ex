@@ -48,9 +48,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
       |> Session.reset_action_metadata
 
     Task.async fn ->
-      start = timestamp
+      start = timestamp()
       session = apply(session.scenario.module, action.func, [session])
-      duration = timestamp - start
+      duration = timestamp() - start
 
       session
       |> Session.add_metric([:duration, action.func], duration)

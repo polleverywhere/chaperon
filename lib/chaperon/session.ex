@@ -597,7 +597,7 @@ defmodule Chaperon.Session do
       iex> try do
       iex>   session |> config(:invalid) # no default value given
       iex> rescue
-      iex>   e in RuntimeError -> :failed
+      iex>   _ in RuntimeError -> :failed
       iex> end
       :failed
       iex> session |> config(:invalid, "default")
@@ -881,23 +881,23 @@ defmodule Chaperon.Session do
     do: session
 
 
-  def run_callback(session, action = %{decode: decode}, cb, response)
+  def run_callback(session, action = %{decode: _decode_options}, cb, response)
     when is_function(cb)
   do
-    case decode_response(session, action, response) do
+    case decode_response(action, response) do
       {:ok, result} ->
         cb.(session, result)
 
       err ->
-        error = session |> error("Response decoding failed: #{inspect response}")
+        error = session |> error("Response (#{inspect response}) decoding failed: #{inspect err}")
         put_in session.errors[action], error
     end
   end
 
-  def run_callback(session, action, cb, response) when is_function(cb),
+  def run_callback(session, _action, cb, response) when is_function(cb),
     do: cb.(session, response)
 
-  defp decode_response(session, action, response) do
+  defp decode_response(action, response) do
     response_body =
       case response do
         %HTTPoison.Response{body: body} ->

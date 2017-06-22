@@ -92,14 +92,14 @@ defmodule Chaperon.LoadTest do
 
   @spec run(atom) :: Chaperon.LoadTest.Results.t
   def run(lt_mod) do
-    start_time = Chaperon.Timing.timestamp
+    start_time = Chaperon.Timing.timestamp()
 
     {timeout, sessions, timed_out} =
       lt_mod
       |> start_workers_with_config
       |> await_workers
 
-    end_time = Chaperon.Timing.timestamp
+    end_time = Chaperon.Timing.timestamp()
 
     %Results{
       load_test: lt_mod,

@@ -37,9 +37,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
 
   defp execute_task(%{module: mod, function: func_name, args: args}, session) do
     Task.async fn ->
-      start = timestamp
+      start = timestamp()
       session = apply(mod, func_name, [session | args])
-      duration = timestamp - start
+      duration = timestamp() - start
 
       session
       |> Session.add_metric([:duration, func_name], duration)

@@ -227,7 +227,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
     full_url = HTTP.full_url(action, session)
     Logger.info "#{action.method |> to_string |> String.upcase} #{full_url}"
 
-    start = timestamp
+    start = timestamp()
     case HTTPoison.request(
       action.method,
       HTTP.url(action, session),
@@ -246,7 +246,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
 
         session
         |> Session.add_result(action, response)
-        |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp - start)
+        |> Session.add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp() - start)
         |> Session.store_cookies(response)
         |> Session.run_callback(action, callback(action), response)
         |> Session.ok

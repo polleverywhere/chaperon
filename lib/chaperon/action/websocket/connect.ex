@@ -33,7 +33,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket
   alias Chaperon.Action.WebSocket.Connect
-  alias Chaperon.Action.Error
   require Logger
 
   def run(action, session) do

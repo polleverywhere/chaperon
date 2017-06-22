@@ -23,10 +23,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
   alias Chaperon.Session
 
   def run(%{func: f, args: args}, session) when is_atom(f) do
-    start = timestamp
+    start = timestamp()
     session = apply(session.scenario.module, f, [session | args])
     session
-    |> Session.add_metric([:duration, :call, {session.scenario.module, f}], timestamp - start)
+    |> Session.add_metric([:duration, :call, {session.scenario.module, f}], timestamp() - start)
     |> Session.ok
   end
   def run(%{func: f}, session), do: f.(session)

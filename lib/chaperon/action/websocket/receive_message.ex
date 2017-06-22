@@ -20,7 +20,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   import Chaperon.Action.WebSocket.ReceiveMessage
   alias Chaperon.Action.WebSocket
   alias Chaperon.Session
-  alias Chaperon.Action.Error
   require Logger
 
   def run(action, session) do
@@ -29,7 +28,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
       |> WebSocket.for_action(action)
 
     Logger.debug "WS_RECV #{ws_url}"
-    start = timestamp
+    start = timestamp()
 
     case WebSocket.Client.recv_message(socket, action.options[:timeout]) do
       {:binary, message} ->
@@ -66,7 +65,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
 
     session
     |> Session.add_ws_result(action, message)
-    |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp - start_time)
+    |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp() - start_time)
     |> Session.run_callback(action, action.callback, message)
     |> Session.ok
   end

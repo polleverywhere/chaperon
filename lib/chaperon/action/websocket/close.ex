@@ -15,8 +15,6 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket
-  alias Chaperon.Action.WebSocket.Close
-  alias Chaperon.Action.Error
   require Logger
 
   def run(action, session) do
