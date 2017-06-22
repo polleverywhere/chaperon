@@ -887,6 +887,39 @@ defmodule Chaperon.Session do
     %{session | metrics: %{}, results: %{}, errors: %{}, async_tasks: %{}}
   end
 
+  defmacro log_info(session, message) do
+    quote do
+      session = unquote(session)
+      Logger.info "#{session.id} | #{unquote(message)} "
+      session
+    end
+  end
+
+  defmacro log_debug(session, message) do
+    quote do
+      session = unquote(session)
+      Logger.info "#{session.id} | #{unquote(message)} "
+      session
+    end
+  end
+
+  defmacro log_error(session, message) do
+    quote do
+      session = unquote(session)
+      Logger.error "#{session.id} | #{unquote(message)} "
+      session
+    end
+  end
+
+  defmacro log_warn(session, message) do
+    quote do
+      session = unquote(session)
+      Logger.warn "#{session.id} | #{unquote(message)} "
+      session
+    end
+  end
+
+
   @doc """
   Makes a given function call async for `session`.
 
