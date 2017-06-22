@@ -81,7 +81,7 @@ defmodule Chaperon do
       print_metrics(session)
     end
 
-    print_separator
+    print_separator()
 
     options
     |> encoder
@@ -112,7 +112,7 @@ defmodule Chaperon do
   end
 
   defp print_metrics(session) do
-    print_separator
+    print_separator()
     Logger.info("Metrics:")
     for {k, v} <- session.metrics do
       k = inspect k
@@ -124,7 +124,7 @@ defmodule Chaperon do
   end
 
   defp print_results(results) do
-    print_separator
+    print_separator()
     Logger.info("Results:")
     for session <- results.sessions do
       for {action, results} <- session.results do

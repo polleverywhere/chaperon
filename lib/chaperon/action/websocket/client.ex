@@ -87,7 +87,7 @@ defmodule Chaperon.Action.WebSocket.Client do
 
   def recv_message(pid, timeout \\ nil) do
     # ask for next frame frmo WebSockex process and then await response
-    send pid, {:next_frame, self}
+    send pid, {:next_frame, self()}
     case timeout do
       nil ->
         receive do

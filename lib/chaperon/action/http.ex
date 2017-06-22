@@ -258,7 +258,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
 
       {:error, reason} ->
         session
-        |> log_error "HTTP action #{action} failed: #{inspect reason}"
+        |> log_error("HTTP action #{action} failed: #{inspect reason}")
+
         session =
           session
           |> run_callback(action, error_callback(action), reason)
