@@ -18,9 +18,8 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   import Chaperon.Timing
   import Chaperon.Action.WebSocket.ReceiveMessage
-  import Chaperon.Session, only: [log_debug: 2, log_error: 2, log_warn: 2]
+  import Chaperon.Session
   alias Chaperon.Action.WebSocket
-  alias Chaperon.Session
 
   def run(action, session) do
     {socket, ws_url} =
@@ -47,12 +46,12 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
       {:error, {:timeout, timeout}} ->
         session
         |> log_error("WS_RECV timeout: #{timeout}")
-        |> Session.error({:timeout, timeout})
+        |> error({:timeout, timeout})
 
       other ->
         session
         |> log_warn("WS_RECV unexpected message: #{inspect other}")
-        |> Session.ok
+        |> ok
     end
   end
 
@@ -67,10 +66,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
       |> WebSocket.for_action(action)
 
     session
-    |> Session.add_ws_result(action, message)
-    |> Session.add_metric([:duration, :ws_recv, ws_url], timestamp() - start_time)
-    |> Session.run_callback(action, action.callback, message)
-    |> Session.ok
+    |> add_ws_result(action, message)
+    |> add_metric([:duration, :ws_recv, ws_url], timestamp() - start_time)
+    |> run_callback(action, action.callback, message)
+    |> ok
   end
 
   def abort(action, session) do
