@@ -1,7 +1,7 @@
 %{"certifi": {:hex, :certifi, "1.2.1", "c3904f192bd5284e5b13f20db3ceac9626e14eeacfbb492e19583cf0e37b22be", [:rebar3], [], "hexpm"},
   "cowlib": {:hex, :cowlib, "1.3.0", "6c80ca7f2863c0d7a21c946312baf473432b56a79e46e20bc27a3bac07c40439", [:make], [], "hexpm"},
   "dialyxir": {:hex, :dialyxir, "0.5.0", "5bc543f9c28ecd51b99cc1a685a3c2a1a93216990347f259406a910cf048d1d7", [:mix], [], "hexpm"},
-  "e_queue": {:git, "https://github.com/bakkdoor/e_queue.git", "c2c6cc790f85cc912b46d9d80b5d2d308dbcbb06", []},
+  "e_queue": {:git, "https://github.com/bakkdoor/e_queue.git", "be8e9c1ac18458f92007090228f6aeffa8b03e81", []},
   "earmark": {:hex, :earmark, "1.2.2", "f718159d6b65068e8daeef709ccddae5f7fdc770707d82e7d126f584cd925b74", [:mix], [], "hexpm"},
   "ex_doc": {:hex, :ex_doc, "0.16.1", "b4b8a23602b4ce0e9a5a960a81260d1f7b29635b9652c67e95b0c2f7ccee5e81", [:mix], [{:earmark, "~> 1.1", [hex: :earmark, repo: "hexpm", optional: false]}], "hexpm"},
   "gun": {:hex, :gun, "1.0.0-pre.2", "9c7261a32aed26d6eec69ef7da15ed2f929c10460d5dede805bc5c2436a69ce0", [:make, :rebar], [{:cowlib, "1.3.0", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "1.3.2", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm"},
