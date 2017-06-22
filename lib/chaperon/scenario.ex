@@ -69,7 +69,7 @@ defmodule Chaperon.Scenario do
       scenarios
       |> Enum.reduce(initial_session, fn(scenario, session) ->
         session
-        |> Session.run_scenario(scenario, session.assigns)
+        |> Session.run_scenario(scenario, session.assigned)
       end)
     end
   end

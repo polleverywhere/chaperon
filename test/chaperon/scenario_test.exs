@@ -30,19 +30,19 @@ defmodule Chaperon.Scenario.Test do
 
   test "calls init/1 in the scenario module, if defined" do
     {:ok, session} = Scenario.init(ScenarioWithInit, %Chaperon.Session{})
-    assert session.assigns[:ran_init]
+    assert session.assigned[:ran_init]
 
     {:ok, session} = Scenario.init(ScenarioWithoutInit, %Chaperon.Session{})
-    assert session.assigns[:ran_init] == nil
+    assert session.assigned[:ran_init] == nil
   end
 
   test "runs the scenario by calling its run/1 function" do
     s1 = Scenario.execute(ScenarioWithInit, %{val: 10})
     s2 = Scenario.execute(ScenarioWithoutInit, %{val: 20})
 
-    assert s1.assigns.ran
-    assert s1.assigns.val == 20
-    assert s2.assigns.ran
-    assert s2.assigns.val == 40
+    assert s1.assigned.ran
+    assert s1.assigned.val == 20
+    assert s2.assigned.ran
+    assert s2.assigned.val == 40
   end
 end

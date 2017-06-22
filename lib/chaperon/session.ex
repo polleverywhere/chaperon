@@ -11,7 +11,7 @@ defmodule Chaperon.Session do
     errors: %{},
     async_tasks: %{},
     config: %{},
-    assigns: %{},
+    assigned: %{},
     metrics: %{},
     scenario: nil,
     cookies: []
@@ -23,7 +23,7 @@ defmodule Chaperon.Session do
     errors: map,
     async_tasks: map,
     config: map,
-    assigns: map,
+    assigned: map,
     metrics: map,
     scenario: Chaperon.Scenario.t,
     cookies: [String.t]
@@ -429,18 +429,18 @@ defmodule Chaperon.Session do
 
       iex> alias Chaperon.Session; import Session
       iex> session = %Session{} |> assign(foo: 1, bar: "hello")
-      iex> session.assigns.foo
+      iex> session.assigned.foo
       1
-      iex> session.assigns.bar
+      iex> session.assigned.bar
       "hello"
-      iex> session.assigns
+      iex> session.assigned
       %{foo: 1, bar: "hello"}
   """
   @spec assign(Session.t, Keyword.t) :: Session.t
   def assign(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, v}, session ->
-      put_in session.assigns[k], v
+      put_in session.assigned[k], v
     end)
   end
 
@@ -452,13 +452,13 @@ defmodule Chaperon.Session do
 
       iex> alias Chaperon.Session; import Session
       iex> session = %Session{} |> assign(:api, auth_token: "auth123", login: "foo@bar.com")
-      iex> session.assigns.api
+      iex> session.assigned.api
       %{auth_token: "auth123", login: "foo@bar.com"}
-      iex> session.assigns.api.auth_token
+      iex> session.assigned.api.auth_token
       "auth123"
-      iex> session.assigns.api.login
+      iex> session.assigned.api.login
       "foo@bar.com"
-      iex> session.assigns
+      iex> session.assigned
       %{api: %{auth_token: "auth123", login: "foo@bar.com"}}
   """
   @spec assign(Session.t, atom, Keyword.t) :: Session.t
@@ -470,61 +470,61 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Updates assigns based on a given Keyword list of functions to be used for
-  updating `assigns` in `session`.
+  Updates assignments based on a given Keyword list of functions to be used for
+  updating `assigned` in `session`.
 
   ## Example
 
       iex> alias Chaperon.Session; import Session
       iex> session = %Session{} |> assign(foo: 1, bar: "hello")
-      iex> session.assigns
+      iex> session.assigned
       %{foo: 1, bar: "hello"}
       iex> session = session |> update_assign(foo: &(&1 + 2))
-      iex> session.assigns.foo
+      iex> session.assigned.foo
       3
-      iex> session.assigns.bar
+      iex> session.assigned.bar
       "hello"
-      iex> session.assigns
+      iex> session.assigned
       %{foo: 3, bar: "hello"}
   """
   @spec update_assign(Session.t, Keyword.t((any -> any))) :: Session.t
   def update_assign(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
-      update_in session.assigns[k], func
+      update_in session.assigned[k], func
     end)
   end
 
   @doc """
-  Updates assigns based on a given Keyword list of functions to be used for
-  updating `assigns` within `namespace` in `session`.
+  Updates assignments based on a given Keyword list of functions to be used for
+  updating `assigned` within `namespace` in `session`.
 
   ## Example
 
       iex> alias Chaperon.Session; import Session
       iex> session = %Session{} |> assign(:api, auth_token: "auth123", login: "foo@bar.com")
-      iex> session.assigns.api
+      iex> session.assigned.api
       %{auth_token: "auth123", login: "foo@bar.com"}
       iex> session = session |> update_assign(:api, login: &("test" <> &1))
-      iex> session.assigns.api.login
+      iex> session.assigned.api.login
       "testfoo@bar.com"
-      iex> session.assigns.api
+      iex> session.assigned.api
       %{auth_token: "auth123", login: "testfoo@bar.com"}
   """
   @spec update_assign(Session.t, atom, Keyword.t((any -> any))) :: Session.t
   def update_assign(session, namespace, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
-      update_in session.assigns[namespace][k], func
+      update_in session.assigned[namespace][k], func
     end)
   end
 
   def delete_assign(session, key) do
-    update_in session.assigns, &Map.delete(&1, key)
+    update_in session.assigned, &Map.delete(&1, key)
   end
 
   def delete_assign(session, namespace, key) do
-    update_in session.assigns[namespace], &Map.delete(&1, key)
+    update_in session.assigned[namespace], &Map.delete(&1, key)
   end
 
 

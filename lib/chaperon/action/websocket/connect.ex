@@ -6,8 +6,8 @@ defmodule Chaperon.Action.WebSocket.Connect do
   Assigns `websocket` and `websocket_url` values to a session when run,
   which are used by the remaining websocket actions found under
   `Chaperon.Action.WebSocket`.
-  The stored values are accessible via `session.assigns.websocket` &
-  `session.assigns.websocket_url`.
+  The stored values are accessible via `session.assigned.websocket` &
+  `session.assigned.websocket_url`.
   """
 
   defstruct [

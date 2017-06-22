@@ -62,10 +62,10 @@ defmodule Chaperon.Action.WebSocket do
   def for_action(session, action) do
     case action.options[:name] do
       nil ->
-        {session.assigns.websocket.connection, session.assigns.websocket.url}
+        {session.assigned.websocket.connection, session.assigned.websocket.url}
 
       name ->
-        Map.get(session.assigns.websocket.named_connections, name)
+        Map.get(session.assigned.websocket.named_connections, name)
     end
   end
 

@@ -18,7 +18,7 @@ defmodule Scenario.WS.Echo do
   end
 
   def echo(session) do
-    msg = "Echo ##{session.assigns.counter}"
+    msg = "Echo ##{session.assigned.counter}"
 
     session
     |> ws_send(msg)

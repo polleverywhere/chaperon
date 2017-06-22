@@ -8,10 +8,10 @@ defmodule Chaperon.Session.Test do
   end
 
   test "assign", %{session: s} do
-    assert Session.assign(s, foo: 1, bar: 2).assigns == %{
+    assert Session.assign(s, foo: 1, bar: 2).assigned == %{
       foo: 1,
       bar: 2
     }
-    assert Session.assign(s, foo: 1).assigns == %{foo: 1}
+    assert Session.assign(s, foo: 1).assigned == %{foo: 1}
   end
 end
