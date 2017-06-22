@@ -17,8 +17,14 @@ defmodule Chaperon.Action.WebSocket.Connect do
 
   def url(action, session) do
     case Chaperon.Action.HTTP.url(action, session) do
-      "https" <> rest -> "wss" <> rest
-      "http"  <> rest -> "ws"  <> rest
+      "https" <> rest ->
+        "wss" <> rest
+
+      "http"  <> rest ->
+        "ws"  <> rest
+
+      ("ws" <> _) = ws_url ->
+        ws_url
     end
   end
 end
