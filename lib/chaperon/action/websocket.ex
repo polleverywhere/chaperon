@@ -72,7 +72,6 @@ defmodule Chaperon.Action.WebSocket do
   def assign_for_action(session, action, ws_conn, ws_url) do
     case action.options[:name] do
       nil ->
-        IO.puts "assign auto"
         session
         |> Session.assign(:websocket,
           connection: ws_conn,
