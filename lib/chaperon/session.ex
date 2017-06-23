@@ -334,6 +334,13 @@ defmodule Chaperon.Session do
 
   defp ws_await_recv_loop(session, expected_msg, msg, callback) do
     case msg do
+      _ when is_function(expected_msg) ->
+        if expected_msg.(msg) do
+          callback.(session)
+        else
+          session
+        end
+
       ^expected_msg ->
         if callback do
           callback.(session)
