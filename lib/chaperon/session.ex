@@ -869,7 +869,8 @@ defmodule Chaperon.Session do
   Returns the `session`s configured name or scenario's module name.
   """
   def name(session) do
-    session.config[:session_name] || session.id
+    name = session.config[:session_name] || session.name
+    "#{session.id} #{name}"
   end
 
   @doc """
