@@ -320,39 +320,42 @@ defmodule Chaperon.Session do
   """
   @spec ws_await_recv(Session.t, any, Keyword.t) :: Session.t
   def ws_await_recv(session, expected_message, options \\ []) do
-    callback = options[:with_result]
-
     opts =
       options
       |> Keyword.merge([
-        with_result: &ws_await_recv_loop(&1, expected_message, &2, callback)
+        with_result: &ws_await_recv_loop(&1, expected_message, &2, options)
       ])
 
     session
     |> ws_recv(opts)
   end
 
-  defp ws_await_recv_loop(session, expected_msg, msg, callback) do
-    case msg do
-      _ when is_function(expected_msg) ->
-        if expected_msg.(msg) do
-          callback.(session)
-        else
-          session
-        end
+  defp ws_await_recv_loop(session, expected_msg, msg, options) do
+    if is_expected_message(msg, expected_msg) do
+      Logger.debug "Awaited expected WS message"
 
-      ^expected_msg ->
-        if callback do
-          callback.(session)
-        else
-          session
-        end
-
-      _ ->
-        Logger.warn "Ignoring unexpected message: #{msg}"
-
+      callback = options[:with_result]
+      if callback do
+        callback.(session, msg)
+      else
         session
-        |> ws_await_recv(expected_msg, with_result: callback)
+      end
+    else
+      Logger.debug "Ignoring unexpected WS message #{inspect msg}"
+
+      session
+      |> ws_await_recv(expected_msg, options)
+    end
+  end
+
+  defp is_expected_message(msg, expected_msg) when is_function(expected_msg) do
+    expected_msg.(msg)
+  end
+
+  defp is_expected_message(msg, expected_msg) do
+    case msg do
+      ^expected_msg -> true
+      _             -> false
     end
   end
 
