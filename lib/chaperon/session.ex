@@ -15,7 +15,8 @@ defmodule Chaperon.Session do
     assigned: %{},
     metrics: %{},
     scenario: nil,
-    cookies: []
+    cookies: [],
+    parent_pid: nil
   ]
 
   @type t :: %Chaperon.Session{
@@ -28,7 +29,8 @@ defmodule Chaperon.Session do
     assigned: map,
     metrics: map,
     scenario: Chaperon.Scenario.t,
-    cookies: [String.t]
+    cookies: [String.t],
+    parent_pid: pid | nil
   }
 
   require Logger
@@ -703,6 +705,145 @@ defmodule Chaperon.Session do
   @spec add_async_task(Session.t, atom, Task.t) :: Session.t
   def add_async_task(session, name, task) do
     update_in session.async_tasks[name], &[task | as_list(&1)]
+  end
+
+  @doc """
+  Send a signal to the current session's async task with the given name.
+
+  Example:
+
+      # scenario run function
+      def run(session) do
+        session
+        |> async(:search_entries, ["chaperon", "load testing"])
+        |> async(:do_other_stuff)
+        |> signal(:search_entries, :continue_search)
+      end
+
+      def search_entries(session, tag1, tag2) do
+        session
+        |> get("/search", json: [tag: tag1])
+        |> await_signal(:continue_search)
+        |> get("/search", json: [tag: tag2])
+      end
+  """
+  def signal(session, name, signal) do
+    send session.async_tasks[name].pid, {:chaperon_signal, signal}
+    session
+  end
+
+  @doc """
+  Sends a signal to the current session's parent session (that spawned it via
+  a call to `Session.async`).
+
+  Example:
+
+      # scenario run function
+      def run(session) do
+        stream_path = "/secret/live/stream.json"
+        session
+        |> async(:connect_to_stream, [stream_path])
+        |> await_signal({:connected_to_stream, stream_path})
+        # ...
+      end
+
+      def connect_to_stream(session, stream_path) do
+        session
+        |> ws_connect(stream_path)
+        |> signal_parent({:connected_to_stream, stream_path})
+        |> stream_data
+      end
+
+      # ...
+  """
+  def signal_parent(session, signal) do
+    send session.parent_pid, {:chaperon_signal, signal}
+    session
+  end
+
+
+  @doc """
+  Await any incoming signal for current session within given timeout.
+  If callback is provided, it will be called with the session and the received
+  signal value.
+
+  Example:
+
+      session
+      |> await_signal_or_timeout(5 |> seconds, fn(session, signal) ->
+        session
+        |> log_info("Got signal")
+        |> assign(signal: signal)
+      end)
+  """
+  def await_signal_or_timeout(session, timeout, callback \\ nil) do
+    receive do
+      {:chaperon_signal, signal} ->
+        if callback do
+          callback.(session, signal)
+        else
+          session
+        end
+
+      after timeout ->
+        session
+        |> error({:timeout, :await_signal, timeout})
+    end
+  end
+
+  @doc """
+  Await any signal and call a given callback with the session and the received
+  signal.
+
+  Example:
+
+      session
+      |> await_signal(fn(session, signal) ->
+        session
+        |> assign(signal: signal)
+      end)
+  """
+  def await_signal(session, callback) when is_function(callback) do
+    timeout = session |> timeout
+
+    receive do
+      {:chaperon_signal, signal} ->
+        callback.(session, signal)
+
+      after timeout ->
+        session
+        |> error({:timeout, :await_signal, timeout})
+    end
+  end
+
+  @doc """
+  Await a given signal in the current session and returns session afterwards.
+  """
+  def await_signal(session, expected_signal) do
+    timeout = session |> timeout
+
+    receive do
+      {:chaperon_signal, ^expected_signal} ->
+        session
+
+      after timeout ->
+        session
+        |> error({:timeout, :await_signal, timeout})
+    end
+  end
+
+  @doc """
+
+  """
+  def await_signal(session, expected_signal, timeout) do
+    receive do
+      {:chaperon_signal, ^expected_signal} ->
+        session
+
+      after timeout ->
+        session
+        |> error({:timeout, :await_signal, timeout})
+    end
   end
 
   @doc """

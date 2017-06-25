@@ -38,6 +38,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   end
 
   defp execute_task(%{module: mod, function: func_name, args: args}, session) do
+    session = %{session | parent_pid: self()}
     Task.async fn ->
       start = timestamp()
       session = apply(mod, func_name, [session | args])
