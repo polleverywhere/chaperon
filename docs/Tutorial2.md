@@ -204,15 +204,15 @@ Here's a short list of commonly used helper functions for performing the built-i
 
 A nice command-line interface for running load tests is planned but for now we can run them from within an `iex` shell (iex is Elixir's REPL):
 
-```
+```elixir
 iex> Chaperon.run_load_test MyLoadTestModule; nil  # return nil so we don't inspect the returned `Chaperon.Session` value
 ```
 
-By default `Chaperon.run_load_test` returns the merged `Chaperon.Session` value. Usually we could ignore this fact but the REPL automatically inspects the return values of any expression typed into it (similar to Ruby), so we'll just return nil here to prevent it printing all of that info (unless we want to look at it, then you can just skip returning `nil` here).
+By default `Chaperon.run_load_test` returns the merged `Chaperon.Session` value. Usually we could ignore this fact but the REPL automatically inspects the return values of any expression typed into it (similar to Ruby), so we'll just return `nil` here to prevent it printing all of that info (unless we want to look at it, then you can just skip returning `nil` here).
 
 If we want to export the recorded metrics into a file instead of printing them directly in the REPL at the end, we can specify this like so:
 
-```
+```elixir
 iex> Chaperon.run_load_test MyLoadTestModule, output: "metrics.csv"
 ```
 
@@ -220,7 +220,7 @@ Chaperon currently supports CSV and JSON as metric export formats.
 By default, CSV will be used as the metrics export format.
 We can force a specific format like so:
 
-```
+```elixir
 iex> Chaperon.run_load_test MyLoadTestModule, output: "metrics.csv", format: :csv
 iex> Chaperon.run_load_test MyLoadTestModule, output: "metrics.json", format: :json
 ```
@@ -230,7 +230,7 @@ This assumes we're running the `iex` shell on a node that is connected to the ot
 
 On master node (any node we want to use to initiate the load test from and where we'll collect all metrics at the end):
 
-```
+```elixir
 iex> Chaperon.Master.start
 iex> Chaperon.Master.run_load_test MyLoadTestModule, output: "cluster-metrics.csv"
 ```
