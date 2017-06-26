@@ -79,6 +79,6 @@ end
 
 ### Next Steps
 
-Check out the more [in-depth tutorial using more advanced features](doc/Tutorial2.md).
+Check out the more [in-depth tutorial using more advanced features](Tutorial2.md).
 
 You can also take a look at the `examples/` directory for more example load tests.
