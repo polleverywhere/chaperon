@@ -208,7 +208,7 @@ A nice command-line interface for running load tests is planned but for now we c
 iex> Chaperon.run_load_test MyLoadTestModule; nil  # return nil so we don't inspect the returned `Chaperon.Session` value
 ```
 
-By default `Chaperon.run_load_test` returns the merged `Chaperon.Session` value. Usually we could ignore this fact but the REPL automatically inspects the return values of any expression typed into it (simmilar to Ruby), so we'll just return nil here to prevent it printing all of that info (unless we want to look at it, then you can just skip returning `nil` here).
+By default `Chaperon.run_load_test` returns the merged `Chaperon.Session` value. Usually we could ignore this fact but the REPL automatically inspects the return values of any expression typed into it (similar to Ruby), so we'll just return nil here to prevent it printing all of that info (unless we want to look at it, then you can just skip returning `nil` here).
 
 If we want to export the recorded metrics into a file instead of printing them directly in the REPL at the end, we can specify this like so:
 
