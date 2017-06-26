@@ -32,7 +32,8 @@ defmodule LoadTest.Echo do
 
   scenarios do
     default_config %{
-      base_url: "wss://echo.websocket.org"
+      base_url: "wss://echo.websocket.org",
+      merge_scenario_sessions: true
     }
 
     # run 100 Echo sessions with 10 iterations each
