@@ -2,115 +2,22 @@
 
 ## HTTP Service Performance Testing Framework
 
-This is a framework / library & tool for doing load and performance tests on HTTP based web services.
-It tracks many kinds of metrics automatically and allows tracking custom ones that can be defined per load test.
+This is a framework / library & tool for doing load and performance tests on web services.
+It tracks many kinds of metrics automatically and allows tracking custom ones, if needed.
 
 A load test is a combination of target web services & scenarios to run against them.
-It also defines session & HTTP / WebSocket connection configuration (like authentication credentials, custom headers, etc.) for each of the services.
+It also defines session & HTTP / WebSocket connection settings (like authentication credentials, custom headers, etc.) for each of the services.
 
-Chaperon supports running both HTTP & WebSocket actions against a web server.
+Chaperon natively supports running both HTTP & WebSocket actions against a web server.
+It defines a `Chaperon.Actionable` protocol for which implementations for additional types of actions can be defined.
 Have a look at the `examples/firehose.ex` example file to see an example of both HTTP and WebSocket commands in action.
 
+For a more in-depth introduction check out the [basic starter tutorial here](docs/Tutorial.md).
+
 ## Where can I find our Poll Everywhere specific chaperon scenarios?
-[Click HERE](https://github.com/polleverywhere/pollev_scenarios).
+
+In the [pollev_scenarios repository](https://github.com/polleverywhere/pollev_scenarios).
 This repo contains only the generic implementation code for `Chaperon` and some generic examples. It is used as a dependency in the other repository.
-
-## Custom Scenario Sample
-
-Below is an example scenario that shows a number of different features:
-
-```elixir
-defmodule BasicAccountLogin do
-  use Chaperon.Scenario
-
-  def init(session) do
-    # you can annotate session with custom data if necessary
-    session
-    |> assign(my_config: "my_val")
-    |> ok # returns {:ok, session}
-  end
-
-  def run(session) do
-    session
-    |> login
-    |> get("/")
-    |> logout
-  end
-
-  def cleanup(session) do
-    session
-    |> ok
-  end
-
-  def login(session) do
-    session
-    |> post("/login", form: [user: "admin", password: "password"]),
-  end
-
-  def logout(session) do
-    session
-    |> post("/logout")
-  end
-
-  def logout_with_stuff(session) do
-    session
-    |> logout
-    >>> post_logout
-  end
-
-  def post_logout(session) do
-    session
-    |> foo_bar
-    |> put("/baz", json: [data: "value"], with_result: fn (session, %HTTPoison.Response{body: body}) ->
-      # do something with put request's response
-      session
-      |> assign(baz_body: body)
-    end)
-  end
-
-  def foo_bar(session) do
-    session
-    |> get("/foo")
-    |> get("/bar")
-  end
-
-  def concurrent_logout_with_stuff(session) do
-    session
-    # calls logout/1, assigns response to :logout
-    |> async(:logout)
-    # same as above but with helper macro:
-    ~> logout
-    # same but for foo_bar
-    |> async(:foo_bar)
-    # run custom logic & assign response to baz
-    |> async(:baz, &put(&1, "/baz", json: [data: "value"]))
-    # await first and last async, ignore second
-    |> await([:logout, :baz])
-    # wait for single task
-    |> await(:foo_bar)
-    # same as above but with helper macro:
-    <~ foo_bar
-  end
-end
-
-# our load test definition:
-defmodule LoadTest.Production do
-  use Chaperon.LoadTest
-
-  scenarios do
-    run BasicAccountLogin, %{
-      some_config: some_val
-    }
-    run BasicAccountLogin, "custom_name", %{
-      some_config: some_val
-    }
-  end
-end
-```
-
-Here, the logout action adds metrics for the `GET /logout` (and all other web requests) automatically.
-It also tracks timing and metrics for all async actions (using `~>`) and measured function calls (using `>>>`).
-By default we label all metrics with the scenario name.
 
 ## Distributed Load-Testing
 
