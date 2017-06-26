@@ -43,7 +43,9 @@ After starting the async `publish` session, the parent session performs a HTTP P
 
 #### Task signals
 
-Sometimes just spawning and awaiting child tasks is sufficient for coordinating tasks. An example would be where we'd want to subscribe to some WebSocket server for messages and also perform some publishing tasks but make sure we only start publishing once we've fully subscribed and connected the WebSocket session to the server. In that case we'd want to use a task signal to coordinate work between two asynchronously running sessions.
+Sometimes just spawning and awaiting child tasks is sufficient for coordinating tasks. In other cases, we might need more fine-grained control over how async tasks coordinate their processing logic.
+
+An example would be where we'd want to subscribe to some WebSocket server for messages and also perform some publishing tasks but make sure we only start publishing once we've fully subscribed and connected the WebSocket session to the server. In that case we'd want to use a task signal to coordinate work between two asynchronously running sessions.
 
 Here's an example that also shows session state modifications by using `Session.assign` to assign values to the current session's state:
 
