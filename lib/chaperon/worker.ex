@@ -20,7 +20,7 @@ defmodule Chaperon.Worker do
     Chaperon.Worker.Supervisor.start_nested_worker(random_node(), scenario_mod, session, config, timeout(config))
   end
 
-  def await(%Task{} = worker, timeout \\ 5000) do
+  def await(worker = %Task{}, timeout \\ 5000) do
     Task.await(worker, timeout)
   end
 

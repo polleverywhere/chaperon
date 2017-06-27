@@ -171,7 +171,7 @@ defmodule Chaperon.Action.HTTP do
       |> merge(headers)
       |> merge(new_headers)
 
-    %{ action |
+    %{action |
       headers: headers,
       params: params,
       body: body,
@@ -234,7 +234,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
   alias Chaperon.Action.HTTP
   import Chaperon.Timing
   import Chaperon.Session
-  require Chaperon.Session
+  use Chaperon.Session.Logging
 
   def run(action, session) do
     full_url = HTTP.full_url(action, session)

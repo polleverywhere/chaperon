@@ -16,7 +16,7 @@ defmodule Chaperon.Action.WebSocket.SendMessage do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
-  import Chaperon.Session, only: [log_debug: 2]
+  use Chaperon.Session.Logging
   alias Chaperon.Action.WebSocket
   import Chaperon.Action.WebSocket.SendMessage
 

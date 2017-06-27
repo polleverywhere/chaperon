@@ -19,7 +19,7 @@ end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   alias Chaperon.Session
-  import Chaperon.Session, only: [log_debug: 2]
+  use Chaperon.Session.Logging
   import Chaperon.Timing
 
   def run(action = %{function: func_name, args: args}, session) do

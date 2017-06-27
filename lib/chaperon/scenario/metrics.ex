@@ -8,7 +8,7 @@ defmodule Chaperon.Scenario.Metrics do
   Replaces base metrics for a given `session` with the histogram values for them.
   """
   def add_histogram_metrics(session) do
-    %{session | metrics: histogram_metrics(session) }
+    %{session | metrics: histogram_metrics(session)}
   end
 
   @doc false
@@ -48,10 +48,10 @@ defmodule Chaperon.Scenario.Metrics do
   @doc false
   def record_histograms(session) do
     session.metrics
-    |> Enum.reduce(%{}, fn {k,v}, histograms ->
+    |> Enum.reduce(%{}, fn {k, v}, histograms ->
       case histograms[k] do
         nil ->
-          {:ok, hist} = :hdr_histogram.open(1000000, 3)
+          {:ok, hist} = :hdr_histogram.open(1_000_000, 3)
           hist |> record_metric(v)
           put_in histograms[k], hist
 

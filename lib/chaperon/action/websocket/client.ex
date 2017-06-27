@@ -1,31 +1,38 @@
 defmodule Chaperon.Action.WebSocket.Client do
+  @moduledoc """
+  Implements Chaperon's WebSocket client (behavior of WebSockex WS library).
+  """
+
   use WebSockex
   require Logger
 
   defmodule State  do
+    @moduledoc """
+    WebSocket client process state.
+    """
+
     defstruct messages: EQueue.new,
-              awaiting_clients: EQueue.new
+              awaiting_clients: EQueue.new,
+              log_prefix: nil
   end
 
   alias __MODULE__.State
 
-  def start_link(url) do
-    WebSockex.start_link(url, __MODULE__, %State{})
+  def start_link(session, url) do
+    WebSockex.start_link(url, __MODULE__, %State{log_prefix: "#{session.id} [WS Client] |"})
   end
 
   @spec send_frame(pid, WebSockex.frame) :: :ok
-  def send_frame(pid, {:text, msg} = frame) do
-    Logger.debug("WS Client | Sending message: #{msg}")
+  def send_frame(pid, frame = {:text, msg}) do
     WebSockex.send_frame(pid, frame)
   end
 
   def send_frame(pid, frame) do
-    Logger.debug("WS Client | Sending frame")
     WebSockex.send_frame(pid, frame)
   end
 
   def handle_frame(msg, state) do
-    Logger.debug("WS Client | Received Frame")
+    Logger.debug(fn -> "#{state.log_prefix} Received Frame" end)
 
     if EQueue.empty?(state.awaiting_clients) do
       state = update_in state.messages, &EQueue.push(&1, msg)
@@ -57,7 +64,7 @@ defmodule Chaperon.Action.WebSocket.Client do
   end
 
   def handle_disconnect(%{reason: {:local, reason}}, state) do
-    Logger.debug("WS Client | Local close with reason: #{inspect reason}")
+    Logger.debug(fn -> "#{state.log_prefix} Local close with reason: #{inspect reason}" end)
     {:ok, state}
   end
 

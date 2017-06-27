@@ -41,6 +41,7 @@ defmodule Chaperon.Session do
   alias Chaperon.Action.HTTP
   import Chaperon.Timing
   import Chaperon.Util
+  use Chaperon.Session.Logging
 
   @default_timeout seconds(10)
 
@@ -335,7 +336,8 @@ defmodule Chaperon.Session do
 
   defp ws_await_recv_loop(session, expected_msg, msg, options) do
     if is_expected_message(msg, expected_msg) do
-      Logger.debug "Awaited expected WS message"
+      session
+      |> log_debug("Awaited expected WS message")
 
       callback = options[:with_result]
       if callback do
@@ -344,7 +346,8 @@ defmodule Chaperon.Session do
         session
       end
     else
-      Logger.debug "Ignoring unexpected WS message #{inspect msg}"
+      session
+      |> log_debug("Ignoring unexpected WS message #{inspect msg}")
 
       session
       |> ws_await_recv(expected_msg, options)
@@ -430,16 +433,20 @@ defmodule Chaperon.Session do
   def run_action(session, action) do
     case Chaperon.Actionable.run(action, session) do
       {:error, %Chaperon.Session.Error{reason: reason}} ->
-        Logger.error "Session.run_action #{action} failed: #{inspect reason}"
+        session
+        |> log_error("Session.run_action #{action} failed: #{inspect reason}")
         put_in session.errors[action], reason
       {:error, %Chaperon.Action.Error{reason: reason}} ->
-        Logger.error "Session.run_action #{action} failed: #{inspect reason}"
+        session
+        |> log_error("Session.run_action #{action} failed: #{inspect reason}")
         put_in session.errors[action], reason
       {:error, reason} ->
-        Logger.error "Session.run_action #{action} failed: #{inspect reason}"
+        session
+        |> log_debug("Session.run_action #{action} failed: #{inspect reason}")
         put_in session.errors[action], reason
       {:ok, new_session = %Chaperon.Session{}} ->
-        Logger.debug "SUCCESS #{action}"
+        session
+        |> log_debug("SUCCESS #{action}")
         new_session
     end
   end
@@ -869,7 +876,8 @@ defmodule Chaperon.Session do
   def add_result(session, action, result) do
     case session.config[:store_results] do
       true ->
-        Logger.debug "Add result #{action}"
+        session
+        |> log_debug("Add result #{action}")
         update_in session.results[action], &[result | as_list(&1)]
 
       _ ->
@@ -884,7 +892,8 @@ defmodule Chaperon.Session do
   def add_ws_result(session, action, result) do
     case session.config[:store_results] do
       true ->
-        Logger.debug "Add WS result #{action} : #{inspect result}"
+        session
+        |> log_debug("Add WS result #{action} : #{inspect result}")
         update_in session.results[action], &[result | as_list(&1)]
 
       _ ->
@@ -897,7 +906,8 @@ defmodule Chaperon.Session do
   """
   @spec add_metric(Session.t, [any], any) :: Session.t
   def add_metric(session, name, val) do
-    Logger.debug "Add metric #{inspect name} : #{val}"
+    session
+    |> log_debug("Add metric #{inspect name} : #{val}")
     update_in session.metrics[name], &[val | as_list(&1)]
   end
 
@@ -1083,42 +1093,6 @@ defmodule Chaperon.Session do
 
   def reset_action_metadata(session) do
     %{session | metrics: %{}, results: %{}, errors: %{}, async_tasks: %{}}
-  end
-
-  defmacro log_info(session, message) do
-    quote do
-      require Logger
-      session = unquote(session)
-      Logger.info "#{session.id} #{session.name} | #{unquote(message)} "
-      session
-    end
-  end
-
-  defmacro log_debug(session, message) do
-    quote do
-      require Logger
-      session = unquote(session)
-      Logger.debug "#{session.id} #{session.name} | #{unquote(message)} "
-      session
-    end
-  end
-
-  defmacro log_error(session, message) do
-    quote do
-      require Logger
-      session = unquote(session)
-      Logger.error "#{session.id} #{session.name} | #{unquote(message)} "
-      session
-    end
-  end
-
-  defmacro log_warn(session, message) do
-    quote do
-      require Logger
-      session = unquote(session)
-      Logger.warn "#{session.id} #{session.name} | #{unquote(message)} "
-      session
-    end
   end
 
 

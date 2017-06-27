@@ -22,7 +22,7 @@ end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
   alias Chaperon.Session
-  import Chaperon.Session, only: [log_info: 2]
+  use Chaperon.Session.Logging
   import Chaperon.Timing
 
   def run(action, session) do

@@ -51,8 +51,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
           # The code below runs the nested scenario on a random worker node
           # in the cluster. This can be alot slower if the amount of nested
           # scenarios being run is high.
-          Worker.start_nested(
-            scenario,
+          scenario
+          |> Worker.start_nested(
             session |> reset_action_metadata,
             scenario_config
           )

@@ -58,6 +58,10 @@ defmodule Chaperon.LoadTest do
   }
 
   defmodule Results do
+    @moduledoc """
+    LoadTest results struct.
+    """
+
     defstruct [
       load_test: nil,
       start_ms: nil,
@@ -117,11 +121,13 @@ defmodule Chaperon.LoadTest do
     |> Enum.map(fn
       {concurrency, scenarios, config} when is_list(scenarios) ->
         config = Scenario.Sequence.config_for(scenarios, config)
-        Worker.start(concurrency, Scenario.Sequence, config)
+        concurrency
+        |> Worker.start(Scenario.Sequence, config)
         |> Enum.map(&{&1, config})
 
       {concurrency, scenario, config} ->
-        Worker.start(concurrency, scenario, config)
+        concurrency
+        |> Worker.start(scenario, config)
         |> Enum.map(&{&1, config})
 
       {scenarios, config} when is_list(scenarios) ->

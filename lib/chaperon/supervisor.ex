@@ -5,7 +5,7 @@ defmodule Chaperon.Supervisor do
     children = [
       supervisor(Chaperon.Master.Supervisor, []),
       supervisor(Chaperon.Worker.Supervisor, []),
-      :hackney_pool.child_spec(:chaperon, [timeout: 20000, max_connections: 50000])
+      :hackney_pool.child_spec(:chaperon, [timeout: 20_000, max_connections: 50_000])
     ]
 
     opts = [strategy: :one_for_one, name: Chaperon.Supervisor]

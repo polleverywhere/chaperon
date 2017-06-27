@@ -1,4 +1,11 @@
 defmodule Chaperon.Master do
+  @moduledoc """
+  Master process for running load tests. Initiates running a load test and awaits
+  results from a run. Needs to be started before used.
+  The Chaperon.Master process is started only once per cluster and registered
+  globally as `Chaperon.Master`.
+  """
+
   defstruct [
     id: nil,
     sessions: %{},

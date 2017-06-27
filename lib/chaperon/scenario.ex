@@ -79,9 +79,11 @@ defmodule Chaperon.Scenario do
       require Logger
       require Chaperon.Scenario
       require Chaperon.Session
+      require Chaperon.Session.Logging
       import  Chaperon.Scenario
       import  Chaperon.Timing
       import  Chaperon.Session
+      import  Chaperon.Session.Logging
 
       # def start_link(config) do
       #   with {:ok, session} <- __MODULE__ |> init(config |> new_session) do
@@ -101,7 +103,7 @@ defmodule Chaperon.Scenario do
 
   require Logger
   alias Chaperon.Session
-  require Chaperon.Session
+  use Chaperon.Session.Logging
   alias Chaperon.Scenario
 
   @doc """
@@ -153,7 +155,7 @@ defmodule Chaperon.Scenario do
 
   def run(scenario, session) do
     session
-    |> Session.log_info("Starting")
+    |> log_info("Starting")
 
     session =
       session

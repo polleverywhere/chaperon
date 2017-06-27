@@ -19,6 +19,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
   import Chaperon.Timing
   import Chaperon.Action.WebSocket.ReceiveMessage
   import Chaperon.Session
+  use Chaperon.Session.Logging
   alias Chaperon.Action.WebSocket
 
   def run(action, session) do

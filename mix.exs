@@ -53,7 +53,8 @@ defmodule Chaperon.Mixfile do
       {:websockex, "~> 0.2"},
       {:e_queue, "~> 1.1.0", github: "bakkdoor/e_queue"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.14", only: :dev}
+      {:ex_doc, "~> 0.14", only: :dev},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false}
     ]
   end
 end

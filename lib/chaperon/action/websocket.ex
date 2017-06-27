@@ -84,7 +84,7 @@ defmodule Chaperon.Action.WebSocket do
         |> Session.update_assign(:websocket,
           named_connections: fn
             nil ->
-              %{ name => {ws_conn, ws_url} }
+              %{name => {ws_conn, ws_url}}
             sockets ->
               Map.put(sockets, name, {ws_conn, ws_url})
           end

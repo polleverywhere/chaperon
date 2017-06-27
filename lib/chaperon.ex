@@ -50,7 +50,8 @@ defmodule Chaperon do
     timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
 
     results =
-      Task.async(Chaperon.LoadTest, :run, [lt_mod])
+      Chaperon.LoadTest
+      |> Task.async(:run, [lt_mod])
       |> Task.await(timeout)
 
     duration_s = results.duration_ms / 1_000

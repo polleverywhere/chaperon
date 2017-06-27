@@ -15,7 +15,7 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket
-  import Chaperon.Session, only: [log_info: 2]
+  use Chaperon.Session.Logging
 
   def run(action, session) do
     {ws_conn, ws_url} = WebSocket.for_action(session, action)
