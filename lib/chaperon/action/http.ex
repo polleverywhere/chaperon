@@ -20,12 +20,12 @@ defmodule Chaperon.Action.HTTP do
   @type method :: :get | :post | :put | :patch | :delete | :head
 
   @type options :: [
-    form:        nil | map | Keyword.t,
-    json:        nil | map | Keyword.t,
-    headers:     nil | map | Keyword.t,
-    params:      nil | map | Keyword.t,
-    decode:      nil | :json | (HTTPoison.Response.t -> any),
-    with_result: nil | Chaperon.Session.result_callback
+    form:        map | Keyword.t,
+    json:        map | Keyword.t,
+    headers:     map | Keyword.t,
+    params:      map | Keyword.t,
+    decode:      :json | (HTTPoison.Response.t -> any),
+    with_result: Chaperon.Session.result_callback
   ]
 
   @type t :: %Chaperon.Action.HTTP{
