@@ -38,6 +38,7 @@ defmodule Chaperon.Session do
   alias Chaperon.Session.Error
   alias Chaperon.Action
   alias Chaperon.Action.SpreadAsync
+  alias Chaperon.Action.HTTP
   import Chaperon.Timing
   import Chaperon.Util
 
@@ -240,17 +241,17 @@ defmodule Chaperon.Session do
   Performs a HTTP GET request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec get(Session.t, String.t, Keyword.t) :: Session.t
-  def get(session, path, params \\ []) do
+  @spec get(Session.t, String.t, HTTP.options) :: Session.t
+  def get(session, path, opts \\ []) do
     session
-    |> run_action(Action.HTTP.get(path, params))
+    |> run_action(Action.HTTP.get(path, opts))
   end
 
   @doc """
   Performs a HTTP POST request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec post(Session.t, String.t, any) :: Session.t
+  @spec post(Session.t, String.t, HTTP.options) :: Session.t
   def post(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.post(path, opts))
@@ -260,8 +261,8 @@ defmodule Chaperon.Session do
   Performs a HTTP PUT request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec put(Session.t, String.t, any) :: Session.t
-  def put(session, path, opts) do
+  @spec put(Session.t, String.t, HTTP.options) :: Session.t
+  def put(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.put(path, opts))
   end
@@ -270,7 +271,7 @@ defmodule Chaperon.Session do
   Performs a HTTP PATCH request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec patch(Session.t, String.t, any) :: Session.t
+  @spec patch(Session.t, String.t, HTTP.options) :: Session.t
   def patch(session, path, opts) do
     session
     |> run_action(Action.HTTP.patch(path, opts))
@@ -280,8 +281,8 @@ defmodule Chaperon.Session do
   Performs a HTTP DELETE request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec delete(Session.t, String.t, Keyword.t) :: Session.t
-  def delete(session, path, opts) do
+  @spec delete(Session.t, String.t, HTTP.options) :: Session.t
+  def delete(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.delete(path, opts))
   end

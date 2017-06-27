@@ -12,7 +12,6 @@ defmodule Chaperon.Action.HTTP do
     path: nil,
     headers: %{},
     params: %{},
-    response: nil,
     body: nil,
     decode: nil,
     callback: nil
@@ -20,25 +19,35 @@ defmodule Chaperon.Action.HTTP do
 
   @type method :: :get | :post | :put | :patch | :delete | :head
 
+  @type options :: [
+    form:        nil | map | Keyword.t,
+    json:        nil | map | Keyword.t,
+    headers:     nil | map | Keyword.t,
+    params:      nil | map | Keyword.t,
+    decode:      nil | :json | (HTTPoison.Response.t -> any),
+    with_result: nil | Chaperon.Session.result_callback
+  ]
+
   @type t :: %Chaperon.Action.HTTP{
     method: method,
     path: String.t,
     headers: map,
     params: map,
-    response: HTTPoison.Response.t | HTTPoison.AsyncResponse.t,
     body: binary,
-    decode: (HTTPoison.Response.t -> any),
+    decode: :json | (HTTPoison.Response.t -> any),
     callback: Chaperon.Session.result_callback
   }
 
-  def get(path, params) do
+  @spec get(String.t, options) :: t
+  def get(path, opts) do
     %Chaperon.Action.HTTP{
       method: :get,
       path: path
     }
-    |> add_options(params)
+    |> add_options(opts)
   end
 
+  @spec post(String.t, options) :: t
   def post(path, opts) do
     %Chaperon.Action.HTTP{
       method: :post,
@@ -47,6 +56,7 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
+  @spec put(String.t, options) :: t
   def put(path, opts)  do
     %Chaperon.Action.HTTP{
       method: :put,
@@ -55,6 +65,7 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
+  @spec patch(String.t, options) :: t
   def patch(path, opts) do
     %Chaperon.Action.HTTP{
       method: :patch,
@@ -63,6 +74,7 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
+  @spec delete(String.t, options) :: t
   def delete(path, opts \\ []) do
     %Chaperon.Action.HTTP{
       method: :delete,
@@ -135,6 +147,7 @@ defmodule Chaperon.Action.HTTP do
     "User-Agent" => "chaperon"
   }
 
+  @spec add_options(any, Chaperon.Action.HTTP.options) :: t
   def add_options(action, opts) do
     alias Keyword, as: KW
     import Map, only: [merge: 2]
