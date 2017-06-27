@@ -118,8 +118,12 @@ defmodule Chaperon.Scenario do
       scenario
       |> new_session(config)
 
+    session =
+      scenario
+      |> run(scenario_mod |> init(session))
+
     scenario
-    |> run(scenario_mod |> init(session))
+    |> teardown(session)
   end
 
   @spec execute_nested(Scenario.t, Session.t, map) :: Session.t
@@ -128,8 +132,12 @@ defmodule Chaperon.Scenario do
       scenario
       |> nested_session(session, config)
 
+    session =
+      scenario
+      |> run(scenario.module |> init(session))
+
     scenario
-    |> run(scenario.module |> init(session))
+    |> teardown(session)
   end
 
   @spec run(Scenario.t, Session.t | {:ok, Session.t} | {:error, any}) :: Session.t | {:error, any}
@@ -204,6 +212,23 @@ defmodule Chaperon.Scenario do
     else
       {:ok, session}
     end
+  end
+
+  @doc """
+  Cleans up any resources after the Scenario was run (if needed).
+  Can be overriden.
+
+  If `scenario`'s implementation module defines a `teardown/1` callback function,
+  calls it with `session` to clean up resources as needed.
+
+  Returns the given session afterwards.
+  """
+  @spec teardown(Scenario.t, Session.t) :: Session.t
+  def teardown(scenario, session) do
+    if scenario.module.module_info(:exports)[:teardown] do
+      session |> scenario.module.teardown
+    end
+    session
   end
 
   @spec new_session(Scenario.t, map) :: Session.t
