@@ -640,23 +640,10 @@ defmodule Chaperon.Session do
   @spec config(Session.t, Keyword.t(any), any) :: Session.t
   def config(session, key, default_val \\ :no_default_given) do
     case key do
-      [key1 | rest] ->
-        rest
-        |> Enum.reduce(session.config[key1], (fn key, acc ->
-          case acc do
-            map when is_map(map) ->
-              case default_val do
-                :no_default_given ->
-                  session
-                  |> required_config(map, key)
+      keys when is_list(keys) ->
+        session
+        |> find_nested_config_val(keys, default_val)
 
-                default ->
-                  Map.get(map, key, default)
-              end
-            _ ->
-              acc
-          end
-        end))
       _ ->
         case default_val do
           :no_default_given ->
@@ -667,6 +654,23 @@ defmodule Chaperon.Session do
             Map.get session.config, key, default
         end
     end
+  end
+
+  defp find_nested_config_val(session, _keys = [key1 | rest], default_val) do
+    rest
+    |> Enum.reduce(session.config[key1], (fn
+      key, acc when is_map(acc) ->
+        case default_val do
+          :no_default_given ->
+            session
+            |> required_config(acc, key)
+
+          default ->
+            Map.get(acc, key, default)
+        end
+      _key, acc ->
+        acc
+    end))
   end
 
   defp required_config(session, map, key) do
