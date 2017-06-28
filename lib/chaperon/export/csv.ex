@@ -6,7 +6,7 @@ defmodule Chaperon.Export.CSV do
   alias Chaperon.Util
   alias Chaperon.Scenario.Metrics
 
-  @separator ";"
+  @separator ","
   @delimiter "\n"
 
   @doc """
