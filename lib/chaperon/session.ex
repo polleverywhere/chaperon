@@ -739,6 +739,7 @@ defmodule Chaperon.Session do
         |> get("/search", json: [tag: tag2])
       end
   """
+  @spec signal(Session.t, atom, any) :: Session.t
   def signal(session, name, signal) do
     send session.async_tasks[name].pid, {:chaperon_signal, signal}
     session
@@ -768,6 +769,7 @@ defmodule Chaperon.Session do
 
       # ...
   """
+  @spec signal_parent(Session.t, any) :: Session.t
   def signal_parent(session, signal) do
     send session.parent_pid, {:chaperon_signal, signal}
     session
@@ -788,6 +790,7 @@ defmodule Chaperon.Session do
         |> assign(signal: signal)
       end)
   """
+  @spec await_signal_or_timeout(Session.t, non_neg_integer, nil | (Session.t, any -> Session.t)) :: Session.t
   def await_signal_or_timeout(session, timeout, callback \\ nil) do
     receive do
       {:chaperon_signal, signal} ->
@@ -815,6 +818,7 @@ defmodule Chaperon.Session do
         |> assign(signal: signal)
       end)
   """
+  @spec await_signal(Session.t, any | (Session.t, any -> Session.t)) :: Session.t
   def await_signal(session, callback) when is_function(callback) do
     timeout = session |> timeout
 
@@ -830,6 +834,12 @@ defmodule Chaperon.Session do
 
   @doc """
   Await a given signal in the current session and returns session afterwards.
+
+  Example:
+
+      session
+      |> await_signal(:continue_search)
+      |> get("/search", params: [query: "Got load test?"])
   """
   def await_signal(session, expected_signal) do
     timeout = session |> timeout
@@ -845,8 +855,15 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Await an expected signal with a given timeout.
 
+  Example:
+
+      session
+      |> await_signal(:continue_search, 5 |> seconds)
+      |> get("/search", params: [query: "Got load test?"])
   """
+  @spec await_signal(Session.t, any, non_neg_integer) :: Session.t
   def await_signal(session, expected_signal, timeout) do
     receive do
       {:chaperon_signal, ^expected_signal} ->
