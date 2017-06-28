@@ -45,6 +45,12 @@ defmodule Chaperon.Export.JSON do
       end)
       |> Enum.into(%{})
 
-    %{vals[:session_name] => metrics}
+    session_name = vals[:session_name]
+
+    if String.trim(session_name) != "" do
+      %{vals[:session_name] => metrics}
+    else
+      metrics
+    end
   end
 end
