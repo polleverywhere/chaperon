@@ -29,7 +29,7 @@ defmodule Chaperon.Util do
 
   @spec preserve_vals_merge(map, map) :: map
   def preserve_vals_merge(map1, map2) do
-    new_map = for {k,v2} <- map2 do
+    new_map = for {k, v2} <- map2 do
       case map1[k] do
         nil ->
           {k, v2}

@@ -1,4 +1,8 @@
 defmodule Chaperon.Supervisor do
+  @moduledoc """
+  Root supervisor for all Chaperon processes & supervisors.
+  """
+
   import Supervisor.Spec
 
   def start_link do

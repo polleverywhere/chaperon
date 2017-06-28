@@ -1,4 +1,8 @@
 defmodule Chaperon.Master.Supervisor do
+  @moduledoc """
+  Supervisor for the globally registered `Chaperon.Master` load test runner process.
+  """
+
   import Supervisor.Spec
 
   @name __MODULE__

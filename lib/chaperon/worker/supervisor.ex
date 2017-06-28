@@ -1,4 +1,10 @@
 defmodule Chaperon.Worker.Supervisor do
+  @moduledoc """
+  Chaperon worker process supervisor.
+  Each `Chaperon.Scenario` is executed with a `Chaperon.Session` inside a
+  `Chaperon.Worker` `Task` processes supervised by this supervisor.
+  """
+
   require Logger
 
   @name Chaperon.Worker.Supervisor
