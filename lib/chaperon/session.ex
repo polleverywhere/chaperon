@@ -59,13 +59,14 @@ defmodule Chaperon.Session do
   Concurrently spreads a given action with a given rate over a given time
   interval within `session`.
   """
-  @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time) :: Session.t
-  def cc_spread(session, func_name, rate, interval) do
+  @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time, atom | nil) :: Session.t
+  def cc_spread(session, func_name, rate, interval, task_name \\ nil) do
     session
     |> run_action(%SpreadAsync{
       func: func_name,
       rate: rate,
-      interval: interval
+      interval: interval,
+      task_name: task_name || func_name
     })
   end
 
@@ -230,12 +231,12 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Returns a single task or a list of tasks associated with a given `action_name`
+  Returns a single task or a list of tasks associated with a given `task_name`
   in `session`.
   """
   @spec async_task(Session.t, atom) :: (Task.t | [Task.t])
-  def async_task(session, action_name) do
-    session.async_tasks[action_name]
+  def async_task(session, task_name) do
+    session.async_tasks[task_name]
   end
 
   @doc """
@@ -692,13 +693,14 @@ defmodule Chaperon.Session do
   @doc """
   Runs a given function with args asynchronously from `session`.
   """
-  @spec async(Session.t, atom, [any]) :: Session.t
-  def async(session, func_name, args \\ []) do
+  @spec async(Session.t, atom, [any], atom | nil) :: Session.t
+  def async(session, func_name, args \\ [], task_name \\ nil) do
     session
     |> run_action(%Action.Async{
       module: session.scenario.module,
       function: func_name,
-      args: args
+      args: args,
+      task_name: task_name || func_name
     })
   end
 

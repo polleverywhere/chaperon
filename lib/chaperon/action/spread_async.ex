@@ -7,7 +7,8 @@ defmodule Chaperon.Action.SpreadAsync do
   defstruct [
     func: nil,
     rate: nil,
-    interval: nil
+    interval: nil,
+    task_name: nil
   ]
 
   @type rate :: non_neg_integer
@@ -16,7 +17,8 @@ defmodule Chaperon.Action.SpreadAsync do
   @type t :: %__MODULE__{
     func: Chaperon.CallFunction.callback,
     rate: rate,
-    interval: time
+    interval: time,
+    task_name: atom
   }
 end
 

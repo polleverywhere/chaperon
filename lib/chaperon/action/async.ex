@@ -7,13 +7,15 @@ defmodule Chaperon.Action.Async do
   defstruct [
     module: nil,
     function: nil,
-    args: []
+    args: [],
+    task_name: nil
   ]
 
   @type t :: %Chaperon.Action.Async{
     module: atom,
     function: atom,
-    args: [any]
+    args: [any],
+    task_name: atom
   }
 end
 
@@ -22,14 +24,22 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   use Chaperon.Session.Logging
   import Chaperon.Timing
 
-  def run(action = %{function: func_name, args: args}, session) do
+  def run(
+    action = %{
+      module: mod,
+      function: func_name,
+      args: args,
+      task_name: task_name
+    },
     session
-    |> log_debug("Async: #{func_name} #{inspect args}")
+  ) do
+    session
+    |> log_debug("Async #{task_name} : #{mod}.#{func_name}(#{inspect args})")
 
     task = action |> execute_task(session)
 
     session
-    |> Session.add_async_task(func_name, task)
+    |> Session.add_async_task(task_name, task)
     |> Session.ok
   end
 
@@ -37,7 +47,15 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
     {:ok, action, session}
   end
 
-  defp execute_task(%{module: mod, function: func_name, args: args}, session) do
+  defp execute_task(
+    %{
+      module: mod,
+      function: func_name,
+      args: args,
+      task_name: task_name
+    },
+    session
+  ) do
     session = %{session | parent_pid: self()}
     Task.async fn ->
       start = timestamp()
@@ -45,7 +63,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
       duration = timestamp() - start
 
       session
-      |> Session.add_metric([:duration, func_name], duration)
+      |> Session.add_metric([:duration, task_name], duration)
     end
   end
 end
