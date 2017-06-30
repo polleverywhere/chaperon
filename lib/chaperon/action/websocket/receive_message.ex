@@ -27,7 +27,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
       session
       |> WebSocket.for_action(action)
 
-
     session
     |> log_debug("WS_RECV #{ws_url}")
 

@@ -49,7 +49,6 @@ defmodule Chaperon.Action.WebSocket do
     }
   end
 
-
   @doc """
   Returns a `Chaperon.WebSocket.Close` action with `options`.
   """

@@ -20,7 +20,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
   def run(action, session) do
     {ws_conn, ws_url} = WebSocket.for_action(session, action)
 
-
     WebSocket.Client.close(ws_conn)
 
     session

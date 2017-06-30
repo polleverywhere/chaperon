@@ -152,7 +152,6 @@ defmodule Chaperon.LoadTest do
           end)
         {:infinity, sessions, 0}
 
-
       timeout when is_integer(timeout) ->
         results =
           tasks_with_config

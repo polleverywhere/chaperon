@@ -83,7 +83,6 @@ defmodule Chaperon.Session do
     })
   end
 
-
   @doc """
   Repeats calling a given function with session a given amount of times,
   returning the resulting session at the end.
@@ -558,7 +557,6 @@ defmodule Chaperon.Session do
     update_in session.assigned[namespace], &Map.delete(&1, key)
   end
 
-
   @doc """
   Updates a session's config based on a given Keyword list of functions to be
   used for updating `config` in `session`.
@@ -612,7 +610,6 @@ defmodule Chaperon.Session do
       put_in session.config[k], val
     end)
   end
-
 
   @doc """
   Get a (possibly nested) config value.
@@ -776,7 +773,6 @@ defmodule Chaperon.Session do
     send session.parent_pid, {:chaperon_signal, signal}
     session
   end
-
 
   @doc """
   Await any incoming signal for current session within given timeout.
@@ -1018,7 +1014,6 @@ defmodule Chaperon.Session do
     update_in session.metrics, &preserve_vals_merge(&1, metrics)
   end
 
-
   @doc """
   Merges errors of two sessions.
   """
@@ -1076,7 +1071,6 @@ defmodule Chaperon.Session do
   def run_callback(session, _, nil, _),
     do: session
 
-
   def run_callback(session, action = %{decode: _decode_options}, cb, response)
     when is_function(cb)
   do
@@ -1117,7 +1111,6 @@ defmodule Chaperon.Session do
   def reset_action_metadata(session) do
     %{session | metrics: %{}, results: %{}, errors: %{}, async_tasks: %{}}
   end
-
 
   @doc """
   Makes a given function call async for `session`.

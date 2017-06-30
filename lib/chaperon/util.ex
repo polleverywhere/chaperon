@@ -88,7 +88,6 @@ defmodule Chaperon.Util do
     |> Enum.into(%{})
   end
 
-
   @doc """
   Returns last `amount` elements in a given `Enum` as a `List`.
 

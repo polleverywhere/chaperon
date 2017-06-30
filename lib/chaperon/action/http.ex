@@ -307,7 +307,6 @@ defimpl String.Chars, for: Chaperon.Action.HTTP do
                   |> Enum.map(&{&1, &1 |> Kernel.to_string |> String.upcase})
                   |> Enum.into(%{})
 
-
   def to_string(http) do
     "#{@method_strings[http.method]} #{HTTP.full_url(http, %{})}"
   end
