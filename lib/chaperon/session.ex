@@ -171,6 +171,86 @@ defmodule Chaperon.Session do
     |> repeat_traced(func, args, amount - 1)
   end
 
+  @type retry_options :: [
+    retries: non_neg_integer,
+    delay: non_neg_integer,
+    random_delay: non_neg_integer
+  ]
+
+  @default_retry_opts [retries: 1, random_delay: 1_000]
+
+  @doc """
+  Call a given function (with arguments). If any exception is raised,
+  retry the call a given amount of times (defaults to 1 retry).
+  The retry can be delayed by a fixed or random duration (defaults to 1s).
+
+  Example:
+      session
+      |> retry_on_error(:publish, ["post title"], retries: 10, delay: 0.5 |> seconds)
+      # call function without args
+      |> retry_on_error(:cleanup, [], retries: 10, delay: 0.5 |> seconds)
+
+      # retry once by default
+      session
+      |> retry_on_error(:publish, ["post title"], random_delay: 5 |> seconds)
+
+      # retry once with default delay of 1s
+      session
+      |> retry_on_error(:publish, ["post title"])
+
+      # retry function without args and default options
+      session
+      |> retry_on_error(:publish_default)
+  """
+  @spec retry_on_error(Session.t, atom, [any], retry_options) :: Session.t
+  def retry_on_error(session, func, args \\ [], opts \\ @default_retry_opts) do
+    retries = opts[:retries] || 1
+
+    try do
+      session
+      |> call(func, args)
+    rescue
+      err ->
+        session
+        |> log_error(inspect err)
+
+        retries = case retries do
+          :infinity -> :infinity
+          r         -> r - 1
+        end
+
+        if retries > 0 do
+          opts = Keyword.merge(opts, retries: retries)
+          session
+          |> log_error("Retrying #{func} another #{retries} times")
+          |> retry_delay(opts)
+          |> retry_on_error(func, opts)
+        else
+          stacktrace = System.stacktrace
+          reraise err, stacktrace
+        end
+    end
+  end
+
+  defp retry_delay(session, opts) do
+    case {opts[:random_delay], opts[:delay]} do
+      {nil, nil} ->
+        session
+
+      {nil, delay} ->
+        session
+        |> delay(delay)
+
+      {r_delay, nil} ->
+        session
+        |> delay(:rand.uniform(r_delay))
+
+      {r_delay, _} ->
+        session
+        |> delay(:rand.uniform(r_delay))
+    end
+  end
+
   @doc """
   Returns the session's configured timeout or the default timeout, if none
   specified.
