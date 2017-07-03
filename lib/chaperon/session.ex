@@ -790,6 +790,17 @@ defmodule Chaperon.Session do
     session
   end
 
+
+  @doc """
+  Delays further execution of `session` by a random value up to the given
+  `duration`.
+  """
+  @spec random_delay(Session.t, Chaperon.Timing.duration) :: Session.t
+  def random_delay(session, max_duration) do
+    session
+    |> delay(:rand.uniform(max_duration))
+  end
+
   @doc """
   Adds a given `Task` to `session` under a given `name`.
   """
