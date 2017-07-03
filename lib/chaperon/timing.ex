@@ -3,7 +3,7 @@ defmodule Chaperon.Timing do
   Timing related helper functions and type definitions used within `Chaperon`.
   """
 
-  @type duration :: non_neg_integer | float
+  @type duration :: non_neg_integer | float | Range.t
   @type time_unit :: :seconds | :milli_seconds | :micro_seconds | :nano_seconds
 
   @second 1000
@@ -16,31 +16,45 @@ defmodule Chaperon.Timing do
   Returns the correct amount of milliseconds for a given amount of seconds.
   """
   @spec seconds(duration) :: non_neg_integer
-  def seconds(num), do: round(num * @second)
+  def seconds(%Range{first: a, last: b}),
+    do: round(:rand.uniform(b - a) + a) * @second
+  def seconds(num),
+    do: round(num * @second)
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of minutes.
   """
   @spec minutes(duration) :: non_neg_integer
-  def minutes(num), do: round(num * @minute)
+  def minutes(%Range{first: a, last: b}),
+    do: round(:rand.uniform(b - a) + a) * @minute
+  def minutes(num),
+    do: round(num * @minute)
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of hours.
   """
   @spec hours(duration) :: non_neg_integer
-  def hours(num), do: round(num * @hour)
+  def hours(%Range{first: a, last: b}),
+    do: round(:rand.uniform(b - a) + a) * @hour
+  def hours(num),
+    do: round(num * @hour)
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of days.
   """
   @spec days(duration) :: non_neg_integer
+  def days(%Range{first: a, last: b}),
+    do: round(:rand.uniform(b - a) + a) * @day
   def days(num), do: round(num * @day)
 
   @doc """
   Returns the correct amount of milliseconds for a given amount of weeks.
   """
   @spec weeks(duration) :: non_neg_integer
-  def weeks(num), do: round(num * @week)
+  def weeks(%Range{first: a, last: b}),
+    do: round(:rand.uniform(b - a) + a) * @week
+  def weeks(num),
+    do: round(num * @week)
 
   @doc """
   Returns a timestamp with the given time unit.
