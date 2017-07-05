@@ -734,21 +734,33 @@ defmodule Chaperon.Session do
     end
   end
 
-  defp find_nested_config_val(session, _keys = [key1 | rest], default_val) do
-    rest
-    |> Enum.reduce(session.config[key1], (fn
-      key, acc when is_map(acc) ->
-        case default_val do
-          :no_default_given ->
-            session
-            |> required_config(acc, key)
+  defp find_nested_config_val(session, keys = [key1 | rest], default_val) do
+    if Map.has_key?(session.config, key1) do
+      rest
+      |> Enum.reduce(session.config[key1], (fn
+        key, acc when is_map(acc) ->
+          case default_val do
+            :no_default_given ->
+              session
+              |> required_config(acc, key)
 
-          default ->
-            Map.get(acc, key, default)
-        end
-      _key, acc ->
-        acc
-    end))
+            default ->
+              acc
+              |> Map.get(key, default)
+          end
+        _key, acc ->
+          acc
+      end))
+    else
+      case default_val do
+        :no_default_given ->
+          session
+          |> required_config(keys)
+
+        default ->
+          default
+      end
+    end
   end
 
   defp required_config(session, map, key) do
@@ -757,7 +769,23 @@ defmodule Chaperon.Session do
         val
 
       :error ->
-        raise "Invalid config key #{inspect key} for session: #{session}"
+        session
+        |> log_error("Config key #{inspect key} not found")
+
+        raise "Config key #{inspect key} expected but not found for session: #{session}"
+    end
+  end
+
+  defp required_config(session, key) do
+    case Map.fetch(session.config, key) do
+      {:ok, val} ->
+        val
+
+      :error ->
+        session
+        |> log_error("Config key #{inspect key} not found")
+
+        raise "Config key #{inspect key} expected but not found for session: #{session}"
     end
   end
 
