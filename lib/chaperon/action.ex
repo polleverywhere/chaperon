@@ -65,9 +65,7 @@ defmodule Chaperon.Action do
   def error_callback(%{callback: %{error: cb}}),
     do: cb
   def error_callback(%{callback: cb}),
-    do: fn(session, resp) ->
-      cb.(session, {:error, resp})
-    end
+    do: fn(session, resp) -> cb.(session, {:error, resp}) end
   def error_callback(_),
     do: nil
 end
