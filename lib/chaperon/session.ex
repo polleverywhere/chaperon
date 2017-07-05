@@ -224,7 +224,7 @@ defmodule Chaperon.Session do
           session
           |> log_error("Retrying #{func} another #{retries} times")
           |> retry_delay(opts)
-          |> retry_on_error(func, opts)
+          |> retry_on_error(func, args, opts)
         else
           stacktrace = System.stacktrace
           reraise err, stacktrace
