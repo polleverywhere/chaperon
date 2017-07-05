@@ -118,4 +118,11 @@ defmodule Chaperon.Util do
         enum
     end
   end
+
+  def shortened_module_name(mod) do
+    mod
+    |> Module.split
+    |> last(2)
+    |> Enum.join(".")
+  end
 end
