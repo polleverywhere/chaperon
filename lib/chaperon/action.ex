@@ -25,7 +25,8 @@ defmodule Chaperon.Action do
   end
 
   @doc """
-  Every `Chaperon.Actionable` can now expose a `callback` field.
+  Every `Chaperon.Actionable` can expose a `callback` field.
+
   `callback` can be either:
 
   - a callback function:

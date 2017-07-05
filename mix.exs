@@ -19,6 +19,11 @@ defmodule Chaperon.Mixfile do
           # "-Wunderspecs"
         ],
         remove_defaults: [:unknown] # skip unkown function warnings
+      ],
+      # docs
+      source_url: "https://github.com/polleverywhere/chaperon",
+      docs: [
+        extras: ["README.md"]
       ]
     ]
   end
