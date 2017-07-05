@@ -1151,7 +1151,7 @@ defmodule Chaperon.Session do
   def ok(session), do: {:ok, session}
 
   @doc """
-  Returns an `Chaperon.Session.Error` for the given `session` and with a given
+  Returns a `Chaperon.Session.Error` for the given `session` and with a given
   `reason`.
   """
   @spec error(Session.t, any) :: {:error, Error.t}
@@ -1159,24 +1159,52 @@ defmodule Chaperon.Session do
     {:error, %Error{reason: reason, session: session}}
   end
 
-  def run_callback(session, _, nil, _),
+  def run_callback(session, %{callback: nil}, _),
     do: session
 
-  def run_callback(session, action = %{decode: _decode_options}, cb, response)
-    when is_function(cb)
-  do
+  def run_callback(session, action = %{decode: _decode_options}, response) do
+    cb = Chaperon.Action.callback(action)
+    error_cb = Chaperon.Action.error_callback(action)
+
     case decode_response(action, response) do
       {:ok, result} ->
-        cb.(session, result)
+        if cb do
+          cb.(session, result)
+        else
+          session
+        end
 
       err ->
         error = session |> error("Response (#{inspect response}) decoding failed: #{inspect err}")
-        put_in session.errors[action], error
+        session = put_in session.errors[action], error
+        if error_cb do
+          error_cb.(session, err)
+        else
+          session
+        end
     end
   end
 
-  def run_callback(session, _action, cb, response) when is_function(cb),
-    do: cb.(session, response)
+  def run_callback(session, action, response) do
+    cb = Chaperon.Action.callback(action)
+    if cb do
+      cb.(session, response)
+    else
+      session
+    end
+  end
+
+  def run_error_callback(session, %{callback: nil}, _),
+    do: session
+
+  def run_error_callback(session, action, response) do
+    cb = Chaperon.Action.error_callback(action)
+    if cb do
+      cb.(session, response)
+    else
+      session
+    end
+  end
 
   defp decode_response(action, response) do
     response_body =

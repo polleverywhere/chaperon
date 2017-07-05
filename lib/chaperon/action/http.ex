@@ -251,22 +251,14 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       HTTP.options(action, session)
     ) do
       {:ok, response} ->
-        case response.status_code do
-          code when code in 200..399 ->
-            session
-            |> log_debug("HTTP Response #{action} : #{code}")
-
-          code ->
-            session
-            |> log_warn("HTTP Response #{action} failed with status code: #{code}")
-            |> log_warn(response.body)
-        end
-
         session
         |> add_result(action, response)
-        |> add_metric([:duration, action.method, action |> HTTP.metrics_url(session)], timestamp() - start)
+        |> add_metric(
+          [:duration, action.method, HTTP.metrics_url(action, session)],
+          timestamp() - start
+        )
         |> store_cookies(response)
-        |> run_callback(action, callback(action), response)
+        |> run_callback_if_defined(action, response)
         |> ok
 
       {:error, reason} ->
@@ -275,23 +267,26 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
 
         session =
           session
-          |> run_callback(action, error_callback(action), reason)
+          |> run_error_callback(action, reason)
 
         {:error, %Error{reason: reason, action: action, session: session}}
     end
   end
 
-  def callback(%{callback: %{ok: cb}}),
-    do: cb
-  def callback(%{callback: cb}),
-    do: cb
+  def run_callback_if_defined(session, action, response) do
+    case response.status_code do
+      code when code in 200..399 ->
+        session
+        |> log_debug("HTTP Response #{action} : #{code}")
+        |> run_callback(action, response)
 
-  def error_callback(%{callback: cb}) when is_function(cb),
-    do: nil
-  def error_callback(%{callback: %{error: cb}}),
-    do: cb
-  def error_callback(_),
-    do: nil
+      code ->
+        session
+        |> log_warn("HTTP Response #{action} failed with status code: #{code}")
+        |> log_warn(response.body)
+        |> run_error_callback(action, response)
+    end
+  end
 
   def abort(action, session) do
     # TODO
