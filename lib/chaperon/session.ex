@@ -788,6 +788,11 @@ defmodule Chaperon.Session do
     end
   end
 
+  defp required_config(session, key) do
+    session
+    |> required_config(session.config, key)
+  end
+
   defp required_config(session, map, key) do
     case Map.fetch(map, key) do
       {:ok, val} ->
@@ -799,11 +804,6 @@ defmodule Chaperon.Session do
 
         raise "Config key #{inspect key} expected but not found for session: #{session}"
     end
-  end
-
-  defp required_config(session, key) do
-    session
-    |> required_config(session.config, key)
   end
 
   @spec skip_query_params_in_metrics(Session.t) :: Session.t
