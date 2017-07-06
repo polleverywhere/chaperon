@@ -70,6 +70,31 @@ defmodule Chaperon.Session do
     })
   end
 
+  @type cc_spread_options :: [
+    rate: SpreadAsync.rate,
+    interval: SpreadAsync.time,
+    name: atom | nil
+  ] | %{
+    rate: SpreadAsync.rate,
+    interval: SpreadAsync.time,
+    name: atom | nil
+  }
+
+  @doc """
+  Concurrently spreads a given action with a given rate over a given time
+  interval within `session`.
+  """
+  @spec cc_spread(Session.t, atom, cc_spread_options) :: Session.t
+  def cc_spread(session, func_name, opts \\ []) do
+    session
+    |> run_action(%SpreadAsync{
+      func: func_name,
+      rate: opts[:rate],
+      interval: opts[:interval],
+      task_name: opts[:name] || func_name
+    })
+  end
+
   @doc """
   Loops a given action for a given duration, returning the resulting session at
   the end.
