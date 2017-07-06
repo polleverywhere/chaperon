@@ -835,7 +835,6 @@ defmodule Chaperon.Session do
     session
   end
 
-
   @doc """
   Delays further execution of `session` by a random value up to the given
   `duration`.
