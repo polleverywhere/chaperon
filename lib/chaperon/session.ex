@@ -485,7 +485,7 @@ defmodule Chaperon.Session do
   @spec run_scenario(Session.t, Action.RunScenario.scenario) :: Session.t
   def run_scenario(session, scenario) do
     session
-    |> run_scenario(scenario, session.config)
+    |> run_action(Action.RunScenario.new(scenario, session.config))
   end
 
   @doc """
