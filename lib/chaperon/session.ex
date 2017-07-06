@@ -802,16 +802,8 @@ defmodule Chaperon.Session do
   end
 
   defp required_config(session, key) do
-    case Map.fetch(session.config, key) do
-      {:ok, val} ->
-        val
-
-      :error ->
-        session
-        |> log_error("Config key #{inspect key} not found")
-
-        raise "Config key #{inspect key} expected but not found for session: #{session}"
-    end
+    session
+    |> required_config(session.config, key)
   end
 
   @spec skip_query_params_in_metrics(Session.t) :: Session.t
