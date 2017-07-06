@@ -3,7 +3,8 @@ defmodule Chaperon.Timing do
   Timing related helper functions and type definitions used within `Chaperon`.
   """
 
-  @type duration :: non_neg_integer | float | Range.t
+  @type duration_number :: non_neg_integer | float | Range.t
+  @type duration :: duration_number | {:random, duration_number}
   @type time_unit :: :seconds | :milli_seconds | :micro_seconds | :nano_seconds
 
   @second 1000

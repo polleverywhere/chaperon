@@ -828,8 +828,25 @@ defmodule Chaperon.Session do
 
   @doc """
   Delays further execution of `session` by a given `duration`.
+  `duration` can also be `{:random, integer_val}` in which case `random_delay`
+  is called with `integer_val`.
+
+  Example:
+      session
+      |> delay(3 |> seconds)
+      |> get("/")
+
+      # or with random delay up to 3 seconds:
+      session
+      |> delay({:random, 3 |> seconds})
+      |> get("/")
   """
   @spec delay(Session.t, Chaperon.Timing.duration) :: Session.t
+  def delay(session, {:random, max_duration}) do
+    session
+    |> random_delay(max_duration)
+  end
+
   def delay(session, duration) do
     :timer.sleep(duration)
     session
