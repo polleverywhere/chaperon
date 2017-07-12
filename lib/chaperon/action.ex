@@ -29,16 +29,18 @@ defmodule Chaperon.Action do
 
   `callback` can be either:
 
-  - a callback function:
+  - a callback function or atom naming the callback function inside the session's current scenario module:
 
-      (Chaperon.Session.t, any | {:error, any}) -> any
+      `atom | ((Chaperon.Session.t, any | {:error, any}) -> any)`
 
   - a map containing callback and error functions:
 
+      ```
       %{
-        ok:    (Chaperon.Session.t, any) -> any,
-        error: (Chaperon.Session.t, any) -> any
+        ok:    atom | ((Chaperon.Session.t, any) -> any),
+        error: atom | ((Chaperon.Session.t, any) -> any)
       }
+      ```
 
   When defining just a single callback function, it will be called in both
   success and error cases (passed in as `{:error, reason}`).
@@ -65,7 +67,10 @@ defmodule Chaperon.Action do
   def error_callback(%{callback: %{error: cb}}),
     do: cb
   def error_callback(%{callback: cb}),
-    do: fn(session, resp) -> cb.(session, {:error, resp}) end
+    do: fn(session, resp) ->
+      session
+      |> Chaperon.Session.call_callback(cb, {:error, resp})
+    end
   def error_callback(_),
     do: nil
 end

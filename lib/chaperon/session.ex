@@ -45,7 +45,7 @@ defmodule Chaperon.Session do
 
   @default_timeout seconds(10)
 
-  @type result_callback :: (Session.t, any -> Session.t)
+  @type result_callback :: atom | (Session.t, any -> Session.t)
 
   defmacro __using__(_opts) do
     quote do
@@ -443,18 +443,10 @@ defmodule Chaperon.Session do
     if is_expected_message(msg, expected_msg) do
       session
       |> log_debug("Awaited expected WS message")
-
-      callback = options[:with_result]
-      if callback do
-        callback.(session, msg)
-      else
-        session
-      end
+      |> call_callback(options[:with_result], msg)
     else
       session
       |> log_debug("Ignoring unexpected WS message #{inspect msg}")
-
-      session
       |> ws_await_recv(expected_msg, options)
     end
   end
@@ -1229,6 +1221,14 @@ defmodule Chaperon.Session do
     {:error, %Error{reason: reason, session: session}}
   end
 
+  @doc """
+  Runs a potentially configured callback for a given action in case of success.
+  In case of failure, runs the configured error callback with an
+  `{:error, reason}` tuple.
+
+  For more info have a look at `Chaperon.Action.callback/1` and
+  `Chaperon.Action.error_callback/1`.
+  """
   def run_callback(session, %{callback: nil}, _),
     do: session
 
@@ -1238,42 +1238,46 @@ defmodule Chaperon.Session do
 
     case decode_response(action, response) do
       {:ok, result} ->
-        if cb do
-          cb.(session, result)
-        else
-          session
-        end
+        session
+        |> call_callback(cb, result)
 
       err ->
-        error = session |> error("Response (#{inspect response}) decoding failed: #{inspect err}")
-        session = put_in session.errors[action], error
-        if error_cb do
-          error_cb.(session, err)
-        else
+        error =
           session
-        end
+          |> error("Response (#{inspect response}) decoding failed: #{inspect err}")
+
+        session
+        |> add_error(action, error)
+        |> call_callback(error_cb, err)
     end
   end
 
   def run_callback(session, action, response) do
-    cb = Chaperon.Action.callback(action)
-    if cb do
-      cb.(session, response)
-    else
-      session
-    end
+    session
+    |> call_callback(Chaperon.Action.callback(action), response)
   end
 
-  def run_error_callback(session, %{callback: nil}, _),
+  @doc """
+  Calls a `callback` with `session` and an additional argument.
+
+  If the given callback is nil, simply returns `session`.
+  If the callback is a function, call it with `session` and the extra argument.
+  If it's an atom, call the function with that name in `session`'s currently
+  running scenario module.
+  """
+  @spec call_callback(Session.t, result_callback, any) :: Session.t
+  def call_callback(session, nil, _),
     do: session
 
+  def call_callback(session, func_name, arg) when is_atom(func_name),
+    do: apply(session.scenario.module, func_name, [session, arg])
+
+  def call_callback(session, cb, arg) when is_function(cb),
+    do: cb.(session, arg)
+
   def run_error_callback(session, action, response) do
-    cb = Chaperon.Action.error_callback(action)
-    if cb do
-      cb.(session, response)
-    else
-      session
-    end
+    session
+    |> call_callback(Chaperon.Action.error_callback(action), response)
   end
 
   defp decode_response(action, response) do
