@@ -1083,6 +1083,15 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Stores a `Chaperon.Session.Error` in `session` for a given `action` for later
+  inspection.
+  """
+  @spec add_error(Session.t, Chaperon.Actionable.t, {:error, Error.t}) :: Session.t
+  def add_error(session, action, error) do
+    put_in session.errors[action], error
+  end
+
+  @doc """
   Stores HTTP response cookies in `session` cookie store for further outgoing
   requests.
   """
