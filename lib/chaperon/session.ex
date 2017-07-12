@@ -931,16 +931,26 @@ defmodule Chaperon.Session do
         |> log_info("Got signal")
         |> assign(signal: signal)
       end)
+
+      # or using an atom as the callback:
+
+      def run(session) do
+        session
+        |> await_signal_or_timeout(5 |> seconds, :got_signal)
+      end
+
+      def got_signal(session, signal) do
+        session
+        |> log_info("Got signal")
+        |> assign(signal: signal)
+      end
   """
   @spec await_signal_or_timeout(Session.t, non_neg_integer, nil | (Session.t, any -> Session.t)) :: Session.t
   def await_signal_or_timeout(session, timeout, callback \\ nil) do
     receive do
       {:chaperon_signal, signal} ->
-        if callback do
-          callback.(session, signal)
-        else
-          session
-        end
+        session
+        |> call_callback(callback, signal)
 
       after timeout ->
         session
