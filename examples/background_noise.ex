@@ -59,21 +59,23 @@ defmodule LoadTest.Production do
   alias Example.Scenario.BackgroundNoise
   use Chaperon.LoadTest
 
-  scenarios do
-    default_config %{
-      # scenario_timeout: 12_000,
-      base_url: "http://google.com/",
-      http: %{
-        # additional http (hackney request) parameters, if needed
-      }
+  def default_config, do: %{
+    # scenario_timeout: 12_000,
+    base_url: "http://google.com/",
+    http: %{
+      # additional http (hackney request) parameters, if needed
     }
-    run BackgroundNoise, %{
+  }
+
+  def scenarios, do: [
+    {BackgroundNoise, %{
       post_data: true
-    }
-    run BackgroundNoise, %{
+    }},
+
+    {BackgroundNoise, %{
       post_data: true
-    }
-  end
+    }}
+  ]
 end
 
 Chaperon.run_load_test(LoadTest.Production, print_results: true)

@@ -62,7 +62,7 @@ defmodule Chaperon.Scenario do
 
     def config_for(scenarios, config \\ %{}) do
       config
-      |> Map.merge(%{compound_scenarios: scenarios})
+      |> Map.put(:compound_scenarios, scenarios)
     end
 
     def run(initial_session = %{config: %{compound_scenarios: scenarios}}) do

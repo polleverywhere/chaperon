@@ -123,68 +123,71 @@ defmodule LoadTest.Staging do
 
   use Chaperon.LoadTest
 
-  scenarios do
-    default_config %{
-      # scenario_timeout: 12_000,
-      base_url: "http://localhost:7474",
-      timeout: :infinity,
-      channel: "/testchannel"
-    }
+  def default_config, do: %{
+    # scenario_timeout: 12_000,
+    base_url: "http://localhost:7474",
+    timeout: :infinity,
+    channel: "/testchannel"
+  }
 
-    run PublishChannel, "p1", %{
+  def scenarios, do: [
+    {PublishChannel, "p1", %{
       delay: 1 |> seconds,
       duration: 1 |> seconds,
       base_interval: 50,
       publications_per_loop: 5
-    }
+    }},
 
-    run PublishChannel, "p2", %{
+    {PublishChannel, "p2", %{
       delay: 4 |> seconds,
       duration: 10 |> seconds,
       base_interval: 250,
       publications_per_loop: 1
-    }
+    }},
 
-    run SubscribeChannel, "s1", %{
+    {SubscribeChannel, "s1", %{
       delay: 5 |> seconds,
       duration: 1 |> seconds,
       base_interval: 50,
       subscriptions_per_loop: 5
-    }
+    }},
 
-    run SubscribeChannel, "s2", %{
+    {SubscribeChannel, "s2", %{
       duration: 15 |> seconds,
       base_interval: 500,
       subscriptions_per_loop: 5
-    }
+    }},
 
-    run SubscribeChannel, "s3", %{
+    {SubscribeChannel, "s3", %{
       delay: 7.5 |> seconds,
       duration: 3 |> seconds,
       base_interval: 75,
       subscriptions_per_loop: 20
-    }
+    }},
 
-    run SubscribeChannel, "s4", %{
+    {SubscribeChannel, "s4", %{
       delay: 2 |> seconds,
       duration: 3 |> seconds,
       base_interval: 150,
       subscriptions_per_loop: 1
-    }
+    }},
 
-    run WSSubscribeChannel, "ws1", %{
+    {WSSubscribeChannel, "ws1", %{
       await_messages: 10
-    }
-    run WSSubscribeChannel, "ws2", %{
+    }},
+
+    {WSSubscribeChannel, "ws2", %{
       await_messages: 50
-    }
-    run WSSubscribeChannel, "ws3", %{
+    }},
+
+    {WSSubscribeChannel, "ws3", %{
       await_messages: 100
-    }
-    run WSSubscribeChannel, "ws4", %{
+    }},
+
+    {WSSubscribeChannel, "ws4", %{
       await_messages: 200
-    }
-  end
+    }},
+  ]
 end
 
 Chaperon.run_load_test(LoadTest.Staging)

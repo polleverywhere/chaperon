@@ -30,20 +30,18 @@ end
 defmodule LoadTest.Echo do
   use Chaperon.LoadTest
 
-  scenarios do
-    default_config %{
-      base_url: "wss://echo.websocket.org",
-      merge_scenario_sessions: true
-    }
+  def default_config, do: %{
+    base_url: "wss://echo.websocket.org",
+    merge_scenario_sessions: true
+  }
 
-    # run 100 Echo sessions with 10 iterations each
-    # accross the cluster
-    run {100, Scenario.WS.Echo}, %{
+  def scenarios, do: [
+    {{100, Scenario.WS.Echo}, %{
       echo: %{
         iterations: 10
       }
-    }
-  end
+    }}
+  ]
 end
 
 Chaperon.run_load_test(LoadTest.Echo)

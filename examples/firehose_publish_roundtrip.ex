@@ -29,7 +29,7 @@ defmodule Firehose.Scenario.PublishRountrip do
 
   def publish(session) do
     session
-    |> put(session.config.channel, json: json_message)
+    |> put(session.config.channel, json: json_message())
   end
 
   def json_message do
@@ -42,17 +42,17 @@ defmodule LoadTest.Staging do
 
   use Chaperon.LoadTest
 
-  scenarios do
-    default_config %{
-      scenario_timeout: 25_000,
-      base_url: "http://localhost:7474",
-      channel: "/testchannel"
-    }
+  def default_config, do: %{
+    scenario_timeout: 25_000,
+    base_url: "http://localhost:7474",
+    channel: "/testchannel"
+  }
 
-    run PublishRountrip, %{
+  def scenarios, do: [
+    {PublishRountrip, %{
       iterations: 500
-    }
-  end
+    }}
+  ]
 end
 
 Chaperon.run_load_test(LoadTest.Staging)

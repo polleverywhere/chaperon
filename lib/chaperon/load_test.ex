@@ -119,27 +119,44 @@ defmodule Chaperon.LoadTest do
   defp start_workers_with_config(lt_mod) do
     lt_mod.scenarios
     |> Enum.map(fn
-      {concurrency, scenarios, config} when is_list(scenarios) ->
-        config = Scenario.Sequence.config_for(scenarios, config)
-        concurrency
-        |> Worker.start(Scenario.Sequence, config)
-        |> Enum.map(&{&1, config})
-
-      {concurrency, scenario, config} ->
-        concurrency
-        |> Worker.start(scenario, config)
-        |> Enum.map(&{&1, config})
-
-      {scenarios, config} when is_list(scenarios) ->
-        config = Scenario.Sequence.config_for(scenarios, config)
-        w = Worker.start(Scenario.Sequence, config)
-        {w, config}
+      {scenario, name, config} ->
+        config = Map.merge(lt_mod.default_config, config)
+        start_worker(scenario, Map.put(config, :session_name, name))
 
       {scenario, config} ->
-        w = Worker.start(scenario, config)
-        {w, config}
+        config = Map.merge(lt_mod.default_config, config)
+        start_worker(scenario, config)
     end)
     |> List.flatten
+  end
+
+  def start_worker({concurrency, scenarios}, config)
+    when is_list(scenarios)
+  do
+    config = Scenario.Sequence.config_for(scenarios, config)
+
+    concurrency
+    |> Worker.start(Scenario.Sequence, config)
+    |> Enum.map(&{&1, config})
+  end
+
+  def start_worker(scenarios, config)
+    when is_list(scenarios)
+  do
+    config = Scenario.Sequence.config_for(scenarios, config)
+    w = Worker.start(Scenario.Sequence, config)
+    {w, config}
+  end
+
+  def start_worker({concurrency, scenario}, config) do
+    concurrency
+    |> Worker.start(scenario, config)
+    |> Enum.map(&{&1, config})
+  end
+
+  def start_worker(scenario, config) do
+    w = Worker.start(scenario, config)
+    {w, config}
   end
 
   def await_workers(tasks_with_config) do
@@ -229,82 +246,5 @@ defmodule Chaperon.LoadTest do
       metrics: session |> Session.session_metrics,
       results: session |> Session.session_results
     }
-  end
-
-  @doc """
-  Helper macro for defining `Chaperon.Scenario` implementation modules to be run
-  as sessions within the calling LoadTest.
-
-  ## Example
-
-      defmodule MyLoadTest do
-        use Chaperon.LoadTest
-
-        scenarios do
-          default_config %{
-            key: "val"
-          }
-
-          run MyScenarioModule, "session_name", %{
-            key2: "another_val"
-          }
-        end
-      end
-  """
-  defmacro scenarios(do: {:__block__, _, run_exprs}) do
-    [default_config] = for {:default_config, _, [config]} <- run_exprs do
-      config
-    end
-
-    scenarios = for {:run, _, [scenario, config]} <- run_exprs do
-      case scenario do
-        {num, scenario} ->
-          quote do
-            {unquote(num), unquote(scenario), Map.merge(unquote(default_config), unquote(config))}
-          end
-
-        scenario ->
-          quote do
-            {unquote(scenario), Map.merge(unquote(default_config), unquote(config))}
-          end
-      end
-    end
-
-    scenarios_with_name = for {:run, _, [scenario, name, config]} <- run_exprs do
-      case scenario do
-        {num, scenario} ->
-          quote do
-            {
-              unquote(num),
-              unquote(scenario),
-              unquote(default_config)
-              |> Map.merge(%{session_name: unquote(name)})
-              |> Map.merge(unquote(config))
-            }
-          end
-
-        scenario ->
-          quote do
-            {
-              unquote(scenario),
-              unquote(default_config)
-              |> Map.merge(%{session_name: unquote(name)})
-              |> Map.merge(unquote(config))
-            }
-          end
-      end
-    end
-
-    scenarios = scenarios ++ scenarios_with_name
-
-    quote do
-      def scenarios do
-        unquote(scenarios)
-      end
-
-      def default_config do
-        unquote(default_config)
-      end
-    end
   end
 end
