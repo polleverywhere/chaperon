@@ -74,18 +74,22 @@ We provide a default config that is used by all load test scenarios we want to r
 defmodule LoadTest.PingPong do
   use Chaperon.LoadTest
 
-  scenarios do
-    default_config %{
-      base_url: "http://localhost:5000"
-    }
+  def default_config, do: %{
+    base_url: "http://localhost:5000"
+  }
 
-    # run 100 PingPong sessions with 10 iterations each
-    # across the cluster
-    run {100, Scenario.WS.PingPong}, %{
+  # run 100 PingPong sessions (each with 10 iterations) across the cluster
+  # `scenario/0` is expected to return a list of 2-tuples (`{scenario_module, config}`)
+  # for each load test.
+  # `scenario_module` can be `{concurrency, scenario_module}` if running multiple
+  # concurrent instances of the scenario is needed
+  def scenarios, do: [
+    {{100, Scenario.WS.PingPong}, %{
       ping_pong: %{
         iterations: 10
       }
-    }
+    }}
+  ]
   end
 end
 ```

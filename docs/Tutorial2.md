@@ -276,34 +276,34 @@ end
 defmodule LoadTest do
   use Chaperon.LoadTest
 
-  scenarios do
-    default_config %{ base_url: "http://localhost:5000/" }
+  def default_config, do: %{ base_url: "http://localhost:5000/" }
 
+  def scenarios, do: [
     # run ScenarioA with given config value explicitly
-    run ScenarioA, %{
+    {ScenarioA, %{
       config_value: "Some value to be used by ScenarioA"
-    }
+    }},
 
     # run ScenarioB explicitly, which internally runs ScenarioA and provides it
     # the required config_value
-    run ScenarioB, %{}
+    {ScenarioB, %{}},
 
     # run ScenarioC followed by ScenarioA in a `Chaperon.Scenario.Sequence`
     # which automatically converts assignments from a preceding scenario
     # to config values for the following scenario. This allows easily combining
     # existing scenarios in pipelines without having to define a new scenario
     # just for creating these pipelines.
-    run [ScenarioC, ScenarioA], %{}
+    {[ScenarioC, ScenarioA], %{}},
 
     # if we want to run multiple concurrent instances of the same scenario
     # we just wrap the scenario with the number in a tuple like so:
-    run {100, ScenarioA}, %{
+    {{100, ScenarioA}, %{
       config_value: "This scenario is now run 100 times!"
-    }
+    }},
 
     # the same works for pipelined scenarios:
-    run {100, [ScenarioC, ScenarioA]}, %{}
-  end
+    {{100, [ScenarioC, ScenarioA]}, %{}}
+  ]
 end
 
 ```
