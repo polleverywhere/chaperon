@@ -276,7 +276,9 @@ end
 defmodule LoadTest do
   use Chaperon.LoadTest
 
-  def default_config, do: %{ base_url: "http://localhost:5000/" }
+  def default_config, do: %{
+    base_url: "http://localhost:5000/"
+  }
 
   def scenarios, do: [
     # run ScenarioA with given config value explicitly
