@@ -505,6 +505,14 @@ defmodule Chaperon.Session do
     |> run_action(Action.RunScenario.new(scenario, session.config))
   end
 
+  def run_scenario_on(session, scenario, :random_node) do
+    currval = session |> config(:execute_nested_scenario, nil)
+    session
+    |> set_config(execute_nested_scenario: :random_node)
+    |> run_scenario(scenario)
+    |> set_config(execute_nested_scenario: currval)
+  end
+
   @doc """
   Runs & captures metrics of running another `Chaperon.Scenario` from `session`
   with a given `config`.
