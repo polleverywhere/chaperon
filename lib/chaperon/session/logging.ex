@@ -38,6 +38,15 @@ defmodule Chaperon.Session.Logging do
     end
   end
 
+  defmacro log_error(session, message, reason) do
+    quote do
+      require Logger
+      session = unquote(session)
+      Logger.error "#{session.id} #{session.name} | #{unquote(message)} #{inspect(unquote reason)}"
+      session
+    end
+  end
+
   defmacro log_warn(session, message) do
     quote do
       require Logger
