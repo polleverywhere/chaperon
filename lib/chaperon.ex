@@ -84,12 +84,21 @@ defmodule Chaperon do
 
     print_separator()
 
-    options
-    |> encoder
-    |> apply(:encode, [session])
-    |> write_output(options |> output)
+    data =
+      options
+      |> encoder
+      |> apply(:encode, [session])
 
-    session
+    case options |> output do
+      :remote ->
+        {:remote, session, data}
+
+      output ->
+        data
+        |> write_output(output)
+
+        session
+    end
   end
 
   defp encoder(options) do
@@ -103,8 +112,10 @@ defmodule Chaperon do
     Keyword.get(options, :output, :stdio)
   end
 
-  defp write_output(output, :stdio), do: IO.puts(output)
-  defp write_output(output, path),   do: File.write!(path, output)
+  def write_output(output, :stdio),
+    do: IO.puts(output)
+  def write_output(output, path),
+    do: File.write!(path, output)
 
   defp print_separator do
     IO.puts ""

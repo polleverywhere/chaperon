@@ -40,7 +40,45 @@ defmodule Chaperon.Master do
   def run_load_test(lt_mod, options \\ []) do
     # TODO: store result
     timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
-    GenServer.call(@name, {:run_load_test, lt_mod, options}, timeout)
+
+    result = GenServer.call(@name,
+      {:run_load_test, lt_mod, run_options(options)},
+      timeout
+    )
+
+    case result do
+      {:remote, session, data} ->
+        Chaperon.write_output(data, options[:output])
+        session
+
+      session ->
+        session
+    end
+  end
+
+  defp run_options(options) do
+    case {:global.whereis_name(Chaperon.Master), options[:output]} do
+      {_, nil} ->
+        options
+
+      {pid, output_path} when is_pid(pid) ->
+        if local_pid?(pid) do
+          options
+        else
+          options =
+            options
+            |> Keyword.merge(output: :remote)
+        end
+    end
+  end
+
+  def local_pid?(pid) do
+    case inspect(pid) do
+      "#PID<0." <> _ ->
+        true
+      _ ->
+        false
+    end
   end
 
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
