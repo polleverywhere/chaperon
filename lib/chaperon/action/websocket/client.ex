@@ -23,7 +23,7 @@ defmodule Chaperon.Action.WebSocket.Client do
   end
 
   @spec send_frame(pid, WebSockex.frame) :: :ok
-  def send_frame(pid, frame = {:text, msg}) do
+  def send_frame(pid, frame = {:text, _}) do
     WebSockex.send_frame(pid, frame)
   end
 

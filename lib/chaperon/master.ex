@@ -65,9 +65,8 @@ defmodule Chaperon.Master do
         if local_pid?(pid) do
           options
         else
-          options =
-            options
-            |> Keyword.merge(output: :remote)
+          options
+          |> Keyword.merge(output: :remote)
         end
     end
   end
