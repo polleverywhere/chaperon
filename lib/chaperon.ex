@@ -94,8 +94,7 @@ defmodule Chaperon do
         {:remote, session, data}
 
       output ->
-        data
-        |> write_output(output)
+        write_output(lt_mod, data, output)
 
         session
     end
@@ -112,10 +111,22 @@ defmodule Chaperon do
     Keyword.get(options, :output, :stdio)
   end
 
-  def write_output(output, :stdio),
-    do: IO.puts(output)
-  def write_output(output, path),
-    do: File.write!(path, output)
+  def write_output(lt_mod, output, :stdio) do
+    IO.puts(output)
+    print_separator()
+    IO.inspect(%{
+      scenarios: lt_mod.scenarios,
+      default_config: lt_mod.default_config
+    }, pretty: true)
+  end
+
+  def write_output(lt_mod, output, path) do
+    File.write!(path, output)
+    File.write!(path <> ".config.exs", inspect(%{
+      scenarios: lt_mod.scenarios,
+      default_config: lt_mod.default_config
+    }, pretty: true))
+  end
 
   defp print_separator do
     IO.puts ""
