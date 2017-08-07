@@ -61,7 +61,7 @@ defmodule Chaperon.Master do
       {_, nil} ->
         options
 
-      {pid, output_path} when is_pid(pid) ->
+      {pid, _} when is_pid(pid) ->
         if local_pid?(pid) do
           options
         else
