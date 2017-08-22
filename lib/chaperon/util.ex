@@ -125,4 +125,10 @@ defmodule Chaperon.Util do
     |> last(2)
     |> Enum.join(".")
   end
+
+  def module_name(mod) when is_atom(mod) do
+    mod
+    |> Module.split
+    |> Enum.join(".")
+  end
 end
