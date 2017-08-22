@@ -31,7 +31,9 @@ defmodule Chaperon do
       - `:print_results` If set to `true`, will print all action results.
       - `:encode` Can be set to `:json`, defaults to `:csv`
       - `:output` Can be set to a file path, defaults to `:stdio`
-
+      - `:tag` Can be set to be used when using the default export filename.
+        Allows adding a custom 'tag' string as a prefix to the generated result
+        output filename.
   ## Example
 
       Chaperon.run_load_test MyLoadTest, print_results: true
@@ -45,6 +47,12 @@ defmodule Chaperon do
 
       Chaperon.run_load_test MyLoadTest, export: :json, output: "metrics.json"
       # => Outputs metrics in JSON format to metrics.json file
+
+      Chaperon.run_load_test MyLoadTest, tag: "master"
+      # => Outputs metrics in CCSV format to "results/<date>/MyLoadTest/master-<timestamp>.csv"
+
+      Chaperon.run_load_test MyLoadTest, export: :json, tag: "master"
+      # => Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
   """
   def run_load_test(lt_mod, options \\ []) do
     timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
@@ -89,7 +97,7 @@ defmodule Chaperon do
       |> encoder
       |> apply(:encode, [session])
 
-    case options |> output do
+    case options |> output(lt_mod) do
       :remote ->
         {:remote, session, data}
 
@@ -101,14 +109,38 @@ defmodule Chaperon do
   end
 
   defp encoder(options) do
-    case Keyword.get(options, :export, :csv) do
+    case export_format(options) do
       :csv  -> Chaperon.Export.CSV
       :json -> Chaperon.Export.JSON
     end
   end
 
-  defp output(options) do
-    Keyword.get(options, :output, :stdio)
+  defp output(options, lt_mod) do
+    Keyword.get(options, :output, default_output_file(options, lt_mod))
+  end
+
+  defp export_format(options) do
+    Keyword.get(options, :export, :csv)
+  end
+
+  # if output not defined by user, use default output format and file name
+  defp default_output_file(options, lt_mod) do
+    mod_name =
+      lt_mod
+      |> Module.split
+      |> Enum.join("/")
+
+    timestamp =
+      DateTime.utc_now
+      |> DateTime.to_unix
+
+    format = export_format(options)
+    dir = "results/#{Date.utc_today}/#{mod_name}"
+
+    case options[:tag] do
+      nil -> "#{dir}/#{timestamp}.#{format}"
+      t   -> "#{dir}/#{t}-#{timestamp}.#{format}"
+    end
   end
 
   def write_output(lt_mod, output, :stdio) do
@@ -121,6 +153,10 @@ defmodule Chaperon do
   end
 
   def write_output(lt_mod, output, path) do
+    path
+    |> Path.dirname
+    |> File.mkdir_p!
+
     File.write!(path, output)
     File.write!(path <> ".config.exs", inspect(%{
       scenarios: lt_mod.scenarios,

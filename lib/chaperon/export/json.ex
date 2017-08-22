@@ -47,7 +47,7 @@ defmodule Chaperon.Export.JSON do
 
     session_name = vals[:session_name]
 
-    if String.trim(session_name) != "" do
+    if session_name && String.trim(session_name) != "" do
       %{vals[:session_name] => metrics}
     else
       metrics
