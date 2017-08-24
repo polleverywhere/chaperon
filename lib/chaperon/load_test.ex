@@ -119,19 +119,19 @@ defmodule Chaperon.LoadTest do
   defp start_workers_with_config(lt_mod, extra_config \\ %{}) do
     lt_mod.scenarios
     |> Enum.map(fn
-      {scenario, name, base_config} ->
+      {scenario, name, custom_config} ->
         config =
           lt_mod.default_config
-          |> Map.merge(base_config)
           |> Map.merge(extra_config)
+          |> Map.merge(custom_config)
 
         start_worker(scenario, Map.put(config, :session_name, name))
 
-      {scenario, base_config} ->
+      {scenario, custom_config} ->
         config =
           lt_mod.default_config
-          |> Map.merge(base_config)
           |> Map.merge(extra_config)
+          |> Map.merge(custom_config)
 
         start_worker(scenario, config)
     end)
