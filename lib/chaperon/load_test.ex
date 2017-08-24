@@ -95,12 +95,12 @@ defmodule Chaperon.LoadTest do
   require Logger
 
   @spec run(atom) :: Chaperon.LoadTest.Results.t
-  def run(lt_mod) do
+  def run(lt_mod, extra_config \\ %{}) do
     start_time = Chaperon.Timing.timestamp()
 
     {timeout, sessions, timed_out} =
       lt_mod
-      |> start_workers_with_config
+      |> start_workers_with_config(extra_config)
       |> await_workers
 
     end_time = Chaperon.Timing.timestamp()
@@ -116,15 +116,23 @@ defmodule Chaperon.LoadTest do
     }
   end
 
-  defp start_workers_with_config(lt_mod) do
+  defp start_workers_with_config(lt_mod, extra_config \\ %{}) do
     lt_mod.scenarios
     |> Enum.map(fn
-      {scenario, name, config} ->
-        config = Map.merge(lt_mod.default_config, config)
+      {scenario, name, base_config} ->
+        config =
+          lt_mod.default_config
+          |> Map.merge(base_config)
+          |> Map.merge(extra_config)
+
         start_worker(scenario, Map.put(config, :session_name, name))
 
-      {scenario, config} ->
-        config = Map.merge(lt_mod.default_config, config)
+      {scenario, base_config} ->
+        config =
+          lt_mod.default_config
+          |> Map.merge(base_config)
+          |> Map.merge(extra_config)
+
         start_worker(scenario, config)
     end)
     |> List.flatten

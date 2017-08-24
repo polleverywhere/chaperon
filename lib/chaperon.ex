@@ -56,10 +56,11 @@ defmodule Chaperon do
   """
   def run_load_test(lt_mod, options \\ []) do
     timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
+    config = Keyword.get(options, :config, %{})
 
     results =
       Chaperon.LoadTest
-      |> Task.async(:run, [lt_mod])
+      |> Task.async(:run, [lt_mod, config])
       |> Task.await(timeout)
 
     duration_s = results.duration_ms / 1_000
