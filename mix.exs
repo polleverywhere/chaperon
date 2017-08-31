@@ -12,7 +12,7 @@ defmodule Chaperon.Mixfile do
       dialyzer: [
         plt_add_deps: :apps_direct,
         plt_add_apps: [
-          :httpoison, :uuid, :poison, :hdr_histogram
+          :httpoison, :uuid, :poison, :histogrex
         ],
         flags: [
           # "-Woverspecs",
@@ -34,7 +34,7 @@ defmodule Chaperon.Mixfile do
   def application do
     [
       applications: [
-        :logger, :httpoison, :uuid, :poison, :hdr_histogram, :websockex, :ssl, :crypto
+        :logger, :httpoison, :uuid, :poison, :histogrex, :websockex, :ssl, :crypto
       ],
       mod: {Chaperon, []}
     ]
@@ -54,7 +54,7 @@ defmodule Chaperon.Mixfile do
       {:httpoison, "~> 0.11.1"},
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
-      {:hdr_histogram, "~> 0.2.0"},
+      {:histogrex, "~> 0.0.4"},
       {:websockex, "~> 0.2"},
       {:e_queue, "~> 1.1.0", github: "bakkdoor/e_queue"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},

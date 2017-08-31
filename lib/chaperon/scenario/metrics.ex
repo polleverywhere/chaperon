@@ -1,8 +1,13 @@
 defmodule Chaperon.Scenario.Metrics do
   @moduledoc """
   This module calculates histogram data for a session's metrics.
-  It uses the `:hdr_histogram` Erlang library to calculate the histograms.
+  It uses the `Histogrex` library to calculate the histograms.
   """
+
+  use Histogrex
+  alias __MODULE__
+
+  template :durations, min: 1, max: 1_000_000, precision: 3
 
   @doc """
   Replaces base metrics for a given `session` with the histogram values for them.
@@ -15,8 +20,10 @@ defmodule Chaperon.Scenario.Metrics do
   def histogram_metrics(session = %Chaperon.Session{}) do
     session
     |> record_histograms
-    |> Enum.map(&histogram_vals/1)
-    |> Enum.into(%{})
+
+    Metrics.reduce(%{}, fn {name, hist}, metrics ->
+      Map.put(metrics, name, histogram_vals(hist))
+    end)
   end
 
   @percentiles [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0, 80.0, 85.0, 90.0, 95.0, 99.0, 99.9, 99.99, 99.999]
@@ -30,53 +37,41 @@ defmodule Chaperon.Scenario.Metrics do
 
   def histogram_vals(hist) do
     Map.merge(percentiles(hist), %{
-      :total_count => :hdr_histogram.get_total_count(hist),
-      :min => :hdr_histogram.min(hist),
-      :mean => :hdr_histogram.mean(hist),
-      :median => :hdr_histogram.median(hist),
-      :max => :hdr_histogram.max(hist),
-      :stddev => :hdr_histogram.stddev(hist),
+      :total_count => Metrics.total_count(hist),
+      :min => Metrics.min(hist),
+      :mean => Metrics.mean(hist),
+      :max => Metrics.max(hist)
     })
   end
 
   def percentiles(hist) do
     @percentiles
-    |> Enum.map(&{{:percentile, &1}, :hdr_histogram.percentile(hist, &1)})
+    |> Enum.map(&{{:percentile, &1}, Metrics.value_at_quantile(hist, &1)})
     |> Enum.into(%{})
   end
 
   @doc false
   def record_histograms(session) do
     session.metrics
-    |> Enum.reduce(%{}, fn {k, v}, histograms ->
-      case histograms[k] do
-        nil ->
-          {:ok, hist} = :hdr_histogram.open(1_000_000, 3)
-          hist |> record_metric(v)
-          put_in histograms[k], hist
-
-        hist ->
-          hist |> record_metric(v)
-          histograms
-      end
+    |> Enum.each(fn {k, v} ->
+      record_metric(k, v)
     end)
-    |> Enum.into(%{})
   end
 
   @doc false
-  def record_metric(_hist, []), do: :ok
-  def record_metric(hist, [v | vals]) do
-    record_metric(hist, v)
-    record_metric(hist, vals)
+  def record_metric(_, []), do: :ok
+  def record_metric(k, [v | vals]) do
+    record_metric(k, v)
+    record_metric(k, vals)
   end
 
   @doc false
-  def record_metric(hist, {:async, _name, val}) when is_number(val) do
-    record_metric(hist, val)
+  def record_metric(k, {:async, _name, val}) when is_number(val) do
+    record_metric(k, val)
   end
 
   @doc false
-  def record_metric(hist, val) when is_number(val) do
-    :hdr_histogram.record(hist, val)
+  def record_metric(k, val) when is_number(val) do
+    Metrics.record!(:durations, k, val)
   end
 end

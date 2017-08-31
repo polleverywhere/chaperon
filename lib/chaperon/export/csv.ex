@@ -22,11 +22,11 @@ defmodule Chaperon.Export.CSV do
   end
 
   @header_fields [
-    "session_action_name", "total_count", "max", "mean", "median", "min", "stddev"
+    "session_action_name", "total_count", "max", "mean", "min"
   ] ++ (for p <- Metrics.percentiles, do: "percentile_#{p}")
 
   @columns [
-    :total_count, :max, :mean, :median, :min, :stddev,
+    :total_count, :max, :mean, :min,
   ] ++ (for p <- Metrics.percentiles, do: {:percentile, p})
 
   defp encode_header(separator) do

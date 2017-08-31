@@ -6,7 +6,7 @@ defmodule Chaperon.Export.JSON do
   alias Chaperon.Scenario.Metrics
 
   @columns [
-    :total_count, :max, :mean, :median, :min, :stddev
+    :total_count, :max, :mean, :min
   ] ++ (for p <- Metrics.percentiles, do: {:percentile, p})
 
   @doc """
