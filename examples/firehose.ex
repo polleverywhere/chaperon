@@ -125,6 +125,7 @@ defmodule LoadTest.Staging do
 
   def default_config, do: %{
     # scenario_timeout: 12_000,
+    merge_scenario_sessions: true,
     base_url: "http://localhost:7474",
     timeout: :infinity,
     channel: "/testchannel"
