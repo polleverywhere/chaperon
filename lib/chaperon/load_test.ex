@@ -8,6 +8,9 @@ defmodule Chaperon.LoadTest do
       defmodule LoadTest.Staging do
         use Chaperon.LoadTest
 
+        # You can define a default config that is used by default.
+        # Any additional config passed at runtime will be merged into this.
+        # If default_config/0 is not defined, it defaults to %{}.
         def default_config, do: %{
           scenario_timeout: 15_000,
           base_url: "http://staging.mydomain.com"
