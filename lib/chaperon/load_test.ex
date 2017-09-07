@@ -116,12 +116,21 @@ defmodule Chaperon.LoadTest do
     }
   end
 
+  def default_config(lt_mod) do
+    if lt_mod.module_info(:exports)[:default_config] do
+      lt_mod.default_config
+    else
+      %{}
+    end
+  end
+
   defp start_workers_with_config(lt_mod, extra_config \\ %{}) do
     lt_mod.scenarios
     |> Enum.map(fn
       {scenario, name, custom_config} ->
         config =
-          lt_mod.default_config
+          lt_mod
+          |> default_config
           |> Map.merge(extra_config)
           |> Map.merge(custom_config)
 
@@ -129,7 +138,8 @@ defmodule Chaperon.LoadTest do
 
       {scenario, custom_config} ->
         config =
-          lt_mod.default_config
+          lt_mod
+          |> default_config
           |> Map.merge(extra_config)
           |> Map.merge(custom_config)
 
@@ -225,7 +235,7 @@ defmodule Chaperon.LoadTest do
   end
 
   def timeout(lt_mod) do
-    lt_mod.default_config[:load_test_timeout] || :infinity
+    default_config(lt_mod)[:load_test_timeout] || :infinity
   end
 
   @doc """

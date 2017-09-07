@@ -55,7 +55,7 @@ defmodule Chaperon do
       # => Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
   """
   def run_load_test(lt_mod, options \\ []) do
-    timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
+    timeout = Chaperon.LoadTest.default_config(lt_mod)[:loadtest_timeout] || :infinity
     config = Keyword.get(options, :config, %{})
 
     results =
@@ -149,7 +149,7 @@ defmodule Chaperon do
     print_separator()
     IO.inspect(%{
       scenarios: lt_mod.scenarios,
-      default_config: lt_mod.default_config
+      default_config: Chaperon.LoadTest.default_config(lt_mod)
     }, pretty: true)
   end
 
@@ -161,7 +161,7 @@ defmodule Chaperon do
     File.write!(path, output)
     File.write!(path <> ".config.exs", inspect(%{
       scenarios: lt_mod.scenarios,
-      default_config: lt_mod.default_config
+      default_config: Chaperon.LoadTest.default_config(lt_mod)
     }, pretty: true))
   end
 
