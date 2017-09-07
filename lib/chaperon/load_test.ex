@@ -8,40 +8,40 @@ defmodule Chaperon.LoadTest do
       defmodule LoadTest.Staging do
         use Chaperon.LoadTest
 
-        scenarios do
-          default_config %{
-            scenario_timeout: 15_000,
-            base_url: "http://staging.mydomain.com"
-          }
+        def default_config, do: %{
+          scenario_timeout: 15_000,
+          base_url: "http://staging.mydomain.com"
+        }
 
+        def scenarios, do: [
           # session name is "my_session_name"
-          run MyScenarioModule, "my_session_name", %{
+          {MyScenarioModule, "my_session_name", %{
             delay: 2 |> seconds,
             my_config_key: "my_config_val"
-          }
+          }},
 
           # will get an assigned session name based on module name and UUID
-          run MyScenarioModule, %{
+          {MyScenarioModule, %{
             delay: 10 |> seconds,
             my_config_key: "my_config_val"
-          }
+          }},
 
           # same as above but spawned 10 times (across the cluster):
-          run {10, MyScenarioModule}, "my_session_name", %{
+          {{10, MyScenarioModule}, "my_session_name", %{
             random_delay: 5 |> seconds,
             my_config_key: "my_config_val"
-          }
+          }},
 
           # run Scenario A, followed by Scenario B as a new scenario
-          run [A, B], %{
+          {[A, B], %{
             # ...
-          }
+          }},
 
           # same as above, but spawned 10 times
-          run {10, [A, B]}, %{
+          {{10, [A, B]}, %{
             # ...
-          }
-        end
+          }}
+        ]
       end
   """
 
