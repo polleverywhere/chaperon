@@ -39,7 +39,7 @@ defmodule Chaperon.Master do
 
   def run_load_test(lt_mod, options \\ []) do
     # TODO: store result
-    timeout = lt_mod.default_config[:loadtest_timeout] || :infinity
+    timeout = Chaperon.LoadTest.timeout(lt_mod)
 
     result = GenServer.call(@name,
       {:run_load_test, lt_mod, run_options(options)},

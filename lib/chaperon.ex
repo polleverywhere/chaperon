@@ -55,7 +55,7 @@ defmodule Chaperon do
       # => Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
   """
   def run_load_test(lt_mod, options \\ []) do
-    timeout = Chaperon.LoadTest.default_config(lt_mod)[:loadtest_timeout] || :infinity
+    timeout = Chaperon.LoadTest.timeout(lt_mod)
     config = Keyword.get(options, :config, %{})
 
     results =
