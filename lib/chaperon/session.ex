@@ -502,15 +502,7 @@ defmodule Chaperon.Session do
   @spec run_scenario(Session.t, Action.RunScenario.scenario) :: Session.t
   def run_scenario(session, scenario) do
     session
-    |> run_action(Action.RunScenario.new(scenario, session.config))
-  end
-
-  def run_scenario_on(session, scenario, :random_node) do
-    currval = session |> config(:execute_nested_scenario, nil)
-    session
-    |> set_config(execute_nested_scenario: :random_node)
-    |> run_scenario(scenario)
-    |> set_config(execute_nested_scenario: currval)
+    |> run_action(Action.RunScenario.new(scenario, session.config, :local))
   end
 
   @doc """
@@ -519,6 +511,37 @@ defmodule Chaperon.Session do
   """
   @spec run_scenario(Session.t, Action.RunScenario.scenario, map, boolean) :: Session.t
   def run_scenario(session, scenario, config, merge_config \\ true) do
+    session
+    |> run_scenario_with_config(scenario, config, merge_config, :local)
+  end
+
+  @doc """
+  Runs & captures metrics of running another `Chaperon.Scenario` from `session`
+  with a given `config` on a random node in the Chaperon cluster.
+  """
+  def schedule_scenario(session, scenario) do
+    session
+    |> run_action(Action.RunScenario.new(scenario, session.config, :cluster))
+  end
+
+  @doc """
+  Runs & captures metrics of running another `Chaperon.Scenario` from `session`
+  with a given `config`.
+  """
+  @spec schedule_scenario(Session.t, Action.RunScenario.scenario, map, boolean) :: Session.t
+  def schedule_scenario(session, scenario, config, merge_config \\ true) do
+    session
+    |> run_scenario_with_config(scenario, config, merge_config, :cluster)
+  end
+
+  @spec run_scenario_with_config(
+    Session.t,
+    Action.RunScenario.scenario,
+    map,
+    boolean,
+    Action.RunScenario.scheduler
+  ) :: Session.t
+  defp run_scenario_with_config(session, scenario, config, merge_config, scheduler) do
     scenario_config =
       if merge_config do
         Map.merge(session.config, config)
@@ -527,7 +550,7 @@ defmodule Chaperon.Session do
       end
 
     session
-    |> run_action(Action.RunScenario.new(scenario, scenario_config))
+    |> run_action(Action.RunScenario.new(scenario, scenario_config, scheduler))
   end
 
   @doc """

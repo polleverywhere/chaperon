@@ -6,6 +6,7 @@ defmodule Chaperon.Action.RunScenario do
   defstruct [
     scenario: nil,
     config: %{},
+    scheduler: :local,
     id: nil,
     pid: nil
   ]
@@ -13,6 +14,7 @@ defmodule Chaperon.Action.RunScenario do
   @type t :: %__MODULE__{
     scenario: Chaperon.Scenario.t,
     config: map,
+    scheduler: scheduler,
     id: String.t,
     pid: pid
   }
@@ -21,11 +23,13 @@ defmodule Chaperon.Action.RunScenario do
   alias Chaperon.Scenario
 
   @type scenario :: atom | Scenario.t
+  @type scheduler :: :local | :cluster
 
-  def new(scenario, config) do
+  def new(scenario, config, scheduler) do
     %RunScenario{
       scenario: scenario |> as_scenario,
-      config: config
+      config: config,
+      scheduler: scheduler
     }
   end
 
@@ -46,7 +50,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   alias Chaperon.Worker
   import Chaperon.Timing
 
-  def run(%{scenario: scenario, config: config}, session) do
+  def run(%{scheduler: scheduler, scenario: scenario, config: config}, session) do
     scenario_config =
       config
       |> Map.merge(%{merge_scenario_sessions: true})
@@ -54,18 +58,15 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
     start = timestamp()
 
     scenario_session =
-      case session.config[:execute_nested_scenario] do
-        :random_node ->
+      case {scheduler, session.config[:execute_nested_scenario]}  do
+        {:cluster, _} ->
+          schedule_cluster_worker(scenario, scenario_config, session)
+
+        {_, :random_node} ->
           # The code below runs the nested scenario on a random worker node
           # in the cluster. This can be alot slower if the amount of nested
           # scenarios being run is high.
-
-          scenario
-          |> Worker.start_nested(
-            session |> reset_action_metadata,
-            scenario_config
-          )
-          |> Worker.await(Worker.timeout(config))
+          schedule_cluster_worker(scenario, scenario_config, session)
 
         _ ->
           # In cases with a high amount of nested scenarios being executed per
@@ -75,11 +76,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
           # times out after a configured worker timeout. Instead, the execution
           # time of the nested scenario will be added to this session's
           # execution time.
-          Chaperon.Scenario.execute_nested(
-            scenario,
-            session |> reset_action_metadata,
-            scenario_config
-          )
+          schedule_local_worker(scenario, scenario_config, session)
       end
 
     merged_session =
@@ -89,6 +86,23 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       |> add_metric([:duration, :run_scenario, scenario.module], timestamp() - start)
 
     {:ok, merged_session}
+  end
+
+  defp schedule_cluster_worker(scenario, scenario_config, session) do
+    scenario
+    |> Worker.start_nested(
+      session |> reset_action_metadata,
+      scenario_config
+    )
+    |> Worker.await(Worker.timeout(scenario_config))
+  end
+
+  defp schedule_local_worker(scenario, scenario_config, session) do
+    Chaperon.Scenario.execute_nested(
+      scenario,
+      session |> reset_action_metadata,
+      scenario_config
+    )
   end
 
   def abort(action = %{pid: pid}, session) do
