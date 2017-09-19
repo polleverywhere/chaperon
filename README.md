@@ -14,11 +14,6 @@ Have a look at the `examples/firehose.ex` example file to see an example of both
 
 For a more in-depth introduction check out the [basic starter tutorial here](docs/Tutorial.md).
 
-## Where can I find our Poll Everywhere specific chaperon scenarios?
-
-In the [pollev_scenarios repository](https://github.com/polleverywhere/pollev_scenarios).
-This repo contains only the generic implementation code for `Chaperon` and some generic examples. It is used as a dependency in the other repository.
-
 ## Distributed Load-Testing
 
 Aside from running Chaperon scenarios from a single machine, you can also run them in a cluster.
