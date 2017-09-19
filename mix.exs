@@ -9,6 +9,7 @@ defmodule Chaperon.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
+      package: package(),
       dialyzer: [
         plt_add_deps: :apps_direct,
         plt_add_apps: [
@@ -37,6 +38,22 @@ defmodule Chaperon.Mixfile do
         :logger, :httpoison, :uuid, :poison, :histogrex, :websockex, :ssl, :crypto
       ],
       mod: {Chaperon, []}
+    ]
+  end
+
+  defp package do
+    [
+      name: "chaperon",
+      files: [
+        "lib", "docs", "examples", "mix.exs", "README*", "LICENSE"
+      ],
+      maintainers: [
+        "Christopher Bertels"
+      ],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/polleverywhere/chaperon"
+      }
     ]
   end
 
