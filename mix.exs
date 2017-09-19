@@ -10,6 +10,7 @@ defmodule Chaperon.Mixfile do
       start_permanent: Mix.env == :prod,
       deps: deps(),
       package: package(),
+      description: "An Elixir based HTTP load & performance testing framework",
       dialyzer: [
         plt_add_deps: :apps_direct,
         plt_add_apps: [
