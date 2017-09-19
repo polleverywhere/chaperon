@@ -14,6 +14,12 @@ Have a look at the `examples/firehose.ex` example file to see an example of both
 
 For a more in-depth introduction check out the [basic starter tutorial here](docs/Tutorial.md).
 
+## Documentation & Links
+
+  - [API Documentation for latest release](https://hexdocs.pm/chaperon)
+  - [Package on hex.pm](https://hex.pm/chaperon)
+
+
 ## Distributed Load-Testing
 
 Aside from running Chaperon scenarios from a single machine, you can also run them in a cluster.
