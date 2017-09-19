@@ -11,8 +11,8 @@ defmodule Chaperon.Action.WebSocket.Client do
     WebSocket client process state.
     """
 
-    defstruct messages: EQueue.new,
-              awaiting_clients: EQueue.new,
+    defstruct messages: EQ.new,
+              awaiting_clients: EQ.new,
               log_prefix: nil
   end
 
@@ -34,15 +34,15 @@ defmodule Chaperon.Action.WebSocket.Client do
   def handle_frame(msg, state) do
     Logger.debug(fn -> "#{state.log_prefix} Received Frame" end)
 
-    if EQueue.empty?(state.awaiting_clients) do
-      state = update_in state.messages, &EQueue.push(&1, msg)
+    if EQ.empty?(state.awaiting_clients) do
+      state = update_in state.messages, &EQ.push(&1, msg)
       {:ok, state}
     else
       state.awaiting_clients
-      |> EQueue.to_list
+      |> EQ.to_list
       |> Enum.each(&send(&1, {:next_frame, msg}))
 
-      state = put_in state.awaiting_clients, EQueue.new
+      state = put_in state.awaiting_clients, EQ.new
       {:ok, state}
     end
   end
@@ -77,13 +77,13 @@ defmodule Chaperon.Action.WebSocket.Client do
   end
 
   def handle_info({:next_frame, pid}, state) do
-    case EQueue.pop(state.messages) do
+    case EQ.pop(state.messages) do
       {{:value, msg}, remaining} ->
         state = put_in state.messages, remaining
         send pid, {:next_frame, msg}
         {:ok, state}
       {:empty, _} ->
-        state = update_in state.awaiting_clients, &EQueue.push(&1, pid)
+        state = update_in state.awaiting_clients, &EQ.push(&1, pid)
         {:ok, state}
     end
   end
