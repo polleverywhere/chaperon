@@ -13,7 +13,16 @@ defmodule Chaperon.Scenario.Metrics do
   Replaces base metrics for a given `session` with the histogram values for them.
   """
   def add_histogram_metrics(session) do
-    %{session | metrics: histogram_metrics(session)}
+    metrics = histogram_metrics(session)
+    reset()
+    %{session | metrics: metrics}
+  end
+
+  def reset() do
+    Metrics.delete(:durations)
+    Metrics.reduce(:ok, fn {name, _}, _ ->
+      Metrics.delete(:durations, name)
+    end)
   end
 
   @doc false
