@@ -53,6 +53,14 @@ defmodule Chaperon.Worker.Supervisor do
     end
   end
 
+  def schedule_async(mod, func, args) do
+    async Chaperon.Worker.random_node(), mod, func, args
+  end
+
+  def schedule_async(func) do
+    async Chaperon.Worker.random_node(), func
+  end
+
   def async(node, mod, func, args) do
     Task.Supervisor.async({@name, node}, mod, func, args)
   end

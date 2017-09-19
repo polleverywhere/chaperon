@@ -51,7 +51,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
       |> Session.delay(delay)
       |> Session.reset_action_metadata
 
-    Task.async fn ->
+    Chaperon.Worker.Supervisor.schedule_async fn ->
       start = timestamp()
       session = apply(session.scenario.module, action.func, [session])
       duration = timestamp() - start
