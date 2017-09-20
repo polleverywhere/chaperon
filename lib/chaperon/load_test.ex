@@ -127,7 +127,7 @@ defmodule Chaperon.LoadTest do
     end
   end
 
-  defp start_workers_with_config(lt_mod, extra_config \\ %{}) do
+  defp start_workers_with_config(lt_mod, extra_config) do
     lt_mod.scenarios
     |> Enum.map(fn
       {scenario, name, custom_config} ->
