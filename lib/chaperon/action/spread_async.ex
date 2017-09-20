@@ -25,7 +25,6 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
   alias Chaperon.Session
   use Chaperon.Session.Logging
-  import Chaperon.Timing
 
   def run(action, session) do
     delay = round(action.interval / action.rate)
@@ -52,12 +51,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
       |> Session.reset_action_metadata
 
     Chaperon.Worker.Supervisor.schedule_async fn ->
-      start = timestamp()
-      session = apply(session.scenario.module, action.func, [session])
-      duration = timestamp() - start
-
       session
-      |> Session.add_metric([:duration, action.func], duration)
+      |> Session.time(action.func, fn session ->
+        apply(session.scenario.module, action.func, [session])
+      end)
     end
   end
 

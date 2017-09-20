@@ -19,14 +19,15 @@ defmodule Chaperon.Action.CallFunction do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
-  import Chaperon.Timing
   alias Chaperon.Session
 
   def run(%{func: f, args: args}, session) when is_atom(f) do
-    start = timestamp()
-    session = apply(session.scenario.module, f, [session | args])
+    metric = [:call, {session.scenario.module, f}]
+
     session
-    |> Session.add_metric([:duration, :call, {session.scenario.module, f}], timestamp() - start)
+    |> Session.time(metric, fn session ->
+      apply(session.scenario.module, f, [session | args])
+    end)
     |> Session.ok
   end
   def run(%{func: f}, session), do: f.(session)

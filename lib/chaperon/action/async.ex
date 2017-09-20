@@ -22,7 +22,6 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   alias Chaperon.Session
   use Chaperon.Session.Logging
-  import Chaperon.Timing
 
   def run(
     action = %{
@@ -58,12 +57,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   ) do
     session = %{session | parent_pid: self()}
     Task.async fn ->
-      start = timestamp()
-      session = apply(mod, func_name, [session | args])
-      duration = timestamp() - start
-
       session
-      |> Session.add_metric([:duration, task_name], duration)
+      |> Session.time(task_name, fn session ->
+        apply(mod, func_name, [session | args])
+      end)
     end
   end
 end

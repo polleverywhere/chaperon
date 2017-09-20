@@ -1347,6 +1347,58 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Records a custom metric for the duration of calling a given function with the
+  current `Chaperon.Session`.
+
+  Example:
+
+      # records a metric named :my_metric with the duration of calling
+      # the given function in the module with the given args.
+      session
+      |> time(:my_action, MyModule, :my_func, [arg1, arg2])
+
+      # this would record the duration of calling:
+      # MyModule.my_func(session, arg1, arg2)
+  """
+  def time(session, metric, module, func, args \\ []) do
+    start = timestamp()
+    session = apply(module, func, [session | args])
+
+    session
+    |> add_metric(metric, timestamp() - start)
+  end
+
+
+  @doc """
+  Records a custom metric for the duration of calling a given function with the
+  current `Chaperon.Session`.
+
+  Example:
+
+      # records a metric named :my_metric with the duration of calling
+      # the given function
+      session
+      |> time(:my_action, fn session ->
+        # do stuff with session
+        # and at the end return session from inside this function
+      end)
+  """
+  def time(session, metric, func) do
+    start = timestamp()
+
+    session = case func do
+      f when is_atom(f) ->
+        apply(session.scenario.module, f, [session])
+
+      f when is_function(f) ->
+        f.(session)
+    end
+
+    session
+    |> add_metric(metric, timestamp() - start)
+  end
+
+  @doc """
   Makes a given function call async for `session`.
 
   ## Example

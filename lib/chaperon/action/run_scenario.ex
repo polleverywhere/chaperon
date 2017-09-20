@@ -83,7 +83,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       session
       |> merge_scenario_session(scenario_session)
       |> set_config(merge_scenario_sessions: session.config[:merge_scenario_sessions])
-      |> add_metric([:duration, :run_scenario, scenario.module], timestamp() - start)
+      |> add_metric([:run_scenario, scenario.module], timestamp() - start)
 
     {:ok, merged_session}
   end
