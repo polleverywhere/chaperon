@@ -17,7 +17,7 @@ For a more in-depth introduction check out the [basic starter tutorial here](doc
 ## Documentation & Links
 
   - [API Documentation for latest release](https://hexdocs.pm/chaperon)
-  - [Package on hex.pm](https://hex.pm/chaperon)
+  - [Package on hex.pm](https://hex.pm/packages/chaperon)
 
 
 ## Distributed Load-Testing
