@@ -15,11 +15,11 @@ defmodule Chaperon.Export.JSON do
   def encode(session, _opts \\ []) do
     session.metrics
     |> Enum.map(fn
-      {[:call, {mod, func}], vals} ->
+      {{:call, {mod, func}}, vals} ->
         %{action: :call, module: (inspect mod), function: func, metrics: metrics(vals)}
-      {[:call, func], vals} ->
+      {{:call, func}, vals} ->
         %{action: :call, function: func, metrics: metrics(vals)}
-      {[action, url], vals} ->
+      {{action, url}, vals} ->
         %{action: action, url: url, metrics: metrics(vals)}
       {action, vals} ->
         %{action: action, metrics: metrics(vals)}

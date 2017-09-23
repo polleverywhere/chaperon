@@ -37,10 +37,10 @@ defmodule Chaperon.Export.CSV do
   defp encode_rows(session, separator, delimiter) do
     session.metrics
     |> Enum.flat_map(fn
-      {[:call, {mod, func}], vals} ->
+      {{:call, {mod, func}}, vals} ->
         mod_name = Util.shortened_module_name(mod)
         encode_runs(vals, "call(#{mod_name}.#{func})", separator)
-      {[action, url], vals} ->
+      {{action, url}, vals} ->
         encode_runs(vals, "#{action}(#{url})", separator)
       {action, vals} ->
         encode_runs(vals, "#{action}", separator)

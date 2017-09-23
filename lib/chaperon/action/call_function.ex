@@ -22,7 +22,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
   alias Chaperon.Session
 
   def run(%{func: f, args: args}, session) when is_atom(f) do
-    metric = [:call, {session.scenario.module, f}]
+    metric = {:call, {session.scenario.module, f}}
 
     session
     |> Session.time(metric, fn session ->
