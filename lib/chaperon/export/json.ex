@@ -17,8 +17,6 @@ defmodule Chaperon.Export.JSON do
     |> Enum.map(fn
       {{:call, {mod, func}}, vals} ->
         %{action: :call, module: (inspect mod), function: func, metrics: metrics(vals)}
-      {{:call, func}, vals} ->
-        %{action: :call, function: func, metrics: metrics(vals)}
       {{action, url}, vals} ->
         %{action: action, url: url, metrics: metrics(vals)}
       {action, vals} ->
