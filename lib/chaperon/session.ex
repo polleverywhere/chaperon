@@ -33,6 +33,8 @@ defmodule Chaperon.Session do
     parent_pid: pid | nil
   }
 
+  @type metric :: {atom, any} | any
+
   require Logger
   alias Chaperon.Session
   alias Chaperon.Session.Error
@@ -1131,7 +1133,7 @@ defmodule Chaperon.Session do
   @doc """
   Stores a given metric `val` under a given `name` in `session`.
   """
-  @spec add_metric(Session.t, [any], any) :: Session.t
+  @spec add_metric(Session.t, metric, any) :: Session.t
   def add_metric(session, name, val) do
     session
     |> log_debug("Add metric #{inspect name} : #{val}")
@@ -1387,6 +1389,7 @@ defmodule Chaperon.Session do
       # this would record the duration of calling:
       # MyModule.my_func(session, arg1, arg2)
   """
+  @spec time(Session.t, metric, atom, atom, [any]) :: Session.t
   def time(session, metric, module, func, args \\ []) do
     start = timestamp()
     session = apply(module, func, [session | args])
@@ -1409,6 +1412,7 @@ defmodule Chaperon.Session do
         # and at the end return session from inside this function
       end)
   """
+  @spec time(Session.t, metric, (Session.t -> Session.t)) :: Session.t
   def time(session, metric, func) do
     start = timestamp()
 
