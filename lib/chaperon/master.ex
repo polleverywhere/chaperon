@@ -38,7 +38,6 @@ defmodule Chaperon.Master do
   end
 
   def run_load_test(lt_mod, options \\ []) do
-    # TODO: store result
     timeout = Chaperon.LoadTest.timeout(lt_mod)
 
     result = GenServer.call(@name,
