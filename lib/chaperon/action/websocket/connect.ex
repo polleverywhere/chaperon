@@ -42,18 +42,31 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
     |> log_info("WS_CONN #{ws_url}")
 
     timeout = Session.timeout(session)
-    {:ok, ws_conn} = WebSocket.Client.start_link(session, ws_url)
+    async_connect(session, ws_url)
 
-    session
-    |> log_info("Connected via WS to #{ws_url}")
+    receive do
+      {:ws_connected, ws_client, ^ws_url} ->
+        session
+        |> WebSocket.assign_for_action(action, ws_client, ws_url)
+        |> Session.ok
 
-    session
-    |> WebSocket.assign_for_action(action, ws_conn, ws_url)
-    |> Session.ok
+      after timeout ->
+        session
+        |> log_info("Timeout while connecting via WS to #{ws_url}")
+        |> Session.error({:timeout, :ws_conn, ws_url, timeout})
+    end
   end
 
   def abort(action, session) do
     {:ok, action, session}
+  end
+
+  def async_connect(session, ws_url) do
+    parent = self()
+    spawn_link fn ->
+      {:ok, ws_client} = WebSocket.Client.start_link(session, ws_url)
+      send parent, {:ws_connected, ws_client, ws_url}
+    end
   end
 end
 
