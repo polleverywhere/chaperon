@@ -116,7 +116,7 @@ defmodule Firehose.Scenario.PublishChannel do
   end
 end
 
-defmodule LoadTest.Staging do
+defmodule Firehose.LoadTest.Local do
   alias Firehose.Scenario.SubscribeChannel
   alias Firehose.Scenario.PublishChannel
   alias Firehose.Scenario.WSSubscribeChannel
@@ -191,4 +191,4 @@ defmodule LoadTest.Staging do
   ]
 end
 
-Chaperon.run_load_test(LoadTest.Staging)
+Chaperon.run_load_test(Firehose.LoadTest.Local)

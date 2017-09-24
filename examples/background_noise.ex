@@ -1,4 +1,4 @@
-defmodule Example.Scenario.BackgroundNoise do
+defmodule BackgroundNoise.Scenario do
   use Chaperon.Scenario
 
   def init(session) do
@@ -55,8 +55,7 @@ defmodule Example.Scenario.BackgroundNoise do
   end
 end
 
-defmodule LoadTest.Production do
-  alias Example.Scenario.BackgroundNoise
+defmodule BackgroundNoise.LoadTest.Production do
   use Chaperon.LoadTest
 
   def default_config, do: %{
@@ -68,14 +67,14 @@ defmodule LoadTest.Production do
   }
 
   def scenarios, do: [
-    {BackgroundNoise, %{
+    {BackgroundNoise.Scenario, %{
       post_data: true
     }},
 
-    {BackgroundNoise, %{
+    {BackgroundNoise.Scenario, %{
       post_data: true
     }}
   ]
 end
 
-Chaperon.run_load_test(LoadTest.Production, print_results: true)
+Chaperon.run_load_test(BackgroundNoise.LoadTest.Production, print_results: true)

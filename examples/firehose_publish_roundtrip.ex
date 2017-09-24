@@ -37,7 +37,7 @@ defmodule Firehose.Scenario.PublishRountrip do
   end
 end
 
-defmodule LoadTest.Staging do
+defmodule Firehose.LoadTest.PublishRountrip.Local do
   alias Firehose.Scenario.PublishRountrip
 
   use Chaperon.LoadTest
@@ -55,4 +55,4 @@ defmodule LoadTest.Staging do
   ]
 end
 
-Chaperon.run_load_test(LoadTest.Staging)
+Chaperon.run_load_test(Firehose.LoadTest.PublishRountrip.Local)

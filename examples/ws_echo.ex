@@ -1,4 +1,4 @@
-defmodule Scenario.WS.Echo do
+defmodule WS.Echo.Scenario do
   use Chaperon.Scenario
 
   def init(session) do
@@ -27,7 +27,7 @@ defmodule Scenario.WS.Echo do
   end
 end
 
-defmodule LoadTest.Echo do
+defmodule WS.Echo.LoadTest do
   use Chaperon.LoadTest
 
   def default_config, do: %{
@@ -36,7 +36,7 @@ defmodule LoadTest.Echo do
   }
 
   def scenarios, do: [
-    {{100, Scenario.WS.Echo}, %{
+    {{100, WS.Echo.Scenario}, %{
       echo: %{
         iterations: 10
       }
@@ -44,4 +44,4 @@ defmodule LoadTest.Echo do
   ]
 end
 
-Chaperon.run_load_test(LoadTest.Echo)
+Chaperon.run_load_test(WS.Echo.LoadTest)
