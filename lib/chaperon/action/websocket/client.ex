@@ -42,8 +42,7 @@ defmodule Chaperon.Action.WebSocket.Client do
       |> EQ.to_list
       |> Enum.each(&send(&1, {:next_frame, msg}))
 
-      state = put_in state.awaiting_clients, EQ.new
-      {:ok, state}
+      {:ok, put_in(state.awaiting_clients, EQ.new)}
     end
   end
 
@@ -64,7 +63,9 @@ defmodule Chaperon.Action.WebSocket.Client do
   end
 
   def handle_disconnect(%{reason: {:local, reason}}, state) do
-    Logger.debug(fn -> "#{state.log_prefix} Local close with reason: #{inspect reason}" end)
+    Logger.debug(fn ->
+      "#{state.log_prefix} Local close with reason: #{inspect reason}"
+    end)
     {:ok, state}
   end
 
