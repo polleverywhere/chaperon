@@ -59,7 +59,13 @@ defmodule Chaperon.Session do
   Concurrently spreads a given action with a given rate over a given time
   interval within `session`.
   """
-  @spec cc_spread(Session.t, atom, SpreadAsync.rate, SpreadAsync.time, atom | nil) :: Session.t
+  @spec cc_spread(
+    Session.t,
+    atom,
+    SpreadAsync.rate,
+    SpreadAsync.time,
+    atom | nil
+  ) :: Session.t
   def cc_spread(session, func_name, rate, interval, task_name \\ nil) do
     session
     |> run_action(%SpreadAsync{
@@ -509,7 +515,12 @@ defmodule Chaperon.Session do
   Runs & captures metrics of running another `Chaperon.Scenario` from `session`
   with a given `config`.
   """
-  @spec run_scenario(Session.t, Action.RunScenario.scenario, map, boolean) :: Session.t
+  @spec run_scenario(
+    Session.t,
+    Action.RunScenario.scenario,
+    map,
+    boolean
+  ) :: Session.t
   def run_scenario(session, scenario, config, merge_config \\ true) do
     session
     |> run_scenario_with_config(scenario, config, merge_config, :local)
@@ -528,7 +539,12 @@ defmodule Chaperon.Session do
   Runs & captures metrics of running another `Chaperon.Scenario` from `session`
   with a given `config`.
   """
-  @spec schedule_scenario(Session.t, Action.RunScenario.scenario, map, boolean) :: Session.t
+  @spec schedule_scenario(
+    Session.t,
+    Action.RunScenario.scenario,
+    map,
+    boolean
+  ) :: Session.t
   def schedule_scenario(session, scenario, config, merge_config \\ true) do
     session
     |> run_scenario_with_config(scenario, config, merge_config, :cluster)
@@ -976,7 +992,11 @@ defmodule Chaperon.Session do
         |> assign(signal: signal)
       end
   """
-  @spec await_signal_or_timeout(Session.t, non_neg_integer, nil | (Session.t, any -> Session.t)) :: Session.t
+  @spec await_signal_or_timeout(
+    Session.t,
+    non_neg_integer,
+    nil | (Session.t, any -> Session.t)
+  ) :: Session.t
   def await_signal_or_timeout(session, timeout, callback \\ nil) do
     receive do
       {:chaperon_signal, signal} ->
@@ -1001,7 +1021,10 @@ defmodule Chaperon.Session do
         |> assign(signal: signal)
       end)
   """
-  @spec await_signal(Session.t, any | (Session.t, any -> Session.t)) :: Session.t
+  @spec await_signal(
+    Session.t,
+    any | (Session.t, any -> Session.t)
+  ) :: Session.t
   def await_signal(session, callback) when is_function(callback) do
     timeout = session |> timeout
 
@@ -1119,7 +1142,11 @@ defmodule Chaperon.Session do
   Stores a `Chaperon.Session.Error` in `session` for a given `action` for later
   inspection.
   """
-  @spec add_error(Session.t, Chaperon.Actionable.t, {:error, Error.t}) :: Session.t
+  @spec add_error(
+    Session.t,
+    Chaperon.Actionable.t,
+    {:error, Error.t}
+  ) :: Session.t
   def add_error(session, action, error) do
     put_in session.errors[action], error
   end
@@ -1367,7 +1394,6 @@ defmodule Chaperon.Session do
     session
     |> add_metric(metric, timestamp() - start)
   end
-
 
   @doc """
   Records a custom metric for the duration of calling a given function with the

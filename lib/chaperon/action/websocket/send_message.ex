@@ -28,7 +28,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
     session
     |> log_debug("WS_SEND #{ws_url} #{inspect action.message}")
 
-    :ok = WebSocket.Client.send_frame(socket, {:binary, action |> encoded_message})
+    :ok = WebSocket.Client.send_frame(
+      socket,
+      {:binary, action |> encoded_message}
+    )
     {:ok, session}
   end
 

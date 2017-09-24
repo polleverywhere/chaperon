@@ -142,7 +142,10 @@ defmodule Chaperon.Scenario do
     |> teardown(session)
   end
 
-  @spec run(Scenario.t, Session.t | {:ok, Session.t} | {:error, any}) :: Session.t | {:error, any}
+  @spec run(
+    Scenario.t,
+    Session.t | {:ok, Session.t} | {:error, any}
+  ) :: Session.t | {:error, any}
   def run(scenario, {:ok, session}) do
     scenario
     |> run(session)

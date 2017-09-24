@@ -79,10 +79,12 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
           schedule_local_worker(scenario, scenario_config, session)
       end
 
+    merge_scenario_sessions = session.config[:merge_scenario_sessions]
+
     merged_session =
       session
       |> merge_scenario_session(scenario_session)
-      |> set_config(merge_scenario_sessions: session.config[:merge_scenario_sessions])
+      |> set_config(merge_scenario_sessions: merge_scenario_sessions)
       |> add_metric({:run_scenario, scenario.module}, timestamp() - start)
 
     {:ok, merged_session}

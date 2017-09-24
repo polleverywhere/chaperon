@@ -26,11 +26,22 @@ defmodule Chaperon.Worker.Supervisor do
   end
 
   def start_nested_worker(node, scenario_mod, session, config, timeout) do
-    start_worker_via(node, scenario_mod, :execute_nested, [session, config], timeout)
+    start_worker_via(
+      node,
+      scenario_mod,
+      :execute_nested,
+      [session, config],
+      timeout
+    )
   end
 
   defp start_worker_via(node, scenario_mod, function, args, timeout) do
-    async(node, __MODULE__, :worker_task, [node, scenario_mod, function, args, timeout])
+    async(
+      node,
+      __MODULE__,
+      :worker_task,
+      [node, scenario_mod, function, args, timeout]
+    )
   end
 
   def worker_task(node, scenario_mod, function, args, timeout) do

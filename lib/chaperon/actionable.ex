@@ -8,7 +8,9 @@ defprotocol Chaperon.Actionable do
   alias Chaperon.Session
   alias Chaperon.Action.Error
 
-  @type error :: {:error, Error.t} | {:error, Chaperon.Session.Error.t} | {:error, any}
+  @type error :: {:error, Error.t}
+                 | {:error, Chaperon.Session.Error.t}
+                 | {:error, any}
   @type result :: {:ok, Session.t} | error
   @type abort_result :: {:ok, Chaperon.Actionable.t, Session.t} | error
 

@@ -18,7 +18,7 @@ defmodule Chaperon.Scenario.Metrics do
     %{session | metrics: metrics}
   end
 
-  def reset() do
+  def reset do
     Metrics.delete(:durations)
     Metrics.reduce(:ok, fn {name, _}, _ ->
       Metrics.delete(:durations, name)
@@ -35,7 +35,10 @@ defmodule Chaperon.Scenario.Metrics do
     end)
   end
 
-  @percentiles [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0, 80.0, 85.0, 90.0, 95.0, 99.0, 99.9, 99.99, 99.999]
+  @percentiles [
+    10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0,
+    80.0, 85.0, 90.0, 95.0, 99.0, 99.9, 99.99, 99.999
+  ]
 
   def percentiles, do: @percentiles
 

@@ -10,7 +10,10 @@ defmodule Chaperon.Supervisor do
       supervisor(Chaperon.Master.Supervisor, []),
       supervisor(Chaperon.Worker.Supervisor, []),
       worker(Chaperon.Scenario.Metrics, []),
-      :hackney_pool.child_spec(:chaperon, [timeout: 20_000, max_connections: 200_000])
+      :hackney_pool.child_spec(
+        :chaperon,
+        [timeout: 20_000, max_connections: 200_000]
+      )
     ]
 
     opts = [strategy: :one_for_one, name: Chaperon.Supervisor]
