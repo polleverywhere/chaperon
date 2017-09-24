@@ -9,13 +9,15 @@ defmodule Chaperon.Master do
   defstruct [
     id: nil,
     sessions: %{},
-    tasks: %{}
+    tasks: %{},
+    non_worker_nodes: []
   ]
 
   @type t :: %Chaperon.Master{
     id: atom,
     sessions: %{atom => Chaperon.Session.t},
-    tasks: %{atom => pid}
+    tasks: %{atom => pid},
+    non_worker_nodes: [atom]
   }
 
   use GenServer
@@ -79,6 +81,10 @@ defmodule Chaperon.Master do
     end
   end
 
+  def ignore_node_as_worker(node) do
+    GenServer.call(@name, {:ignore_node_as_worker, node})
+  end
+
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
     Logger.info "Starting LoadTest #{lt_mod} @ Master #{state.id}"
     task_id = UUID.uuid4
@@ -88,6 +94,11 @@ defmodule Chaperon.Master do
     end
     state = update_in state.tasks, &Map.put(&1, {lt_mod, task_id}, client)
     {:noreply, state}
+  end
+
+  def handle_call({:ignore_node_as_worker, node}, _, state) do
+    state = update_in state.non_worker_nodes, &[node | &1]
+    {:reply, :ok, state}
   end
 
   def handle_cast({:load_test_finished, lt_mod, task_id, session}, state) do

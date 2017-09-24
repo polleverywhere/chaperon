@@ -23,6 +23,26 @@ defmodule Chaperon do
   end
 
   @doc """
+  Connect the current ndoe to a Chaperon cluster without taking on any work
+  (not running any load test Session tasks).
+
+  Useful if you want to connect to a running cluster for inspecting running load
+  tests and kicking off new ones without performing any load testing work on the
+  connecting node.
+  """
+  @spec connect_to_master_without_work(atom) :: :ok | {:error, any}
+  def connect_to_master_without_work(node_name) do
+    if Node.connect(node_name) do
+      Process.sleep(500) # wait a bit because of node connection delays
+      with :ok <- Chaperon.Master.ignore_node_as_worker(node()) do
+        :ok
+      end
+    else
+      {:error, "Connecting to Chaperon master node failed: #{node_name}"}
+    end
+  end
+
+  @doc """
   Runs a given load_test module's scenarios concurrently, outputting metrics
   at the end.
 
