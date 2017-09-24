@@ -254,7 +254,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         session
         |> add_result(action, response)
         |> add_metric(
-          [action.method, HTTP.metrics_url(action, session)],
+          {action.method, HTTP.metrics_url(action, session)},
           timestamp() - start
         )
         |> store_cookies(response)
