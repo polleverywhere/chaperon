@@ -66,7 +66,7 @@ end
 
 ### Load test configuration
 
-Once we've defined the Scenario logic above, we define the load test configuration in another module that uses the `Chaperon.Loadtest` module to define everything we need to run the load test.
+Once we've defined the Scenario logic above, we define the load test configuration in another module that uses the `Chaperon.LoadTest` module to define everything we need to run the load test.
 
 We provide a default config that is used by all load test scenarios we want to run as part of the load test, which in this case is just the `PingPong` scenario we wrote.
 
