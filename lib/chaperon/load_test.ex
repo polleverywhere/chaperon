@@ -1,7 +1,7 @@
 defmodule Chaperon.LoadTest do
   @moduledoc """
-  Implementation & helper module for defining load_tests.
-  LoadTests define a list of scenarios and their config to run them with.
+  Implementation & helper module for defining load tests.
+  A load test defines a list of scenarios and their config to run them with.
 
   ## Example
 
