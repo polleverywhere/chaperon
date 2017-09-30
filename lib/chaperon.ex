@@ -23,7 +23,7 @@ defmodule Chaperon do
   end
 
   @doc """
-  Connect the current ndoe to a Chaperon cluster without taking on any work
+  Connect the current node to a Chaperon cluster without taking on any work
   (not running any load test Session tasks).
 
   Useful if you want to connect to a running cluster for inspecting running load
