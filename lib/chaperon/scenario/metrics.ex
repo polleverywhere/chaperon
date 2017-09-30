@@ -48,7 +48,9 @@ defmodule Chaperon.Scenario.Metrics do
   end
 
   def histogram_vals(hist) do
-    Map.merge(percentiles(hist), %{
+    hist
+    |> percentiles
+    |> Map.merge(%{
       :total_count => Metrics.total_count(hist),
       :min => Metrics.min(hist),
       :mean => Metrics.mean(hist),
