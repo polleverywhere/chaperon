@@ -96,8 +96,9 @@ defmodule Chaperon do
       print_results(results)
     end
 
-    session = results
-              |> Chaperon.LoadTest.merge_sessions
+    session =
+      results
+      |> Chaperon.LoadTest.merge_sessions
 
     session =
       if session.config[:merge_scenario_sessions] do
