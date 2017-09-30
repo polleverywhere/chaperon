@@ -30,8 +30,21 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
     end)
     |> Session.ok
   end
-  def run(%{func: f}, session), do: f.(session)
-  def abort(func, session),     do: {:ok, func, session}
+
+  def run(%{func: f, args: args}, session) do
+    metric = {:call, inspect f}
+
+    session
+    |> Session.time(metric, fn session ->
+      f
+      |> apply([session | args])
+    end)
+    |> Session.ok
+  end
+
+  def abort(action, session) do
+    {:ok, action, session}
+  end
 end
 
 defimpl String.Chars, for: Chaperon.Action.CallFunction do
