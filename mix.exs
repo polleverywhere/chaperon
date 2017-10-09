@@ -36,7 +36,8 @@ defmodule Chaperon.Mixfile do
   def application do
     [
       applications: [
-        :logger, :httpoison, :uuid, :poison, :histogrex, :websockex, :ssl, :crypto
+        :logger, :httpoison, :uuid, :poison, :histogrex, :websockex, :ssl,
+        :crypto, :instream
       ],
       mod: {Chaperon, []}
     ]
@@ -75,6 +76,7 @@ defmodule Chaperon.Mixfile do
       {:histogrex, "~> 0.0.4"},
       {:websockex, "~> 0.2"},
       {:e_q, "~> 1.0.0"},
+      {:instream, "~> 0.16.0"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false}
