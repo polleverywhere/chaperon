@@ -5,6 +5,7 @@ defmodule Chaperon do
 
   use Application
   require Logger
+  alias Chaperon.Util
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
@@ -117,7 +118,13 @@ defmodule Chaperon do
     data =
       options
       |> encoder
-      |> apply(:encode, [session])
+      |> apply(:encode, [
+        session,
+        Keyword.merge(options,
+          load_test: Util.shortened_module_name(lt_mod),
+          duration: duration_s
+        )
+      ])
 
     case options |> output(lt_mod) do
       :remote ->
@@ -132,13 +139,20 @@ defmodule Chaperon do
 
   defp encoder(options) do
     case export_format(options) do
-      :csv  -> Chaperon.Export.CSV
-      :json -> Chaperon.Export.JSON
+      :csv      -> Chaperon.Export.CSV
+      :json     -> Chaperon.Export.JSON
+      :influxdb -> Chaperon.Export.InfluxDB
     end
   end
 
   defp output(options, lt_mod) do
-    Keyword.get(options, :output, default_output_file(options, lt_mod))
+    case export_format(options) do
+      :influxdb ->
+        :influxdb
+
+      _ ->
+        Keyword.get(options, :output, default_output_file(options, lt_mod))
+    end
   end
 
   defp export_format(options) do
@@ -172,6 +186,12 @@ defmodule Chaperon do
       scenarios: lt_mod.scenarios,
       default_config: Chaperon.LoadTest.default_config(lt_mod)
     }, pretty: true)
+  end
+
+  def write_output(lt_mod, data, :influxdb) do
+    for d <- data do
+      :ok = Chaperon.Export.InfluxDB.write(d)
+    end
   end
 
   def write_output(lt_mod, output, path) do

@@ -13,7 +13,8 @@ defmodule Chaperon.Supervisor do
       :hackney_pool.child_spec(
         :chaperon,
         [timeout: 20_000, max_connections: 200_000]
-      )
+      ),
+      Chaperon.Export.InfluxDB.child_spec
     ]
 
     opts = [strategy: :one_for_one, name: Chaperon.Supervisor]

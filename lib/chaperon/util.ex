@@ -118,4 +118,13 @@ defmodule Chaperon.Util do
         false
     end
   end
+
+  def percentile_name(percentile) do
+    p =
+      percentile
+      |> to_string
+      |> String.replace(".", "_")
+
+    :"percentile_#{p}"
+  end
 end
