@@ -3,30 +3,6 @@ defmodule Chaperon.Util do
   Helper functions used throughout `Chaperon`'s codebase.
   """
 
-  @doc """
-  Converts a given value to a list.
-  If given a list, simply returns the list.
-  Otherwise wraps the given value in a list.
-
-  ## Examples
-
-      iex> Chaperon.Util.as_list([1,2,3])
-      [1,2,3]
-      iex> Chaperon.Util.as_list(nil)
-      []
-      iex> Chaperon.Util.as_list(1)
-      [1]
-      iex> Chaperon.Util.as_list("foo")
-      ["foo"]
-  """
-  @spec as_list(any) :: [any]
-  def as_list(nil),
-    do: []
-  def as_list(l) when is_list(l),
-    do: l
-  def as_list(val),
-    do: [val]
-
   @spec preserve_vals_merge(map, map) :: map
   def preserve_vals_merge(map1, map2) do
     new_map = for {k, v2} <- map2 do

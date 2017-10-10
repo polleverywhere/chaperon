@@ -209,7 +209,7 @@ defmodule Chaperon do
     Logger.info("Results:")
     for session <- results.sessions do
       for {action, results} <- session.results do
-        for res <- results |> Chaperon.Util.as_list |> List.flatten do
+        for res <- results |> List.wrap |> List.flatten do
           case res do
             {:async, name, results} when is_list(results) ->
               results

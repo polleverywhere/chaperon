@@ -908,7 +908,7 @@ defmodule Chaperon.Session do
   """
   @spec add_async_task(Session.t, atom, Task.t) :: Session.t
   def add_async_task(session, name, task) do
-    update_in session.async_tasks[name], &[task | as_list(&1)]
+    update_in session.async_tasks[name], &[task | List.wrap(&1)]
   end
 
   @doc """
@@ -1107,7 +1107,7 @@ defmodule Chaperon.Session do
       true ->
         session
         |> log_debug("Add result #{action}")
-        update_in session.results[action], &[result | as_list(&1)]
+        update_in session.results[action], &[result | List.wrap(&1)]
 
       _ ->
         session
@@ -1123,7 +1123,7 @@ defmodule Chaperon.Session do
       true ->
         session
         |> log_debug("Add WS result #{action} : #{inspect result}")
-        update_in session.results[action], &[result | as_list(&1)]
+        update_in session.results[action], &[result | List.wrap(&1)]
 
       _ ->
         session
@@ -1137,7 +1137,7 @@ defmodule Chaperon.Session do
   def add_metric(session, name, val) do
     session
     |> log_debug("Add metric #{inspect name} : #{val}")
-    update_in session.metrics[name], &[val | as_list(&1)]
+    update_in session.metrics[name], &[val | List.wrap(&1)]
   end
 
   @doc """
