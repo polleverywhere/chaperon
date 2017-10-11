@@ -83,7 +83,7 @@ defmodule PublishAndAwait do
     |> ws_recv(with_result: fn(session, msg) ->
       # store msg in session assignments once received via WebSocket
       session
-      |> assign(subscription_messages: &[msg | &1])
+      |> update_assign(subscription_messages: &[msg | &1])
     end)
   end
 
