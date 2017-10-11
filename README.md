@@ -53,7 +53,7 @@ The master node can be identical to the worker nodes, the only difference being 
 ## Is this ready for production use?
 
 Chaperon is being used at [Poll Everywhere](https://polleverywhere.com)  and was written for load testing our infrastructure and polling services.
-It has been used to simulate over 100k concurrent vote participant sessions on a 5 node cluster.
+It has been used to simulate over 100k concurrent vote participant sessions on a 4 node cluster.
 It currently is still on a pre 1.0 version. A 1.0 release is not planned yet as the main focus is to get rid of any potential bugs, refine the public API and internal implementation code until we're confident that everything works as expected.
 That doesn't mean it shouldn't be used in its current stage, though.
 
