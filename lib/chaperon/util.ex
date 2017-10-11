@@ -95,6 +95,7 @@ defmodule Chaperon.Util do
     end
   end
 
+  @spec shortened_module_name(module, non_neg_integer) :: String.t
   def shortened_module_name(mod, max_nesting \\ 2) do
     mod
     |> Module.split
