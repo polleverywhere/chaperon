@@ -113,13 +113,7 @@ It is recommended to use these macros whenever performing logging inside a sessi
 
 ## Built-in session actions
 
-To get an overview of all supported built-in actions, have a look at the API documentation for the `Chaperon.Session` module.
-To generate the API documentation (it might be hosted somewhere in the future - but for now we need to generate it ourselves):
-
-```
-$ mix docs
-$ open doc/index.html
-```
+To get an overview of all supported built-in actions, have a look at the [API documentation for the `Chaperon.Session` module](https://hexdocs.pm/chaperon/Chaperon.Session.html):
 
 Here's a short list of commonly used helper functions for performing the built-in actions:
 
