@@ -30,24 +30,40 @@ defmodule Chaperon.Export.InfluxDB do
     end
   end
 
+  @behaviour Chaperon.Exporter
+
   use Instream.Connection, otp_app: :chaperon
   alias Chaperon.Util
   alias __MODULE__.LoadTestMeasurement
+  require Logger
+
+  def write_output(lt_mod, data, _) do
+    Logger.info "Writing data for #{lt_mod |> Util.module_name} to InfluxDB"
+
+    for d <- data do
+      :ok = __MODULE__.write(d)
+    end
+
+    :ok
+  end
 
   @doc """
   Sends metrics of given `session` to InfluxDB in `LoadTestMeasurement` format.
   """
   def encode(session, opts \\ []) do
-    session.metrics
-    |> Enum.flat_map(fn
-      {{:call, {mod, func}}, vals} ->
-        mod_name = Util.shortened_module_name(mod)
-        encode_runs(vals, "call(#{mod_name}.#{func})", opts)
-      {{action, url}, vals} ->
-        encode_runs(vals, "#{action}(#{url})", opts)
-      {action, vals} ->
-        encode_runs(vals, "#{action}", opts)
-    end)
+    data =
+      session.metrics
+      |> Enum.flat_map(fn
+        {{:call, {mod, func}}, vals} ->
+          mod_name = Util.shortened_module_name(mod)
+          encode_runs(vals, "call(#{mod_name}.#{func})", opts)
+        {{action, url}, vals} ->
+          encode_runs(vals, "#{action}(#{url})", opts)
+        {action, vals} ->
+          encode_runs(vals, "#{action}", opts)
+      end)
+
+    {:ok, data}
   end
 
   def encode_runs(runs, action_name, opts) when is_list(runs) do

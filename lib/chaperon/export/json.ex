@@ -3,6 +3,8 @@ defmodule Chaperon.Export.JSON do
   JSON metrics export module.
   """
 
+  @behaviour Chaperon.Exporter
+
   alias Chaperon.Scenario.Metrics
 
   @columns [
@@ -13,23 +15,30 @@ defmodule Chaperon.Export.JSON do
   Encodes metrics of given `session` into JSON format.
   """
   def encode(session, _opts \\ []) do
-    session.metrics
-    |> Enum.map(fn
-      {{:call, {mod, func}}, vals} ->
-        %{
-          action: :call,
-          module: (inspect mod),
-          function: func,
-          metrics: metrics(vals)
-        }
+    data =
+      session.metrics
+      |> Enum.map(fn
+        {{:call, {mod, func}}, vals} ->
+          %{
+            action: :call,
+            module: (inspect mod),
+            function: func,
+            metrics: metrics(vals)
+          }
 
-      {{action, url}, vals} ->
-        %{action: action, url: url, metrics: metrics(vals)}
+        {{action, url}, vals} ->
+          %{action: action, url: url, metrics: metrics(vals)}
 
-      {action, vals} ->
-        %{action: action, metrics: metrics(vals)}
-    end)
-    |> Poison.encode!
+        {action, vals} ->
+          %{action: action, metrics: metrics(vals)}
+      end)
+      |> Poison.encode!
+
+    {:ok, data}
+  end
+
+  def write_output(lt_mod, data, filename) do
+    Chaperon.write_output_to_file(lt_mod, data, filename <> ".json")
   end
 
   def metrics([]), do: %{}

@@ -3,6 +3,8 @@ defmodule Chaperon.Export.CSV do
   CSV metrics export module.
   """
 
+  @behaviour Chaperon.Exporter
+
   alias Chaperon.Util
   alias Chaperon.Scenario.Metrics
 
@@ -16,9 +18,16 @@ defmodule Chaperon.Export.CSV do
     separator = opts |> Keyword.get(:separator, @separator)
     delimiter = opts |> Keyword.get(:delimiter, @delimiter)
 
-    encode_header(separator)
-    <> delimiter
-    <> (session |> encode_rows(separator, delimiter))
+    data =
+      encode_header(separator)
+      <> delimiter
+      <> (session |> encode_rows(separator, delimiter))
+
+    {:ok, data}
+  end
+
+  def write_output(lt_mod, data, filename) do
+    Chaperon.write_output_to_file(lt_mod, data, filename <> ".csv")
   end
 
   @header_fields [

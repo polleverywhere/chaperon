@@ -95,10 +95,10 @@ defmodule Chaperon.Util do
     end
   end
 
-  def shortened_module_name(mod) do
+  def shortened_module_name(mod, max_nesting \\ 2) do
     mod
     |> Module.split
-    |> last(2)
+    |> last(max_nesting)
     |> Enum.join(".")
   end
 

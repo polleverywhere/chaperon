@@ -51,28 +51,30 @@ defmodule Chaperon do
   - `options` List of options to be used. Valid values are:
       - `:print_results` If set to `true`, will print all action results.
       - `:encode` Can be set to `:json`, defaults to `:csv`
-      - `:output` Can be set to a file path, defaults to `:stdio`
+      - `:output` Can be set to a file path
       - `:tag` Can be set to be used when using the default export filename.
         Allows adding a custom 'tag' string as a prefix to the generated result
         output filename.
   ## Example
 
+      alias Chaperon.Export.JSON
+
       Chaperon.run_load_test MyLoadTest, print_results: true
       # => Prints results & outputs metrics in CSV (default) format at the end
 
-      Chaperon.run_load_test MyLoadTest, export: :json
+      Chaperon.run_load_test MyLoadTest, export: JSON
       # => Doesn't print results & outputs metrics in JSON format at the end
 
       Chaperon.run_load_test MyLoadTest, output: "metrics.csv"
       # => Outputs metrics in CSV format to metrics.csv file
 
-      Chaperon.run_load_test MyLoadTest, export: :json, output: "metrics.json"
+      Chaperon.run_load_test MyLoadTest, export: JSON, output: "metrics.json"
       # => Outputs metrics in JSON format to metrics.json file
 
       Chaperon.run_load_test MyLoadTest, tag: "master"
       # => Outputs metrics in CCSV format to "results/<date>/MyLoadTest/master-<timestamp>.csv"
 
-      Chaperon.run_load_test MyLoadTest, export: :json, tag: "master"
+      Chaperon.run_load_test MyLoadTest, export: JSON, tag: "master"
       # => Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
   """
   def run_load_test(lt_mod, options \\ []) do
@@ -115,9 +117,9 @@ defmodule Chaperon do
 
     print_separator()
 
-    data =
+    {:ok, data} =
       options
-      |> encoder
+      |> exporter
       |> apply(:encode, [
         session,
         Keyword.merge(options,
@@ -131,32 +133,24 @@ defmodule Chaperon do
         {:remote, session, data}
 
       output ->
-        write_output(lt_mod, data, output)
+        :ok =
+          options
+          |> exporter
+          |> apply(:write_output, [
+            lt_mod, data, output
+          ])
 
         session
     end
   end
 
-  defp encoder(options) do
-    case export_format(options) do
-      :csv      -> Chaperon.Export.CSV
-      :json     -> Chaperon.Export.JSON
-      :influxdb -> Chaperon.Export.InfluxDB
-    end
-  end
-
   defp output(options, lt_mod) do
-    case export_format(options) do
-      :influxdb ->
-        :influxdb
-
-      _ ->
-        Keyword.get(options, :output, default_output_file(options, lt_mod))
-    end
+    options
+    |> Keyword.get(:output, default_output_file(options, lt_mod))
   end
 
-  defp export_format(options) do
-    Keyword.get(options, :export, :csv)
+  def exporter(options) do
+    Keyword.get(options, :export, Chaperon.Export.CSV)
   end
 
   # if output not defined by user, use default output format and file name
@@ -170,31 +164,25 @@ defmodule Chaperon do
       DateTime.utc_now
       |> DateTime.to_unix
 
-    format = export_format(options)
     dir = "results/#{Date.utc_today}/#{mod_name}"
 
     case options[:tag] do
-      nil -> "#{dir}/#{timestamp}.#{format}"
-      t   -> "#{dir}/#{t}-#{timestamp}.#{format}"
+      nil -> "#{dir}/#{timestamp}"
+      t   -> "#{dir}/#{t}-#{timestamp}"
     end
   end
 
-  def write_output(lt_mod, output, :stdio) do
+  def write_output_to_stdio(lt_mod, output) do
     IO.puts(output)
     print_separator()
     IO.inspect(%{
       scenarios: lt_mod.scenarios,
       default_config: Chaperon.LoadTest.default_config(lt_mod)
     }, pretty: true)
+    :ok
   end
 
-  def write_output(lt_mod, data, :influxdb) do
-    for d <- data do
-      :ok = Chaperon.Export.InfluxDB.write(d)
-    end
-  end
-
-  def write_output(lt_mod, output, path) do
+  def write_output_to_file(lt_mod, output, path) do
     path
     |> Path.dirname
     |> File.mkdir_p!
