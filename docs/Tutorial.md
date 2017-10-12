@@ -90,7 +90,6 @@ defmodule LoadTest.PingPong do
       }
     }}
   ]
-  end
 end
 ```
 
