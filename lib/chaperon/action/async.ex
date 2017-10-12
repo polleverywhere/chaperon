@@ -12,7 +12,7 @@ defmodule Chaperon.Action.Async do
   ]
 
   @type t :: %Chaperon.Action.Async{
-    module: atom,
+    module: module,
     function: atom,
     args: [any],
     task_name: atom

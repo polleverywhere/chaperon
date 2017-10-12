@@ -76,7 +76,7 @@ defmodule Chaperon.LoadTest do
     ]
 
     @type t :: %Chaperon.LoadTest.Results{
-      load_test: atom,
+      load_test: module,
       start_ms: integer,
       end_ms: integer,
       duration_ms: integer,
@@ -97,7 +97,7 @@ defmodule Chaperon.LoadTest do
   alias Chaperon.LoadTest.Results
   require Logger
 
-  @spec run(atom) :: Chaperon.LoadTest.Results.t
+  @spec run(module, map) :: Chaperon.LoadTest.Results.t
   def run(lt_mod, extra_config \\ %{}) do
     start_time = Chaperon.Timing.timestamp()
 

@@ -22,7 +22,7 @@ defmodule Chaperon.Action.RunScenario do
   alias __MODULE__
   alias Chaperon.Scenario
 
-  @type scenario :: atom | Scenario.t
+  @type scenario :: module | Scenario.t
   @type scheduler :: :local | :cluster
 
   def new(scenario, config, scheduler) do

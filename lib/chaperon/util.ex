@@ -102,6 +102,7 @@ defmodule Chaperon.Util do
     |> Enum.join(".")
   end
 
+  @spec module_name(module) :: String.t
   def module_name(mod) when is_atom(mod) do
     mod
     |> Module.split

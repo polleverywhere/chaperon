@@ -37,7 +37,7 @@ defmodule Chaperon.Scenario do
   ]
 
   @type t :: %Chaperon.Scenario{
-    module: atom
+    module: module
   }
 
   defmodule Sequence do
@@ -113,7 +113,7 @@ defmodule Chaperon.Scenario do
   performed `Chaperon.Actionable`s, including for all run actions run
   asynchronously as part of the scenario.
   """
-  @spec execute(atom, map) :: Session.t
+  @spec execute(module, map) :: Session.t
   def execute(scenario_mod, config) do
     scenario = %Scenario{module: scenario_mod}
     session =
@@ -208,7 +208,7 @@ defmodule Chaperon.Scenario do
 
   Otherwise defaults to returning `{:ok, session}`.
   """
-  @spec init(atom, Session.t) :: {:ok, Session.t}
+  @spec init(module, Session.t) :: {:ok, Session.t}
   def init(scenario_mod, session) do
     # for some reason Kernel.function_exported? only works on first compile
     # but not for successive runs. Must be some bug in the compiler ??
