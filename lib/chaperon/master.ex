@@ -40,6 +40,7 @@ defmodule Chaperon.Master do
     {:ok, %Chaperon.Master{id: id}}
   end
 
+  @spec run_load_test(module, Keywort.t) :: Chaperon.Session.t
   def run_load_test(lt_mod, options \\ []) do
     timeout = Chaperon.LoadTest.timeout(lt_mod)
 
@@ -58,21 +59,7 @@ defmodule Chaperon.Master do
     end
   end
 
-  defp run_options(options) do
-    case {:global.whereis_name(Chaperon.Master), options[:output]} do
-      {_, nil} ->
-        options
-
-      {pid, _} when is_pid(pid) ->
-        if Util.local_pid?(pid) do
-          options
-        else
-          options
-          |> Keyword.merge(output: :remote)
-        end
-    end
-  end
-
+  @spec ignore_node_as_worker(atom) :: :ok
   def ignore_node_as_worker(node) do
     GenServer.call(@name, {:ignore_node_as_worker, node})
   end
@@ -103,5 +90,20 @@ defmodule Chaperon.Master do
     end
     state = update_in state.tasks, &Map.delete(&1, {lt_mod, task_id})
     {:noreply, state}
+  end
+
+  defp run_options(options) do
+    case {:global.whereis_name(Chaperon.Master), options[:output]} do
+      {_, nil} ->
+        options
+
+      {pid, _} when is_pid(pid) ->
+        if Util.local_pid?(pid) do
+          options
+        else
+          options
+          |> Keyword.merge(output: :remote)
+        end
+    end
   end
 end
