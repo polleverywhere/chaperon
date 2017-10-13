@@ -108,4 +108,14 @@ defmodule Chaperon.Util do
     |> Module.split
     |> Enum.join(".")
   end
+
+  @spec local_pid?(pid) :: boolean
+  def local_pid?(pid) do
+    case inspect(pid) do
+      "#PID<0." <> _ ->
+        true
+      _ ->
+        false
+    end
+  end
 end

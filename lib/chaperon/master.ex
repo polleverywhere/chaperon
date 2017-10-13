@@ -22,6 +22,7 @@ defmodule Chaperon.Master do
 
   use GenServer
   require Logger
+  alias Chaperon.Util
 
   @name {:global, __MODULE__}
 
@@ -63,21 +64,12 @@ defmodule Chaperon.Master do
         options
 
       {pid, _} when is_pid(pid) ->
-        if local_pid?(pid) do
+        if Util.local_pid?(pid) do
           options
         else
           options
           |> Keyword.merge(output: :remote)
         end
-    end
-  end
-
-  def local_pid?(pid) do
-    case inspect(pid) do
-      "#PID<0." <> _ ->
-        true
-      _ ->
-        false
     end
   end
 
