@@ -91,7 +91,38 @@ defmodule Chaperon.Action.HTTP do
   end
 
   def url(%{path: path}, %Session{config: %{base_url: base_url}}) do
-    base_url <> path
+    if is_full_url?(path) do
+      path
+    else
+      base_url <> path
+    end
+  end
+
+  def url(%{path: path}, _) do
+    if is_full_url?(path) do
+      path
+    else
+      raise ArgumentError, "No base url defined for path: #{inspect path}"
+    end
+  end
+
+  def is_full_url?(path) do
+    case path do
+      "http://" <> _ ->
+        true
+
+      "https://" <> _ ->
+        true
+
+      "ws://" <> _ ->
+        true
+
+      "wss://" <> _ ->
+        true
+
+      _ ->
+        false
+    end
   end
 
   def url(%{path: path}, _), do: path
