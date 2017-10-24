@@ -730,6 +730,28 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Updates a session's config based on a given Keyword list of functions to be
+  used for updating `config` in `session` under a given namespace.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{config: %{foo: 1, bar: %{baz: "hello", quux: 0}}}
+      iex> session.config
+      %{foo: 1, bar: %{baz: "hello", quux: 0}}
+      iex> session = session |> update_config(:bar, quux: &(&1 + 2))
+      iex> session.config
+      %{foo: 1, bar: %{baz: "hello", quux: 2}}
+  """
+  @spec update_config(Session.t, atom, Keyword.t((any -> any))) :: Session.t
+  def update_config(session, namespace, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, func}, session ->
+      update_in session.config[namespace][k], func
+    end)
+  end
+
+  @doc """
   Updates a session's config based on a given Keyword list of new values to be
   used for `config` in `session`.
 
@@ -754,6 +776,32 @@ defmodule Chaperon.Session do
     assignments
     |> Enum.reduce(session, fn {k, val}, session ->
       put_in session.config[k], val
+    end)
+  end
+
+  @doc """
+  Updates a session's config based on a given Keyword list of new values inside
+  a given namespace to be used for `config` in `session`.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{config: %{foo: 1, bar: %{baz: "hello",  quux: 0}}}
+      iex> session.config
+      %{foo: 1, bar: %{baz: "hello", quux: 0}}
+      iex> session = session |> set_config(:bar, quux: 10)
+      iex> session.config.bar.quux
+      10
+      iex> session.config.bar
+      %{baz: "hello", quux: 10}
+      iex> session.config
+      %{foo: 1, bar: %{baz: "hello", quux: 10}}
+  """
+  @spec set_config(Session.t, atom, Keyword.t(any)) :: Session.t
+  def set_config(session, namespace, assignments) do
+    assignments
+    |> Enum.reduce(session, fn {k, val}, session ->
+      put_in session.config[namespace][k], val
     end)
   end
 
