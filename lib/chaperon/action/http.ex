@@ -240,7 +240,7 @@ defmodule Chaperon.Action.HTTP do
 
   defp form_body(data) do
     {
-      %{"Content-Type" => "x-www-form-urlencoded"},
+      %{"Content-Type" => "application/x-www-form-urlencoded"},
       data |> URI.encode_query
     }
   end
