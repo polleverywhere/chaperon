@@ -106,7 +106,7 @@ defmodule Chaperon do
     session =
       if session.config[:merge_scenario_sessions] do
         session
-        |> Chaperon.Scenario.Metrics.add_histogram_metrics
+        |> Chaperon.Scenario.Metrics.add_histogram_metrics(Keyword.get(options, :metrics, []))
       else
         session
       end

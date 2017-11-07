@@ -6,14 +6,42 @@ defmodule Chaperon.Scenario.Metrics do
 
   use Histogrex
   alias __MODULE__
+  alias Chaperon.Session
 
   template :durations, min: 1, max: 10_000_000, precision: 3
 
+  @type metric :: atom | {atom, any}
+  @type metric_type :: atom
+  @type metric_options :: [
+    filter: (metric -> boolean) | [metric_type]
+  ]
+
   @doc """
   Replaces base metrics for a given `session` with the histogram values for them.
+
+  Valid options:
+
+      filter: fn(metric) -> true | false end
+      filter: [metric_type]
+
+  Example:
+
+      # only track custom scenarios, function calls & http POST requests
+      Chaperon.Scenario.Metrics.add_histogram_metrics(session, metrics: [
+        filter: fn
+          {type, _} when type in [:run_scenario, :call, :post] -> true
+          _ -> false
+        end
+      ])
+
+      # or just pass a list of types:
+      Chaperon.Scenario.Metrics.add_histogram_metrics(session, metrics: [
+        filter: [:run_scenario, :call, :post]
+      ]
   """
-  def add_histogram_metrics(session) do
-    metrics = histogram_metrics(session)
+  @spec add_histogram_metrics(Session.t, metric_options) :: Session.t
+  def add_histogram_metrics(session, options \\ []) do
+    metrics = histogram_metrics(session, options)
     reset()
     %{session | metrics: metrics}
   end
@@ -26,9 +54,9 @@ defmodule Chaperon.Scenario.Metrics do
   end
 
   @doc false
-  def histogram_metrics(session = %Chaperon.Session{}) do
+  def histogram_metrics(session = %Session{}, options) do
     session
-    |> record_histograms
+    |> record_histograms(options)
 
     Metrics.reduce(%{}, fn {name, hist}, metrics ->
       Map.put(metrics, name, histogram_vals(hist))
@@ -65,11 +93,44 @@ defmodule Chaperon.Scenario.Metrics do
   end
 
   @doc false
-  def record_histograms(session) do
+  def record_histograms(session, options) do
+    filter = case Keyword.get(options, :filter) do
+      nil ->
+        nil
+
+      f when is_function(f) ->
+        f
+
+      types when is_list(types) ->
+        types = MapSet.new(types)
+
+        fn
+          {type, _} ->
+            passes_filter?(types, type)
+
+          type ->
+            passes_filter?(types, type)
+        end
+    end
+
     session.metrics
     |> Enum.each(fn {k, v} ->
-      record_metric(k, v)
+      if filter do
+        if filter.(k) do
+          record_metric(k, v)
+        end
+      else
+        record_metric(k, v)
+      end
     end)
+  end
+
+  def passes_filter?(types, type) do
+    if MapSet.member?(types, type) do
+      true
+    else
+      false
+    end
   end
 
   @doc false
