@@ -7,7 +7,7 @@ defmodule Chaperon.Scenario.Metrics do
   use Histogrex
   alias __MODULE__
 
-  template :durations, min: 1, max: 1_000_000, precision: 3
+  template :durations, min: 1, max: 10_000_000, precision: 3
 
   @doc """
   Replaces base metrics for a given `session` with the histogram values for them.
