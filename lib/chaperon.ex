@@ -55,31 +55,55 @@ defmodule Chaperon do
       - `:tag` Can be set to be used when using the default export filename.
         Allows adding a custom 'tag' string as a prefix to the generated result
         output filename.
+      - `:metrics` Filtering options for metrics
+          Valid filters:
+            - (metric) -> boolean
+            - [metric_type]
   ## Example
 
       alias Chaperon.Export.JSON
 
+      # Prints results & outputs metrics in CSV (default) format at the end
       Chaperon.run_load_test MyLoadTest, print_results: true
-      # => Prints results & outputs metrics in CSV (default) format at the end
 
+      # Doesn't print results & outputs metrics in JSON format at the end
       Chaperon.run_load_test MyLoadTest, export: JSON
-      # => Doesn't print results & outputs metrics in JSON format at the end
 
+      # Outputs metrics in CSV format to metrics.csv file
       Chaperon.run_load_test MyLoadTest, output: "metrics.csv"
-      # => Outputs metrics in CSV format to metrics.csv file
 
+      # Outputs metrics in JSON format to metrics.json file
       Chaperon.run_load_test MyLoadTest, export: JSON, output: "metrics.json"
-      # => Outputs metrics in JSON format to metrics.json file
 
+      # Outputs metrics in CCSV format to "results/<date>/MyLoadTest/master-<timestamp>.csv"
       Chaperon.run_load_test MyLoadTest, tag: "master"
-      # => Outputs metrics in CCSV format to "results/<date>/MyLoadTest/master-<timestamp>.csv"
 
+      # Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
       Chaperon.run_load_test MyLoadTest, export: JSON, tag: "master"
-      # => Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
+
+      # Tracks only calls in MyScenario (can take any function that returns `true` or `false`)
+      Chaperon.run_load_test MyLoadTest, tag: "master", metrics: fn
+        {:call, {MyScenario, _}} ->
+          true
+        _ ->
+          false
+      end
+
+      # You can also just pass a list of metric types/names:
+      Chaperon.run_load_test MyLoadTest metrics: [
+        :run_scenario,
+        :call,
+        :post,
+        :my_custom_metric
+      ]
   """
   def run_load_test(lt_mod, options \\ []) do
     timeout = Chaperon.LoadTest.timeout(lt_mod)
-    config = Keyword.get(options, :config, %{})
+
+    config =
+      options
+      |> Keyword.get(:config, %{})
+      |> Map.put(:metrics, Chaperon.Scenario.Metrics.config(options))
 
     results =
       Chaperon.LoadTest
@@ -106,7 +130,7 @@ defmodule Chaperon do
     session =
       if session.config[:merge_scenario_sessions] do
         session
-        |> Chaperon.Scenario.Metrics.add_histogram_metrics(Keyword.get(options, :metrics, []))
+        |> Chaperon.Scenario.Metrics.add_histogram_metrics
       else
         session
       end

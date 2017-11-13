@@ -12,36 +12,40 @@ defmodule Chaperon.Scenario.Metrics do
 
   @type metric :: atom | {atom, any}
   @type metric_type :: atom
-  @type metric_options :: [
+  @type options :: [
     filter: (metric -> boolean) | [metric_type]
   ]
+  @type config :: %{
+    filter: (metric -> boolean) | [metric_type]
+  }
+
+  @spec config(options) :: config
+  def config(options) do
+    config =
+      options
+      |> Keyword.get(:metrics, [])
+      |> Enum.into(%{})
+
+    %{
+      filter: filter(config)
+    }
+  end
+
+  def filter(%{filter: f}) when is_function(f),
+    do: f
+
+  def filter(%{filter: types}) when is_list(types),
+    do: MapSet.new(types)
+
+  def filter(_),
+    do: nil
 
   @doc """
   Replaces base metrics for a given `session` with the histogram values for them.
-
-  Valid options:
-
-      filter: fn(metric) -> true | false end
-      filter: [metric_type]
-
-  Example:
-
-      # only track custom scenarios, function calls & http POST requests
-      Chaperon.Scenario.Metrics.add_histogram_metrics(session, metrics: [
-        filter: fn
-          {type, _} when type in [:run_scenario, :call, :post] -> true
-          _ -> false
-        end
-      ])
-
-      # or just pass a list of types:
-      Chaperon.Scenario.Metrics.add_histogram_metrics(session, metrics: [
-        filter: [:run_scenario, :call, :post]
-      ]
   """
-  @spec add_histogram_metrics(Session.t, metric_options) :: Session.t
-  def add_histogram_metrics(session, options \\ []) do
-    metrics = histogram_metrics(session, options)
+  @spec add_histogram_metrics(Session.t) :: Session.t
+  def add_histogram_metrics(session) do
+    metrics = histogram_metrics(session)
     reset()
     %{session | metrics: metrics}
   end
@@ -54,13 +58,19 @@ defmodule Chaperon.Scenario.Metrics do
   end
 
   @doc false
-  def histogram_metrics(session = %Session{}, options) do
+  def histogram_metrics(session = %Session{}) do
     session
-    |> record_histograms(options)
+    |> record_histograms
 
-    Metrics.reduce(%{}, fn {name, hist}, metrics ->
-      Map.put(metrics, name, histogram_vals(hist))
+    Metrics.reduce([], fn {name, hist}, tasks ->
+      t = Task.async fn ->
+        IO.inspect name
+        {name, histogram_vals(hist)}
+      end
+      [t | tasks]
     end)
+    |> Enum.map(&Task.await(&1, :infinity))
+    |> Enum.into(%{})
   end
 
   @percentiles [
@@ -93,35 +103,10 @@ defmodule Chaperon.Scenario.Metrics do
   end
 
   @doc false
-  def record_histograms(session, options) do
-    filter = case Keyword.get(options, :filter) do
-      nil ->
-        nil
-
-      f when is_function(f) ->
-        f
-
-      types when is_list(types) ->
-        types = MapSet.new(types)
-
-        fn
-          {type, _} ->
-            passes_filter?(types, type)
-
-          type ->
-            passes_filter?(types, type)
-        end
-    end
-
+  def record_histograms(session) do
     session.metrics
     |> Enum.each(fn {k, v} ->
-      if filter do
-        if filter.(k) do
-          record_metric(k, v)
-        end
-      else
-        record_metric(k, v)
-      end
+      record_metric(k, v)
     end)
   end
 

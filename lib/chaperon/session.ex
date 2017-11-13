@@ -829,7 +829,7 @@ defmodule Chaperon.Session do
       iex> session |> config([:bar, :val2])
       "V2"
   """
-  @spec config(Session.t, Keyword.t(any), any) :: Session.t
+  @spec config(Session.t, [atom] | atom, any) :: Session.t
   def config(session, key, default_val \\ :no_default_given) do
     case key do
       keys when is_list(keys) ->
@@ -1182,10 +1182,34 @@ defmodule Chaperon.Session do
   Stores a given metric `val` under a given `name` in `session`.
   """
   @spec add_metric(Session.t, metric, any) :: Session.t
-  def add_metric(session, name, val) do
-    session
-    |> log_debug("Add metric #{inspect name} : #{val}")
-    update_in session.metrics[name], &[val | List.wrap(&1)]
+  def add_metric(session, metric, val) do
+    if session |> add_metric?(metric) do
+      session
+      |> log_debug("Add metric #{inspect metric} : #{val}")
+
+      update_in session.metrics[metric], &[val | List.wrap(&1)]
+    else
+      session
+    end
+  end
+
+  defp add_metric?(session, metric) do
+    case session |> config([:metrics, :filter], nil) do
+      f when is_function(f) ->
+        f.(metric)
+
+      nil ->
+        true
+
+      types ->
+        case metric do
+          {metric_type, _} ->
+            MapSet.member?(types, metric_type)
+
+          metric_type ->
+            MapSet.member?(types, metric_type)
+        end
+    end
   end
 
   @doc """
