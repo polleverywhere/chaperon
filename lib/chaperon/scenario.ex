@@ -253,7 +253,8 @@ defmodule Chaperon.Scenario do
       id: session.id,
       name: session_name(scenario, config),
       scenario: scenario,
-      config: config
+      config: config,
+      cookies: session.cookies
     }
   end
 
