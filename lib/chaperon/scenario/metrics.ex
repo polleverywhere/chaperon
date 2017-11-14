@@ -12,9 +12,9 @@ defmodule Chaperon.Scenario.Metrics do
 
   @type metric :: atom | {atom, any}
   @type metric_type :: atom
-  @type metrics_filter :: (metric -> boolean) | [metric_type]
+  @type filter :: (metric -> boolean) | MapSet.t(metric_type)
 
-  @spec config(Keyword.t) :: metrics_filter
+  @spec config(Keyword.t) :: filter
   def config(options) do
     options
     |> Keyword.get(:metrics, nil)
