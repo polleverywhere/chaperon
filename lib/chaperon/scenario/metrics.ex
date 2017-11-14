@@ -12,29 +12,22 @@ defmodule Chaperon.Scenario.Metrics do
 
   @type metric :: atom | {atom, any}
   @type metric_type :: atom
-  @type options :: [
-    filter: (metric -> boolean) | [metric_type]
-  ]
-  @type config :: %{
-    filter: (metric -> boolean) | [metric_type]
-  }
+  @type metrics_filter :: (metric -> boolean) | [metric_type]
 
-  @spec config(options) :: config
+  @spec config(Keyword.t) :: metrics_filter
   def config(options) do
-    config =
-      options
-      |> Keyword.get(:metrics, [])
-      |> Enum.into(%{})
-
-    %{
-      filter: filter(config)
-    }
+    options
+    |> Keyword.get(:metrics, nil)
+    |> filter
   end
 
-  def filter(%{filter: f}) when is_function(f),
+  def filter(%{filter: f}),
+    do: filter(f)
+
+  def filter(f) when is_function(f),
     do: f
 
-  def filter(%{filter: types}) when is_list(types),
+  def filter(types) when is_list(types),
     do: MapSet.new(types)
 
   def filter(_),

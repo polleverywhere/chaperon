@@ -1194,12 +1194,12 @@ defmodule Chaperon.Session do
   end
 
   defp add_metric?(session, metric) do
-    case session |> config([:metrics, :filter], nil) do
-      f when is_function(f) ->
-        f.(metric)
-
+    case session.config[:metrics] do
       nil ->
         true
+
+      f when is_function(f) ->
+        f.(metric)
 
       types ->
         case metric do
