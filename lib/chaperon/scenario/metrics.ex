@@ -52,12 +52,17 @@ defmodule Chaperon.Scenario.Metrics do
 
   @doc false
   def histogram_metrics(session = %Session{}) do
+    use Chaperon.Session.Logging
+
     session
+    |> log_info("Recording histograms:")
     |> record_histograms
+
 
     Metrics.reduce([], fn {name, hist}, tasks ->
       t = Task.async fn ->
-        IO.inspect name
+        session
+        |> log_info(inspect name)
         {name, histogram_vals(hist)}
       end
       [t | tasks]
