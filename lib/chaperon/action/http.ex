@@ -14,7 +14,8 @@ defmodule Chaperon.Action.HTTP do
     params: %{},
     body: nil,
     decode: nil,
-    callback: nil
+    callback: nil,
+    metrics_url: nil,
   ]
 
   @type method :: :get | :post | :put | :patch | :delete | :head
@@ -121,6 +122,11 @@ defmodule Chaperon.Action.HTTP do
     end
   end
 
+  def metrics_url(%{metrics_url: metrics_url}, %Session{config: %{base_url: base_url}})
+  when not is_nil(metrics_url) do
+    base_url <> metrics_url
+  end
+
   def metrics_url(action, session) do
     if session.config[:skip_query_params_in_metrics] do
       action
@@ -173,6 +179,7 @@ defmodule Chaperon.Action.HTTP do
     params  = opts[:params] || %{}
     decode = opts[:decode]
     callback = opts[:with_result]
+    metrics_url = opts[:metrics_url]
 
     {new_headers, body} =
       opts
@@ -180,6 +187,7 @@ defmodule Chaperon.Action.HTTP do
       |> KW.delete(:params)
       |> KW.delete(:decode)
       |> KW.delete(:with_result)
+      |> KW.delete(:metrics_url)
       |> parse_body
 
     headers =
@@ -193,7 +201,8 @@ defmodule Chaperon.Action.HTTP do
       params: params,
       body: body,
       decode: decode,
-      callback: callback
+      callback: callback,
+      metrics_url: metrics_url,
     }
   end
 
