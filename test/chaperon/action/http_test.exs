@@ -57,4 +57,26 @@ defmodule Chaperon.Action.HTTP.Test do
       ]
     ]
   end
+
+  test "metrics_url/2 with no custom metrics_url defined" do
+    action = %HTTP{path: "/foo/bar/123.json"}
+
+    session = %Chaperon.Session{
+      config: %{base_url: "http://localhost:5000/api/v1"}
+    }
+
+    metrics_url = "http://localhost:5000/api/v1/foo/bar/123.json"
+    assert HTTP.metrics_url(action, session) == metrics_url
+  end
+
+  test "metrics_url/2 with custom metrics_url defined" do
+    action = %HTTP{path: "/foo/bar/123.json", metrics_url: "/foo/bar/ID.json"}
+
+    session = %Chaperon.Session{
+      config: %{base_url: "http://localhost:5000/api/v1"}
+    }
+
+    metrics_url = "http://localhost:5000/api/v1/foo/bar/ID.json"
+    assert HTTP.metrics_url(action, session) == metrics_url
+  end
 end
