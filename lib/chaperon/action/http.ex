@@ -26,7 +26,8 @@ defmodule Chaperon.Action.HTTP do
     headers:     map | Keyword.t,
     params:      map | Keyword.t,
     decode:      :json | (HTTPoison.Response.t -> any),
-    with_result: Chaperon.Session.result_callback
+    with_result: Chaperon.Session.result_callback,
+    metrics_url: String.t
   ]
 
   @type t :: %Chaperon.Action.HTTP{
@@ -36,7 +37,8 @@ defmodule Chaperon.Action.HTTP do
     params: map,
     body: binary,
     decode: :json | (HTTPoison.Response.t -> any),
-    callback: Chaperon.Session.result_callback
+    callback: Chaperon.Session.result_callback,
+    metrics_url: String.t
   }
 
   @spec get(String.t, options) :: t
