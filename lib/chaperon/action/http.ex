@@ -7,41 +7,39 @@ defmodule Chaperon.Action.HTTP do
   support for optional headers & query params.
   """
 
-  defstruct [
-    method: :get,
-    path: nil,
-    headers: %{},
-    params: %{},
-    body: nil,
-    decode: nil,
-    callback: nil,
-    metrics_url: nil,
-  ]
+  defstruct method: :get,
+            path: nil,
+            headers: %{},
+            params: %{},
+            body: nil,
+            decode: nil,
+            callback: nil,
+            metrics_url: nil
 
   @type method :: :get | :post | :put | :patch | :delete | :head
 
   @type options :: [
-    form:        map | Keyword.t,
-    json:        map | Keyword.t,
-    headers:     map | Keyword.t,
-    params:      map | Keyword.t,
-    decode:      :json | (HTTPoison.Response.t -> any),
-    with_result: Chaperon.Session.result_callback,
-    metrics_url: String.t
-  ]
+          form: map | Keyword.t(),
+          json: map | Keyword.t(),
+          headers: map | Keyword.t(),
+          params: map | Keyword.t(),
+          decode: :json | (HTTPoison.Response.t() -> any),
+          with_result: Chaperon.Session.result_callback(),
+          metrics_url: String.t()
+        ]
 
   @type t :: %Chaperon.Action.HTTP{
-    method: method,
-    path: String.t,
-    headers: map,
-    params: map,
-    body: binary,
-    decode: :json | (HTTPoison.Response.t -> any),
-    callback: Chaperon.Session.result_callback,
-    metrics_url: String.t
-  }
+          method: method,
+          path: String.t(),
+          headers: map,
+          params: map,
+          body: binary,
+          decode: :json | (HTTPoison.Response.t() -> any),
+          callback: Chaperon.Session.result_callback(),
+          metrics_url: String.t()
+        }
 
-  @spec get(String.t, options) :: t
+  @spec get(String.t(), options) :: t
   def get(path, opts) do
     %Chaperon.Action.HTTP{
       method: :get,
@@ -50,7 +48,7 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
-  @spec post(String.t, options) :: t
+  @spec post(String.t(), options) :: t
   def post(path, opts) do
     %Chaperon.Action.HTTP{
       method: :post,
@@ -59,8 +57,8 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
-  @spec put(String.t, options) :: t
-  def put(path, opts)  do
+  @spec put(String.t(), options) :: t
+  def put(path, opts) do
     %Chaperon.Action.HTTP{
       method: :put,
       path: path
@@ -68,7 +66,7 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
-  @spec patch(String.t, options) :: t
+  @spec patch(String.t(), options) :: t
   def patch(path, opts) do
     %Chaperon.Action.HTTP{
       method: :patch,
@@ -77,7 +75,7 @@ defmodule Chaperon.Action.HTTP do
     |> add_options(opts)
   end
 
-  @spec delete(String.t, options) :: t
+  @spec delete(String.t(), options) :: t
   def delete(path, opts \\ []) do
     %Chaperon.Action.HTTP{
       method: :delete,
@@ -105,27 +103,23 @@ defmodule Chaperon.Action.HTTP do
     path
   end
 
-  def is_full_url?("http://" <> _),
-    do: true
-  def is_full_url?("https://" <> _),
-    do: true
-  def is_full_url?("ws://" <> _),
-    do: true
-  def is_full_url?("wss://" <> _),
-    do: true
-  def is_full_url?(_),
-    do: false
+  def is_full_url?("http://" <> _), do: true
+  def is_full_url?("https://" <> _), do: true
+  def is_full_url?("ws://" <> _), do: true
+  def is_full_url?("wss://" <> _), do: true
+  def is_full_url?(_), do: false
 
   def full_url(action = %HTTP{method: method, params: params}, session) do
     url = url(action, session)
+
     case method do
       :get -> url <> query_params_string(params)
-      _    -> url
+      _ -> url
     end
   end
 
   def metrics_url(%{metrics_url: metrics_url}, %Session{config: %{base_url: base_url}})
-  when not is_nil(metrics_url) do
+      when not is_nil(metrics_url) do
     base_url <> metrics_url
   end
 
@@ -139,15 +133,14 @@ defmodule Chaperon.Action.HTTP do
     end
   end
 
-  def full_path(%{path: path, params: params}),
-    do: path <> query_params_string(params)
+  def full_path(%{path: path, params: params}), do: path <> query_params_string(params)
 
-  def query_params_string([]),
-    do: ""
+  def query_params_string([]), do: ""
+
   def query_params_string(params) do
     case URI.encode_query(params) do
       "" -> ""
-      q  -> "?" <> q
+      q -> "?" <> q
     end
   end
 
@@ -172,13 +165,13 @@ defmodule Chaperon.Action.HTTP do
     "User-Agent" => "chaperon"
   }
 
-  @spec add_options(any, Chaperon.Action.HTTP.options) :: t
+  @spec add_options(any, Chaperon.Action.HTTP.options()) :: t
   def add_options(action, opts) do
     alias Keyword, as: KW
     import Map, only: [merge: 2]
 
     headers = opts[:headers] || %{}
-    params  = opts[:params] || %{}
+    params = opts[:params] || %{}
     decode = opts[:decode]
     callback = opts[:with_result]
     metrics_url = opts[:metrics_url]
@@ -198,13 +191,14 @@ defmodule Chaperon.Action.HTTP do
       |> merge(headers)
       |> merge(new_headers)
 
-    %{action |
-      headers: headers,
-      params: params,
-      body: body,
-      decode: decode,
-      callback: callback,
-      metrics_url: metrics_url,
+    %{
+      action
+      | headers: headers,
+        params: params,
+        body: body,
+        decode: decode,
+        callback: callback,
+        metrics_url: metrics_url
     }
   end
 
@@ -221,19 +215,21 @@ defmodule Chaperon.Action.HTTP do
   end
 
   # don't pass if no value set
-  defp hackney_opt({_key, nil}),   do: nil
+  defp hackney_opt({_key, nil}), do: nil
   # don't pass empty list of cookies
   defp hackney_opt({:cookie, []}), do: nil
   # pass everything else as hackney option
-  defp hackney_opt(opt),           do: opt
+  defp hackney_opt(opt), do: opt
 
   defp parse_body([]), do: {%{}, ""}
+
   defp parse_body(json: data) when is_list(data) do
-    data = if Keyword.keyword?(data) do
-      data |> Enum.into(%{})
-    else
-      data
-    end
+    data =
+      if Keyword.keyword?(data) do
+        data |> Enum.into(%{})
+      else
+        data
+      end
 
     data
     |> json_body
@@ -245,14 +241,14 @@ defmodule Chaperon.Action.HTTP do
   defp json_body(data) do
     {
       %{"Content-Type" => "application/json"},
-      data |> Poison.encode!
+      data |> Poison.encode!()
     }
   end
 
   defp form_body(data) do
     {
       %{"Content-Type" => "application/x-www-form-urlencoded"},
-      data |> URI.encode_query
+      data |> URI.encode_query()
     }
   end
 end
@@ -268,16 +264,17 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
     full_url = HTTP.full_url(action, session)
 
     session
-    |> log_info("#{action.method |> to_string |> String.upcase} #{full_url}")
+    |> log_info("#{action.method |> to_string |> String.upcase()} #{full_url}")
 
     start = timestamp()
+
     case HTTPoison.request(
-      action.method,
-      HTTP.url(action, session),
-      action.body || "",
-      action.headers |> Enum.into([]),
-      HTTP.options(action, session)
-    ) do
+           action.method,
+           HTTP.url(action, session),
+           action.body || "",
+           action.headers |> Enum.into([]),
+           HTTP.options(action, session)
+         ) do
       {:ok, response} ->
         session
         |> add_result(action, response)
@@ -327,7 +324,7 @@ defimpl String.Chars, for: Chaperon.Action.HTTP do
 
   @methods [:get, :post, :put, :patch, :delete, :head]
   @method_strings @methods
-                  |> Enum.map(&{&1, &1 |> Kernel.to_string |> String.upcase})
+                  |> Enum.map(&{&1, &1 |> Kernel.to_string() |> String.upcase()})
                   |> Enum.into(%{})
 
   def to_string(http) do

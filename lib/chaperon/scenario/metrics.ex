@@ -8,35 +8,31 @@ defmodule Chaperon.Scenario.Metrics do
   alias __MODULE__
   alias Chaperon.Session
 
-  template :durations, min: 1, max: 10_000_000, precision: 3
+  template(:durations, min: 1, max: 10_000_000, precision: 3)
 
   @type metric :: atom | {atom, any}
   @type metric_type :: atom
   @type filter :: (metric -> boolean) | MapSet.t(metric_type)
 
-  @spec config(Keyword.t) :: filter
+  @spec config(Keyword.t()) :: filter
   def config(options) do
     options
     |> Keyword.get(:metrics, nil)
     |> filter
   end
 
-  def filter(%{filter: f}),
-    do: filter(f)
+  def filter(%{filter: f}), do: filter(f)
 
-  def filter(f) when is_function(f),
-    do: f
+  def filter(f) when is_function(f), do: f
 
-  def filter(types) when is_list(types),
-    do: MapSet.new(types)
+  def filter(types) when is_list(types), do: MapSet.new(types)
 
-  def filter(_),
-    do: nil
+  def filter(_), do: nil
 
   @doc """
   Replaces base metrics for a given `session` with the histogram values for them.
   """
-  @spec add_histogram_metrics(Session.t) :: Session.t
+  @spec add_histogram_metrics(Session.t()) :: Session.t()
   def add_histogram_metrics(session) do
     metrics = histogram_metrics(session)
     reset()
@@ -45,6 +41,7 @@ defmodule Chaperon.Scenario.Metrics do
 
   def reset do
     Metrics.delete(:durations)
+
     Metrics.reduce(:ok, fn {name, _}, _ ->
       Metrics.delete(:durations, name)
     end)
@@ -58,13 +55,15 @@ defmodule Chaperon.Scenario.Metrics do
     |> log_info("Recording histograms:")
     |> record_histograms
 
-
     Metrics.reduce([], fn {name, hist}, tasks ->
-      t = Task.async fn ->
-        session
-        |> log_info(inspect name)
-        {name, histogram_vals(hist)}
-      end
+      t =
+        Task.async(fn ->
+          session
+          |> log_info(inspect(name))
+
+          {name, histogram_vals(hist)}
+        end)
+
       [t | tasks]
     end)
     |> Enum.map(&Task.await(&1, :infinity))
@@ -72,8 +71,21 @@ defmodule Chaperon.Scenario.Metrics do
   end
 
   @percentiles [
-    10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0,
-    80.0, 85.0, 90.0, 95.0, 99.0, 99.9, 99.99, 99.999
+    10.0,
+    20.0,
+    30.0,
+    40.0,
+    50.0,
+    60.0,
+    75.0,
+    80.0,
+    85.0,
+    90.0,
+    95.0,
+    99.0,
+    99.9,
+    99.99,
+    99.999
   ]
 
   def percentiles, do: @percentiles
@@ -118,6 +130,7 @@ defmodule Chaperon.Scenario.Metrics do
 
   @doc false
   def record_metric(_, []), do: :ok
+
   def record_metric(k, [v | vals]) do
     record_metric(k, v)
     record_metric(k, vals)

@@ -4,23 +4,27 @@ defmodule Chaperon.Mixfile do
   def project do
     [
       app: :chaperon,
-      version: "0.1.3",
-      elixir: "~> 1.5",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
+      version: "0.2.0",
+      elixir: "~> 1.6",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
       description: "An Elixir based HTTP load & performance testing framework",
       dialyzer: [
         plt_add_deps: :apps_direct,
         plt_add_apps: [
-          :httpoison, :uuid, :poison, :histogrex
+          :httpoison,
+          :uuid,
+          :poison,
+          :histogrex
         ],
         flags: [
           # "-Woverspecs",
           # "-Wunderspecs"
         ],
-        remove_defaults: [:unknown] # skip unkown function warnings
+        # skip unkown function warnings
+        remove_defaults: [:unknown]
       ],
       # docs
       source_url: "https://github.com/polleverywhere/chaperon",
@@ -36,8 +40,15 @@ defmodule Chaperon.Mixfile do
   def application do
     [
       applications: [
-        :logger, :httpoison, :uuid, :poison, :histogrex, :websockex, :ssl,
-        :crypto, :instream
+        :logger,
+        :httpoison,
+        :uuid,
+        :poison,
+        :histogrex,
+        :websockex,
+        :ssl,
+        :crypto,
+        :instream
       ],
       mod: {Chaperon, []}
     ]
@@ -47,7 +58,12 @@ defmodule Chaperon.Mixfile do
     [
       name: "chaperon",
       files: [
-        "lib", "docs", "examples", "mix.exs", "README*", "LICENSE"
+        "lib",
+        "docs",
+        "examples",
+        "mix.exs",
+        "README*",
+        "LICENSE"
       ],
       maintainers: [
         "Christopher Bertels"

@@ -38,6 +38,7 @@ defmodule Chaperon.Action.CallFunction.Test do
       session
       |> Session.assign(anon_foo: :cool)
     end
+
     action = %CallFunction{func: func}
     assert {:ok, s} = Chaperon.Actionable.run(action, new_session())
     assert s.assigned.anon_foo == :cool
@@ -48,6 +49,7 @@ defmodule Chaperon.Action.CallFunction.Test do
       session
       |> Session.assign(anon_foo: {a, b, c})
     end
+
     action = %CallFunction{func: func, args: [1, 2, 3]}
     assert {:ok, s} = Chaperon.Actionable.run(action, new_session())
     assert s.assigned.anon_foo == {1, 2, 3}

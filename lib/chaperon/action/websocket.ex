@@ -72,7 +72,8 @@ defmodule Chaperon.Action.WebSocket do
     case action.options[:name] do
       nil ->
         session
-        |> Session.assign(:websocket,
+        |> Session.assign(
+          :websocket,
           connection: ws_conn,
           url: ws_url
         )
@@ -80,10 +81,12 @@ defmodule Chaperon.Action.WebSocket do
       name ->
         session
         |> Session.update_assign(websocket: &(&1 || %{}))
-        |> Session.update_assign(:websocket,
+        |> Session.update_assign(
+          :websocket,
           named_connections: fn
             nil ->
               %{name => {ws_conn, ws_url}}
+
             sockets ->
               Map.put(sockets, name, {ws_conn, ws_url})
           end
@@ -100,9 +103,7 @@ defmodule Chaperon.Action.WebSocket do
 
       name ->
         session
-        |> Session.update_assign(:websocket,
-          named_connections: &Map.delete(&1, name)
-        )
+        |> Session.update_assign(:websocket, named_connections: &Map.delete(&1, name))
     end
   end
 end

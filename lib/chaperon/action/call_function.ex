@@ -4,18 +4,17 @@ defmodule Chaperon.Action.CallFunction do
   `Chaperon.Scenario` module.
   """
 
-  defstruct [
-    func: nil,
-    args: []
-  ]
+  defstruct func: nil,
+            args: []
 
-  @type callback :: atom
-                    | (Chaperon.Session.t -> Chaperon.Session.t)
+  @type callback ::
+          atom
+          | (Chaperon.Session.t() -> Chaperon.Session.t())
 
   @type t :: %Chaperon.Action.CallFunction{
-    func: callback,
-    args: [any]
-  }
+          func: callback,
+          args: [any]
+        }
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
@@ -28,18 +27,18 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
     |> Session.time(metric, fn session ->
       apply(session.scenario.module, f, [session | args])
     end)
-    |> Session.ok
+    |> Session.ok()
   end
 
   def run(%{func: f, args: args}, session) do
-    metric = {:call, inspect f}
+    metric = {:call, inspect(f)}
 
     session
     |> Session.time(metric, fn session ->
       f
       |> apply([session | args])
     end)
-    |> Session.ok
+    |> Session.ok()
   end
 
   def abort(action, session) do
@@ -53,6 +52,6 @@ defimpl String.Chars, for: Chaperon.Action.CallFunction do
   end
 
   def to_string(%{func: func}) when is_function(func) do
-    "Function[#{inspect func}]"
+    "Function[#{inspect(func)}]"
   end
 end

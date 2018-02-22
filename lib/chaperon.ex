@@ -10,8 +10,8 @@ defmodule Chaperon do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    HTTPoison.start
-    Chaperon.Supervisor.start_link
+    HTTPoison.start()
+    Chaperon.Supervisor.start_link()
   end
 
   @spec connect_to_master(atom) :: :ok | {:error, any}
@@ -34,7 +34,9 @@ defmodule Chaperon do
   @spec connect_to_master_without_work(atom) :: :ok | {:error, any}
   def connect_to_master_without_work(node_name) do
     if Node.connect(node_name) do
-      Process.sleep(500) # wait a bit because of node connection delays
+      # wait a bit because of node connection delays
+      Process.sleep(500)
+
       with :ok <- Chaperon.Master.ignore_node_as_worker(node()) do
         :ok
       end
@@ -112,11 +114,17 @@ defmodule Chaperon do
 
     duration_s = results.duration_ms / 1_000
     duration_min = Float.round(results.duration_ms / 60_000, 2)
-    Logger.info "#{lt_mod} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
+
+    Logger.info(
+      "#{lt_mod} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
+    )
 
     if results.timed_out > 0 do
       succeeded = Enum.count(results.sessions)
-      Logger.warn "#{lt_mod} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
+
+      Logger.warn(
+        "#{lt_mod} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
+      )
     end
 
     if options[:print_results] do
@@ -125,12 +133,12 @@ defmodule Chaperon do
 
     session =
       results
-      |> Chaperon.LoadTest.merge_sessions
+      |> Chaperon.LoadTest.merge_sessions()
 
     session =
       if session.config[:merge_scenario_sessions] do
         session
-        |> Chaperon.Scenario.Metrics.add_histogram_metrics
+        |> Chaperon.Scenario.Metrics.add_histogram_metrics()
       else
         session
       end
@@ -146,7 +154,8 @@ defmodule Chaperon do
       |> exporter
       |> apply(:encode, [
         session,
-        Keyword.merge(options,
+        Keyword.merge(
+          options,
           load_test: Util.shortened_module_name(lt_mod),
           duration: duration_s
         )
@@ -161,7 +170,9 @@ defmodule Chaperon do
           options
           |> exporter
           |> apply(:write_output, [
-            lt_mod, data, output
+            lt_mod,
+            data,
+            output
           ])
 
         session
@@ -181,54 +192,67 @@ defmodule Chaperon do
   defp default_output_file(options, lt_mod) do
     mod_name =
       lt_mod
-      |> Module.split
+      |> Module.split()
       |> Enum.join("/")
 
     timestamp =
-      DateTime.utc_now
-      |> DateTime.to_unix
+      DateTime.utc_now()
+      |> DateTime.to_unix()
 
-    dir = "results/#{Date.utc_today}/#{mod_name}"
+    dir = "results/#{Date.utc_today()}/#{mod_name}"
 
     case options[:tag] do
       nil -> "#{dir}/#{timestamp}"
-      t   -> "#{dir}/#{t}-#{timestamp}"
+      t -> "#{dir}/#{t}-#{timestamp}"
     end
   end
 
   def write_output_to_stdio(lt_mod, output) do
     IO.puts(output)
     print_separator()
-    IO.inspect(%{
-      scenarios: lt_mod.scenarios,
-      default_config: Chaperon.LoadTest.default_config(lt_mod)
-    }, pretty: true)
+
+    IO.inspect(
+      %{
+        scenarios: lt_mod.scenarios,
+        default_config: Chaperon.LoadTest.default_config(lt_mod)
+      },
+      pretty: true
+    )
+
     :ok
   end
 
   def write_output_to_file(lt_mod, output, path) do
     path
-    |> Path.dirname
-    |> File.mkdir_p!
+    |> Path.dirname()
+    |> File.mkdir_p!()
 
     File.write!(path, output)
-    File.write!(path <> ".config.exs", inspect(%{
-      scenarios: lt_mod.scenarios,
-      default_config: Chaperon.LoadTest.default_config(lt_mod)
-    }, pretty: true))
+
+    File.write!(
+      path <> ".config.exs",
+      inspect(
+        %{
+          scenarios: lt_mod.scenarios,
+          default_config: Chaperon.LoadTest.default_config(lt_mod)
+        },
+        pretty: true
+      )
+    )
   end
 
   defp print_separator do
-    IO.puts ""
+    IO.puts("")
     IO.puts(for _ <- 1..80, do: "=")
-    IO.puts ""
+    IO.puts("")
   end
 
   defp print_metrics(session) do
     print_separator()
     Logger.info("Metrics:")
+
     for {k, v} <- session.metrics do
-      k = inspect k
+      k = inspect(k)
       delimiter = for _ <- 1..byte_size(k), do: "="
       IO.puts("#{delimiter}\n#{k}\n#{delimiter}")
       IO.inspect(v)
@@ -239,16 +263,17 @@ defmodule Chaperon do
   defp print_results(results) do
     print_separator()
     Logger.info("Results:")
+
     for session <- results.sessions do
       for {action, results} <- session.results do
-        for res <- results |> List.wrap |> List.flatten do
+        for res <- results |> List.wrap() |> List.flatten() do
           case res do
             {:async, name, results} when is_list(results) ->
               results
               |> Enum.each(&print_result(name, &1))
 
             {:async, name, res} ->
-              Logger.info "~> #{name} -> #{res.status_code}"
+              Logger.info("~> #{name} -> #{res.status_code}")
 
             results when is_list(results) ->
               results
@@ -263,10 +288,10 @@ defmodule Chaperon do
   end
 
   defp print_result(action, %HTTPoison.Response{status_code: status_code}) do
-    Logger.info "#{action} -> #{status_code}"
+    Logger.info("#{action} -> #{status_code}")
   end
 
   defp print_result(action, result) when is_binary(result) do
-    Logger.info "#{action} -> #{result}"
+    Logger.info("#{action} -> #{result}")
   end
 end

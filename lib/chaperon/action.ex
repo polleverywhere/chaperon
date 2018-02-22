@@ -59,18 +59,16 @@ defmodule Chaperon.Action do
           |> log_info("Greeted successfully!")
       end)
   """
-  def callback(%{callback: %{ok: cb}}),
-    do: cb
-  def callback(%{callback: cb}),
-    do: cb
+  def callback(%{callback: %{ok: cb}}), do: cb
+  def callback(%{callback: cb}), do: cb
 
-  def error_callback(%{callback: %{error: cb}}),
-    do: cb
+  def error_callback(%{callback: %{error: cb}}), do: cb
+
   def error_callback(%{callback: cb}),
-    do: fn(session, resp) ->
+    do: fn session, resp ->
       session
       |> Chaperon.Session.call_callback(cb, {:error, resp})
     end
-  def error_callback(_),
-    do: nil
+
+  def error_callback(_), do: nil
 end

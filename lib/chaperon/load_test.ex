@@ -48,48 +48,44 @@ defmodule Chaperon.LoadTest do
       end
   """
 
-  defstruct [
-    name: nil,
-    scenarios: [],
-    config: %{}
-  ]
+  defstruct name: nil,
+            scenarios: [],
+            config: %{}
 
   @type t :: %Chaperon.LoadTest{
-    name: atom,
-    scenarios: [Chaperon.Scenario.t],
-    config: map
-  }
+          name: atom,
+          scenarios: [Chaperon.Scenario.t()],
+          config: map
+        }
 
   defmodule Results do
     @moduledoc """
     LoadTest results struct.
     """
 
-    defstruct [
-      load_test: nil,
-      start_ms: nil,
-      end_ms: nil,
-      duration_ms: nil,
-      sessions: [],
-      max_timeout: nil,
-      timed_out: nil
-    ]
+    defstruct load_test: nil,
+              start_ms: nil,
+              end_ms: nil,
+              duration_ms: nil,
+              sessions: [],
+              max_timeout: nil,
+              timed_out: nil
 
     @type t :: %Chaperon.LoadTest.Results{
-      load_test: module,
-      start_ms: integer,
-      end_ms: integer,
-      duration_ms: integer,
-      sessions: [Chaperon.Session.t],
-      timed_out: integer
-    }
+            load_test: module,
+            start_ms: integer,
+            end_ms: integer,
+            duration_ms: integer,
+            sessions: [Chaperon.Session.t()],
+            timed_out: integer
+          }
   end
 
   defmacro __using__(_opts) do
     quote do
       require Chaperon.LoadTest
-      import  Chaperon.LoadTest
-      import  Chaperon.Timing
+      import Chaperon.LoadTest
+      import Chaperon.Timing
     end
   end
 
@@ -97,7 +93,7 @@ defmodule Chaperon.LoadTest do
   alias Chaperon.LoadTest.Results
   require Logger
 
-  @spec run(module, map) :: Chaperon.LoadTest.Results.t
+  @spec run(module, map) :: Chaperon.LoadTest.Results.t()
   def run(lt_mod, extra_config \\ %{}) do
     start_time = Chaperon.Timing.timestamp()
 
@@ -146,15 +142,13 @@ defmodule Chaperon.LoadTest do
           |> Map.merge(scenario_config)
           |> Map.merge(extra_config)
 
-
         start_worker(scenario, config)
     end)
-    |> List.flatten
+    |> List.flatten()
   end
 
   def start_worker({concurrency, scenarios}, config)
-    when is_list(scenarios)
-  do
+      when is_list(scenarios) do
     config = Scenario.Sequence.config_for(scenarios, config)
 
     concurrency
@@ -163,8 +157,7 @@ defmodule Chaperon.LoadTest do
   end
 
   def start_worker(scenarios, config)
-    when is_list(scenarios)
-  do
+      when is_list(scenarios) do
     config = Scenario.Sequence.config_for(scenarios, config)
     w = Worker.start(Scenario.Sequence, config)
     {w, config}
@@ -189,6 +182,7 @@ defmodule Chaperon.LoadTest do
           |> Enum.map(fn {task, config} ->
             Task.await(task, Chaperon.Worker.timeout(config))
           end)
+
         {:infinity, sessions, 0}
 
       timeout when is_integer(timeout) ->
@@ -225,9 +219,7 @@ defmodule Chaperon.LoadTest do
           {nil, t} when is_integer(t) ->
             t
 
-          {last, t} when is_integer(last)
-                     and is_integer(t)
-                     and t > last ->
+          {last, t} when is_integer(last) and is_integer(t) and t > last ->
             t
 
           _ ->
@@ -245,9 +237,14 @@ defmodule Chaperon.LoadTest do
   @doc """
   Merges metrics & results of all `Chaperon.Session`s in a list.
   """
-  @spec merge_sessions(Results.t) :: Session.t
+  @spec merge_sessions(Results.t()) :: Session.t()
   def merge_sessions(results = %Results{sessions: [], max_timeout: timeout}) do
-    Logger.warn "No scenario task finished in time (timeout = #{timeout}) for load_test: #{results.load_test}"
+    Logger.warn(
+      "No scenario task finished in time (timeout = #{timeout}) for load_test: #{
+        results.load_test
+      }"
+    )
+
     %Session{}
   end
 
@@ -262,11 +259,12 @@ defmodule Chaperon.LoadTest do
   This wraps all metrics and results with the session's name to be able to
   differentiate later on for which session they were recorded.
   """
-  @spec prepare_merge(Session.t) :: Session.t
+  @spec prepare_merge(Session.t()) :: Session.t()
   def prepare_merge(session) do
-    %{session |
-      metrics: session |> Session.session_metrics,
-      results: session |> Session.session_results
+    %{
+      session
+      | metrics: session |> Session.session_metrics(),
+        results: session |> Session.session_results()
     }
   end
 end

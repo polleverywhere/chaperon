@@ -6,13 +6,13 @@ defmodule Chaperon.Action.WebSocket.Client do
   use WebSockex
   require Logger
 
-  defmodule State  do
+  defmodule State do
     @moduledoc """
     WebSocket client process state.
     """
 
-    defstruct messages: EQ.new,
-              awaiting_clients: EQ.new,
+    defstruct messages: EQ.new(),
+              awaiting_clients: EQ.new(),
               log_prefix: nil
   end
 
@@ -22,7 +22,7 @@ defmodule Chaperon.Action.WebSocket.Client do
     WebSockex.start_link(url, __MODULE__, %State{log_prefix: "#{session.id} [WS Client] |"})
   end
 
-  @spec send_frame(pid, WebSockex.frame) :: :ok
+  @spec send_frame(pid, WebSockex.frame()) :: :ok
   def send_frame(pid, frame = {:text, _}) do
     WebSockex.send_frame(pid, frame)
   end
@@ -35,14 +35,14 @@ defmodule Chaperon.Action.WebSocket.Client do
     Logger.debug(fn -> "#{state.log_prefix} Received Frame" end)
 
     if EQ.empty?(state.awaiting_clients) do
-      state = update_in state.messages, &EQ.push(&1, msg)
+      state = update_in(state.messages, &EQ.push(&1, msg))
       {:ok, state}
     else
       state.awaiting_clients
-      |> EQ.to_list
+      |> EQ.to_list()
       |> Enum.each(&send(&1, {:next_frame, msg}))
 
-      {:ok, put_in(state.awaiting_clients, EQ.new)}
+      {:ok, put_in(state.awaiting_clients, EQ.new())}
     end
   end
 
@@ -64,8 +64,9 @@ defmodule Chaperon.Action.WebSocket.Client do
 
   def handle_disconnect(%{reason: {:local, reason}}, state) do
     Logger.debug(fn ->
-      "#{state.log_prefix} Local close with reason: #{inspect reason}"
+      "#{state.log_prefix} Local close with reason: #{inspect(reason)}"
     end)
+
     {:ok, state}
   end
 
@@ -80,11 +81,12 @@ defmodule Chaperon.Action.WebSocket.Client do
   def handle_info({:next_frame, pid}, state) do
     case EQ.pop(state.messages) do
       {{:value, msg}, remaining} ->
-        state = put_in state.messages, remaining
-        send pid, {:next_frame, msg}
+        state = put_in(state.messages, remaining)
+        send(pid, {:next_frame, msg})
         {:ok, state}
+
       {:empty, _} ->
-        state = update_in state.awaiting_clients, &EQ.push(&1, pid)
+        state = update_in(state.awaiting_clients, &EQ.push(&1, pid))
         {:ok, state}
     end
   end
@@ -95,7 +97,8 @@ defmodule Chaperon.Action.WebSocket.Client do
 
   def recv_message(pid, timeout \\ nil) do
     # ask for next frame frmo WebSockex process and then await response
-    send pid, {:next_frame, self()}
+    send(pid, {:next_frame, self()})
+
     case timeout do
       nil ->
         receive do
@@ -107,14 +110,14 @@ defmodule Chaperon.Action.WebSocket.Client do
         receive do
           {:next_frame, msg} ->
             msg
-
-          after timeout ->
+        after
+          timeout ->
             {:error, {:timeout, timeout}}
         end
     end
   end
 
   def close(pid) do
-    send pid, :close
+    send(pid, :close)
   end
 end

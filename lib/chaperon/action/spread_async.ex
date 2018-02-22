@@ -4,22 +4,20 @@ defmodule Chaperon.Action.SpreadAsync do
   time (ms).
   """
 
-  defstruct [
-    func: nil,
-    rate: nil,
-    interval: nil,
-    task_name: nil
-  ]
+  defstruct func: nil,
+            rate: nil,
+            interval: nil,
+            task_name: nil
 
   @type rate :: non_neg_integer
   @type time :: non_neg_integer
 
   @type t :: %__MODULE__{
-    func: Chaperon.CallFunction.callback,
-    rate: rate,
-    interval: time,
-    task_name: atom
-  }
+          func: Chaperon.CallFunction.callback(),
+          rate: rate,
+          interval: time,
+          task_name: atom
+        }
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
@@ -37,25 +35,25 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
       action
       |> execute_task(session, delay)
     end)
-    |> Enum.reduce(session, fn (task, session) ->
+    |> Enum.reduce(session, fn task, session ->
       session
       |> Session.add_async_task(action.func, task)
     end)
-    |> Session.ok
+    |> Session.ok()
   end
 
   defp execute_task(action, session, delay) do
     session =
       session
       |> Session.delay(delay)
-      |> Session.reset_action_metadata
+      |> Session.reset_action_metadata()
 
-    Chaperon.Worker.Supervisor.schedule_async fn ->
+    Chaperon.Worker.Supervisor.schedule_async(fn ->
       session
       |> Session.time(action.func, fn session ->
         apply(session.scenario.module, action.func, [session])
       end)
-    end
+    end)
   end
 
   def abort(action, session) do
@@ -70,6 +68,6 @@ defimpl String.Chars, for: Chaperon.Action.SpreadAsync do
   end
 
   def to_string(%{func: func, rate: r, interval: i}) when is_function(func) do
-    "SpreadAsync[#{inspect func}, #{r}, #{i}]"
+    "SpreadAsync[#{inspect(func)}, #{r}, #{i}]"
   end
 end

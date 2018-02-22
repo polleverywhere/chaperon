@@ -4,19 +4,17 @@ defmodule Chaperon.Action.Async do
   `Chaperon.Scenario` module).
   """
 
-  defstruct [
-    module: nil,
-    function: nil,
-    args: [],
-    task_name: nil
-  ]
+  defstruct module: nil,
+            function: nil,
+            args: [],
+            task_name: nil
 
   @type t :: %Chaperon.Action.Async{
-    module: module,
-    function: atom,
-    args: [any],
-    task_name: atom
-  }
+          module: module,
+          function: atom,
+          args: [any],
+          task_name: atom
+        }
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
@@ -24,22 +22,22 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   use Chaperon.Session.Logging
 
   def run(
-    action = %{
-      module: mod,
-      function: func_name,
-      args: args,
-      task_name: task_name
-    },
+        action = %{
+          module: mod,
+          function: func_name,
+          args: args,
+          task_name: task_name
+        },
+        session
+      ) do
     session
-  ) do
-    session
-    |> log_debug("Async #{task_name} : #{mod}.#{func_name}(#{inspect args})")
+    |> log_debug("Async #{task_name} : #{mod}.#{func_name}(#{inspect(args)})")
 
     task = action |> execute_task(session)
 
     session
     |> Session.add_async_task(task_name, task)
-    |> Session.ok
+    |> Session.ok()
   end
 
   def abort(action, session) do
@@ -47,21 +45,22 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
   end
 
   defp execute_task(
-    %{
-      module: mod,
-      function: func_name,
-      args: args,
-      task_name: task_name
-    },
-    session
-  ) do
+         %{
+           module: mod,
+           function: func_name,
+           args: args,
+           task_name: task_name
+         },
+         session
+       ) do
     session = %{session | parent_pid: self()}
-    Task.async fn ->
+
+    Task.async(fn ->
       session
       |> Session.time(task_name, fn session ->
         apply(mod, func_name, [session | args])
       end)
-    end
+    end)
   end
 end
 

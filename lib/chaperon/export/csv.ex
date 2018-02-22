@@ -18,10 +18,7 @@ defmodule Chaperon.Export.CSV do
     separator = opts |> Keyword.get(:separator, @separator)
     delimiter = opts |> Keyword.get(:delimiter, @delimiter)
 
-    data =
-      encode_header(separator)
-      <> delimiter
-      <> (session |> encode_rows(separator, delimiter))
+    data = encode_header(separator) <> delimiter <> (session |> encode_rows(separator, delimiter))
 
     {:ok, data}
   end
@@ -31,12 +28,19 @@ defmodule Chaperon.Export.CSV do
   end
 
   @header_fields [
-    "session_action_name", "total_count", "max", "mean", "min"
-  ] ++ (for p <- Metrics.percentiles, do: "percentile_#{p}")
+                   "session_action_name",
+                   "total_count",
+                   "max",
+                   "mean",
+                   "min"
+                 ] ++ for(p <- Metrics.percentiles(), do: "percentile_#{p}")
 
   @columns [
-    :total_count, :max, :mean, :min,
-  ] ++ (for p <- Metrics.percentiles, do: {:percentile, p})
+             :total_count,
+             :max,
+             :mean,
+             :min
+           ] ++ for(p <- Metrics.percentiles(), do: {:percentile, p})
 
   defp encode_header(separator) do
     @header_fields
@@ -49,8 +53,10 @@ defmodule Chaperon.Export.CSV do
       {{:call, {mod, func}}, vals} ->
         mod_name = Util.shortened_module_name(mod)
         encode_runs(vals, "call(#{mod_name}.#{func})", separator)
+
       {{action, url}, vals} ->
         encode_runs(vals, "#{action}(#{url})", separator)
+
       {action, vals} ->
         encode_runs(vals, "#{action}", separator)
     end)
@@ -59,7 +65,7 @@ defmodule Chaperon.Export.CSV do
 
   defp encode_runs(runs, action_name, separator) when is_list(runs) do
     runs
-    |> Enum.map(&(encode_row(&1, action_name, separator)))
+    |> Enum.map(&encode_row(&1, action_name, separator))
   end
 
   defp encode_runs(run, action_name, separator) do
@@ -69,14 +75,12 @@ defmodule Chaperon.Export.CSV do
   defp encode_row(vals, action_name, separator) when is_map(vals) do
     session_name = vals[:session_name]
 
-    "#{session_name} #{action_name}"
-    <> separator
-    <> encode_row_values(vals, separator)
+    "#{session_name} #{action_name}" <> separator <> encode_row_values(vals, separator)
   end
 
   defp encode_row_values(vals, separator) do
     @columns
-    |> Enum.map(&(round(vals[&1])))
+    |> Enum.map(&round(vals[&1]))
     |> Enum.join(separator)
   end
 end

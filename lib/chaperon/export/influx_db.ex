@@ -12,21 +12,21 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
       alias Chaperon.Util
 
       series do
-        measurement "load_test"
+        measurement("load_test")
 
-        tag :tag
-        tag :action
-        tag :session
-        tag :load_test
+        tag(:tag)
+        tag(:action)
+        tag(:session)
+        tag(:load_test)
 
-        field :duration
-        field :total_count
-        field :max
-        field :mean
-        field :min
+        field(:duration)
+        field(:total_count)
+        field(:max)
+        field(:mean)
+        field(:min)
 
-        for p <- Metrics.percentiles do
-          field Util.percentile_name(p)
+        for p <- Metrics.percentiles() do
+          field(Util.percentile_name(p))
         end
       end
     end
@@ -39,7 +39,7 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
     require Logger
 
     def write_output(lt_mod, data, _) do
-      Logger.info "Writing data for #{lt_mod |> Util.module_name} to InfluxDB"
+      Logger.info("Writing data for #{lt_mod |> Util.module_name()} to InfluxDB")
 
       for d <- data do
         :ok = __MODULE__.write(d)
@@ -58,8 +58,10 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
           {{:call, {mod, func}}, vals} ->
             mod_name = Util.shortened_module_name(mod)
             encode_runs(vals, "call(#{mod_name}.#{func})", opts)
+
           {{action, url}, vals} ->
             encode_runs(vals, "#{action}(#{url})", opts)
+
           {action, vals} ->
             encode_runs(vals, "#{action}", opts)
         end)
@@ -80,14 +82,16 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
       session_name = vals[:session_name]
       data = %LoadTestMeasurement{}
 
-      %{data |
-        tags: %{data.tags |
-          tag: opts[:tag],
-          session: session_name,
-          action: action_name,
-          load_test: opts[:load_test]
-        },
-        fields: Map.merge(data.fields, measurement_fields(vals, opts))
+      %{
+        data
+        | tags: %{
+            data.tags
+            | tag: opts[:tag],
+              session: session_name,
+              action: action_name,
+              load_test: opts[:load_test]
+          },
+          fields: Map.merge(data.fields, measurement_fields(vals, opts))
       }
     end
 
@@ -104,7 +108,7 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
     end
 
     defp percentile_fields(vals) do
-      Chaperon.Scenario.Metrics.percentiles
+      Chaperon.Scenario.Metrics.percentiles()
       |> Enum.map(fn p ->
         {Util.percentile_name(p), vals[{:percentile, p}]}
       end)

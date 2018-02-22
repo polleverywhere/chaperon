@@ -10,20 +10,18 @@ defmodule Chaperon.Action.WebSocket.Connect do
   `session.assigned.websocket_url`.
   """
 
-  defstruct [
-    path: nil,
-    options: []
-  ]
+  defstruct path: nil,
+            options: []
 
   def url(action, session) do
     case Chaperon.Action.HTTP.url(action, session) do
       "https" <> rest ->
         "wss" <> rest
 
-      "http"  <> rest ->
-        "ws"  <> rest
+      "http" <> rest ->
+        "ws" <> rest
 
-      ("ws" <> _) = ws_url ->
+      "ws" <> _ = ws_url ->
         ws_url
     end
   end
@@ -48,9 +46,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
       {:ws_connected, ws_client, ^ws_url} ->
         session
         |> WebSocket.assign_for_action(action, ws_client, ws_url)
-        |> Session.ok
-
-      after timeout ->
+        |> Session.ok()
+    after
+      timeout ->
         session
         |> log_info("Timeout while connecting via WS to #{ws_url}")
         |> Session.error({:timeout, :ws_conn, ws_url, timeout})
@@ -63,14 +61,14 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
 
   def async_connect(session, ws_url) do
     parent = self()
-    spawn_link fn ->
+
+    spawn_link(fn ->
       {:ok, ws_client} = WebSocket.Client.start_link(session, ws_url)
-      send parent, {:ws_connected, ws_client, ws_url}
-    end
+      send(parent, {:ws_connected, ws_client, ws_url})
+    end)
   end
 end
 
 defimpl String.Chars, for: Chaperon.Action.WebSocket.Connect do
-  def to_string(%{path: path}),
-    do: "WS Connect[#{path}]"
+  def to_string(%{path: path}), do: "WS Connect[#{path}]"
 end

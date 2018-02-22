@@ -6,56 +6,63 @@ defmodule Chaperon.Action.HTTP.Test do
   test "options/2 with no cookies or basic auth" do
     action = %HTTP{}
     session = %Chaperon.Session{}
+
     assert HTTP.options(action, session) == [
-      params: %{},
-      hackney: [
-        pool: :chaperon
-      ]
-    ]
+             params: %{},
+             hackney: [
+               pool: :chaperon
+             ]
+           ]
   end
 
   test "options/2 with cookies and no basic auth" do
     action = %HTTP{}
+
     session = %Chaperon.Session{
       cookies: ["cookie1", "cookie2"]
     }
+
     assert HTTP.options(action, session) == [
-      params: %{},
-      hackney: [
-        cookie: ["cookie1", "cookie2"],
-        pool: :chaperon
-      ]
-    ]
+             params: %{},
+             hackney: [
+               cookie: ["cookie1", "cookie2"],
+               pool: :chaperon
+             ]
+           ]
   end
 
   test "options/2 with no cookies and basic auth" do
     action = %HTTP{}
+
     session = %Chaperon.Session{
       config: %{basic_auth: {"user1", "password1"}}
     }
+
     assert HTTP.options(action, session) == [
-      params: %{},
-      hackney: [
-        basic_auth: {"user1", "password1"},
-        pool: :chaperon
-      ]
-    ]
+             params: %{},
+             hackney: [
+               basic_auth: {"user1", "password1"},
+               pool: :chaperon
+             ]
+           ]
   end
 
   test "options/2 with cookies and basic auth" do
     action = %HTTP{}
+
     session = %Chaperon.Session{
       cookies: ["cookie1", "cookie2"],
       config: %{basic_auth: {"user1", "password1"}}
     }
+
     assert HTTP.options(action, session) == [
-      params: %{},
-      hackney: [
-        cookie: ["cookie1", "cookie2"],
-        basic_auth: {"user1", "password1"},
-        pool: :chaperon
-      ]
-    ]
+             params: %{},
+             hackney: [
+               cookie: ["cookie1", "cookie2"],
+               basic_auth: {"user1", "password1"},
+               pool: :chaperon
+             ]
+           ]
   end
 
   test "metrics_url/2 with no custom metrics_url defined" do

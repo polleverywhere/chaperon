@@ -7,8 +7,7 @@ defmodule Chaperon.Worker do
   require Logger
 
   def start(amount, scenario_mod, config)
-  when is_integer(amount) and amount > 0
-  do
+      when is_integer(amount) and amount > 0 do
     Chaperon.Worker.Supervisor.start_workers(
       nodes(),
       amount,
@@ -43,12 +42,12 @@ defmodule Chaperon.Worker do
 
   def random_node do
     nodes()
-    |> Enum.shuffle
-    |> List.first
+    |> Enum.shuffle()
+    |> List.first()
   end
 
   def nodes do
-    [Node.self | Node.list]
+    [Node.self() | Node.list()]
   end
 
   def timeout(config), do: config[:scenario_timeout] || :infinity

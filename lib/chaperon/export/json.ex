@@ -8,8 +8,11 @@ defmodule Chaperon.Export.JSON do
   alias Chaperon.Scenario.Metrics
 
   @columns [
-    :total_count, :max, :mean, :min
-  ] ++ (for p <- Metrics.percentiles, do: {:percentile, p})
+             :total_count,
+             :max,
+             :mean,
+             :min
+           ] ++ for(p <- Metrics.percentiles(), do: {:percentile, p})
 
   @doc """
   Encodes metrics of given `session` into JSON format.
@@ -21,7 +24,7 @@ defmodule Chaperon.Export.JSON do
         {{:call, {mod, func}}, vals} ->
           %{
             action: :call,
-            module: (inspect mod),
+            module: inspect(mod),
             function: func,
             metrics: metrics(vals)
           }
@@ -32,7 +35,7 @@ defmodule Chaperon.Export.JSON do
         {action, vals} ->
           %{action: action, metrics: metrics(vals)}
       end)
-      |> Poison.encode!
+      |> Poison.encode!()
 
     {:ok, data}
   end
@@ -54,6 +57,7 @@ defmodule Chaperon.Export.JSON do
       |> Enum.map(fn
         {{:percentile, p}, val} ->
           {"percentile_#{p}", round(val)}
+
         {k, v} ->
           {k, round(v)}
       end)

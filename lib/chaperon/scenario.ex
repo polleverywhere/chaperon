@@ -32,13 +32,11 @@ defmodule Chaperon.Scenario do
       end
   """
 
-  defstruct [
-    module: nil
-  ]
+  defstruct module: nil
 
   @type t :: %Chaperon.Scenario{
-    module: module
-  }
+          module: module
+        }
 
   defmodule Sequence do
     @moduledoc """
@@ -67,7 +65,7 @@ defmodule Chaperon.Scenario do
 
     def run(initial_session = %{config: %{compound_scenarios: scenarios}}) do
       scenarios
-      |> Enum.reduce(initial_session, fn(scenario, session) ->
+      |> Enum.reduce(initial_session, fn scenario, session ->
         session
         |> Session.run_scenario(scenario, session.assigned)
       end)
@@ -80,10 +78,10 @@ defmodule Chaperon.Scenario do
       require Chaperon.Scenario
       require Chaperon.Session
       require Chaperon.Session.Logging
-      import  Chaperon.Scenario
-      import  Chaperon.Timing
-      import  Chaperon.Session
-      import  Chaperon.Session.Logging
+      import Chaperon.Scenario
+      import Chaperon.Timing
+      import Chaperon.Session
+      import Chaperon.Session.Logging
 
       # def start_link(config) do
       #   with {:ok, session} <- __MODULE__ |> init(config |> new_session) do
@@ -91,7 +89,7 @@ defmodule Chaperon.Scenario do
       #   end
       # end
 
-      @spec new_session(map) :: Session.t
+      @spec new_session(map) :: Session.t()
       def new_session(config) do
         %Chaperon.Session{
           scenario: %Chaperon.Scenario{module: __MODULE__},
@@ -113,9 +111,10 @@ defmodule Chaperon.Scenario do
   performed `Chaperon.Actionable`s, including for all run actions run
   asynchronously as part of the scenario.
   """
-  @spec execute(module, map) :: Session.t
+  @spec execute(module, map) :: Session.t()
   def execute(scenario_mod, config) do
     scenario = %Scenario{module: scenario_mod}
+
     session =
       scenario
       |> new_session(config)
@@ -128,7 +127,7 @@ defmodule Chaperon.Scenario do
     |> teardown(session)
   end
 
-  @spec execute_nested(Scenario.t, Session.t, map) :: Session.t
+  @spec execute_nested(Scenario.t(), Session.t(), map) :: Session.t()
   def execute_nested(scenario, session, config) do
     session =
       scenario
@@ -143,16 +142,16 @@ defmodule Chaperon.Scenario do
   end
 
   @spec run(
-    Scenario.t,
-    Session.t | {:ok, Session.t} | {:error, any}
-  ) :: Session.t | {:error, any}
+          Scenario.t(),
+          Session.t() | {:ok, Session.t()} | {:error, any}
+        ) :: Session.t() | {:error, any}
   def run(scenario, {:ok, session}) do
     scenario
     |> run(session)
   end
 
   def run(scenario, {:error, reason}) do
-    Logger.error "Error running #{scenario}: #{inspect reason}"
+    Logger.error("Error running #{scenario}: #{inspect(reason)}")
     {:error, reason}
   end
 
@@ -178,7 +177,7 @@ defmodule Chaperon.Scenario do
       session
     else
       session
-      |> Scenario.Metrics.add_histogram_metrics
+      |> Scenario.Metrics.add_histogram_metrics()
     end
   end
 
@@ -187,7 +186,7 @@ defmodule Chaperon.Scenario do
     %{s2 | scenario: session.scenario}
   end
 
-  @spec initial_delay(Session.t) :: Session.t
+  @spec initial_delay(Session.t()) :: Session.t()
   def initial_delay(session = %Session{config: %{delay: delay}}) do
     session
     |> Session.delay(delay)
@@ -208,7 +207,7 @@ defmodule Chaperon.Scenario do
 
   Otherwise defaults to returning `{:ok, session}`.
   """
-  @spec init(module, Session.t) :: {:ok, Session.t}
+  @spec init(module, Session.t()) :: {:ok, Session.t()}
   def init(scenario_mod, session) do
     # for some reason Kernel.function_exported? only works on first compile
     # but not for successive runs. Must be some bug in the compiler ??
@@ -228,33 +227,36 @@ defmodule Chaperon.Scenario do
 
   Returns the given session afterwards.
   """
-  @spec teardown(Scenario.t, Session.t) :: Session.t
+  @spec teardown(Scenario.t(), Session.t()) :: Session.t()
   def teardown(scenario, session) do
     if scenario.module.module_info(:exports)[:teardown] do
       session |> scenario.module.teardown
     end
+
     session
   end
 
-  @spec new_session(Scenario.t, map) :: Session.t
+  @spec new_session(Scenario.t(), map) :: Session.t()
   def new_session(scenario, config) do
     %Session{
-      id: UUID.uuid4,
+      id: UUID.uuid4(),
       name: session_name(scenario, config),
       scenario: scenario,
       config: config
     }
   end
 
-  @spec nested_session(Scenario.t, Session.t, map) :: Session.t
+  @spec nested_session(Scenario.t(), Session.t(), map) :: Session.t()
   def nested_session(scenario, session, config) do
     config = session.config |> Map.merge(config)
-    %{session |
-      id: session.id,
-      name: session_name(scenario, config),
-      scenario: scenario,
-      config: config,
-      cookies: session.cookies
+
+    %{
+      session
+      | id: session.id,
+        name: session_name(scenario, config),
+        scenario: scenario,
+        config: config,
+        cookies: session.cookies
     }
   end
 
@@ -268,17 +270,15 @@ defmodule Chaperon.Scenario do
       iex> Scenario.name %Scenario{module: Scenarios.Bruteforce.Login}
       "Scenarios.Bruteforce.Login"
   """
-  @spec name(Scenario.t) :: String.t
+  @spec name(Scenario.t()) :: String.t()
   def name(%Scenario{module: mod}) do
     mod
-    |> Module.split
+    |> Module.split()
     |> Enum.join(".")
   end
 
-  @spec session_name(Scenario.t, map) :: String.t
-  def session_name(_scenario, %{name: name}),
-    do: name
+  @spec session_name(Scenario.t(), map) :: String.t()
+  def session_name(_scenario, %{name: name}), do: name
 
-  def session_name(scenario, _config),
-    do: scenario |> name
+  def session_name(scenario, _config), do: scenario |> name
 end

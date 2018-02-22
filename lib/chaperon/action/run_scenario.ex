@@ -3,26 +3,24 @@ defmodule Chaperon.Action.RunScenario do
   Action that runs a `Chaperon.Scenario` module from the current session.
   """
 
-  defstruct [
-    scenario: nil,
-    config: %{},
-    scheduler: :local,
-    id: nil,
-    pid: nil
-  ]
+  defstruct scenario: nil,
+            config: %{},
+            scheduler: :local,
+            id: nil,
+            pid: nil
 
   @type t :: %__MODULE__{
-    scenario: Chaperon.Scenario.t,
-    config: map,
-    scheduler: scheduler,
-    id: String.t,
-    pid: pid
-  }
+          scenario: Chaperon.Scenario.t(),
+          config: map,
+          scheduler: scheduler,
+          id: String.t(),
+          pid: pid
+        }
 
   alias __MODULE__
   alias Chaperon.Scenario
 
-  @type scenario :: module | Scenario.t
+  @type scenario :: module | Scenario.t()
   @type scheduler :: :local | :cluster
 
   def new(scenario, config, scheduler) do
@@ -33,20 +31,20 @@ defmodule Chaperon.Action.RunScenario do
     }
   end
 
-  @spec as_scenario(scenario) :: Scenario.t
-  defp as_scenario(scenario_mod) when is_atom(scenario_mod),
-    do: %Scenario{module: scenario_mod}
-  defp as_scenario(s = %Scenario{}),
-    do: s
+  @spec as_scenario(scenario) :: Scenario.t()
+  defp as_scenario(scenario_mod) when is_atom(scenario_mod), do: %Scenario{module: scenario_mod}
+  defp as_scenario(s = %Scenario{}), do: s
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
-  import Chaperon.Session, only: [
-    set_config: 2,
-    merge: 2,
-    reset_action_metadata: 1,
-    add_metric: 3
-  ]
+  import Chaperon.Session,
+    only: [
+      set_config: 2,
+      merge: 2,
+      reset_action_metadata: 1,
+      add_metric: 3
+    ]
+
   alias Chaperon.Worker
   import Chaperon.Timing
 
@@ -58,7 +56,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
     start = timestamp()
 
     scenario_session =
-      case {scheduler, session.config[:execute_nested_scenario]}  do
+      case {scheduler, session.config[:execute_nested_scenario]} do
         {:cluster, _} ->
           schedule_cluster_worker(scenario, scenario_config, session)
 
@@ -109,15 +107,16 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
 
   def abort(action = %{pid: pid}, session) do
     # TODO
-    send pid, :abort
+    send(pid, :abort)
     {:ok, action, session}
   end
 
   defp merge_scenario_session(session, scenario_session) do
-    %{session |
-      config: Map.merge(session.config, scenario_session.config),
-      assigned: Map.merge(session.assigned, scenario_session.assigned),
-      cookies: scenario_session.cookies
+    %{
+      session
+      | config: Map.merge(session.config, scenario_session.config),
+        assigned: Map.merge(session.assigned, scenario_session.assigned),
+        cookies: scenario_session.cookies
     }
     |> merge(scenario_session)
   end

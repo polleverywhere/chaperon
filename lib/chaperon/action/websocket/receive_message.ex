@@ -3,16 +3,14 @@ defmodule Chaperon.Action.WebSocket.ReceiveMessage do
   WebSocket action to receive message in a WebSocket-connected session.
   """
 
-  defstruct [
-    options: [],
-    decode: nil,
-    callback: nil
-  ]
+  defstruct options: [],
+            decode: nil,
+            callback: nil
 
   @type t :: %__MODULE__{
-    options: [any],
-    callback: Chaperon.Session.result_callback
-  }
+          options: [any],
+          callback: Chaperon.Session.result_callback()
+        }
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
@@ -35,7 +33,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
     case WebSocket.Client.recv_message(socket, action.options[:timeout]) do
       {:binary, message} ->
         session
-        |> log_debug("WS_RECV binary (#{byte_size message} bytes)")
+        |> log_debug("WS_RECV binary (#{byte_size(message)} bytes)")
         |> handle_message(action, message, start)
 
       {:text, message} ->
@@ -50,17 +48,17 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
 
       other ->
         session
-        |> log_warn("WS_RECV unexpected message: #{inspect other}")
+        |> log_warn("WS_RECV unexpected message: #{inspect(other)}")
         |> ok
     end
   end
 
   def handle_message(
-    session,
-    action,
-    message,
-    start_time
-  ) do
+        session,
+        action,
+        message,
+        start_time
+      ) do
     {_, ws_url} =
       session
       |> WebSocket.for_action(action)
@@ -78,8 +76,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
 end
 
 defimpl String.Chars, for: Chaperon.Action.WebSocket.ReceiveMessage do
-  def to_string(%{options: []}),
-    do: "WS-Recv"
-  def to_string(%{options: opts}),
-    do: "WS-Recv#{inspect opts}"
+  def to_string(%{options: []}), do: "WS-Recv"
+  def to_string(%{options: opts}), do: "WS-Recv#{inspect(opts)}"
 end

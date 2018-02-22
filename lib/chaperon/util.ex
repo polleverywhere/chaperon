@@ -5,19 +5,23 @@ defmodule Chaperon.Util do
 
   @spec preserve_vals_merge(map, map) :: map
   def preserve_vals_merge(map1, map2) do
-    new_map = for {k, v2} <- map2 do
-      case map1[k] do
-        nil ->
-          {k, v2}
-        v1 when is_list(v1) and is_list(v2) ->
-          {k, v2 ++ v1}
-        v1 when is_list(v1) ->
-          {k, [v2 | v1]}
-        v1 ->
-          {k, [v2, v1]}
+    new_map =
+      for {k, v2} <- map2 do
+        case map1[k] do
+          nil ->
+            {k, v2}
+
+          v1 when is_list(v1) and is_list(v2) ->
+            {k, v2 ++ v1}
+
+          v1 when is_list(v1) ->
+            {k, [v2 | v1]}
+
+          v1 ->
+            {k, [v2, v1]}
+        end
       end
-    end
-    |> Enum.into(%{})
+      |> Enum.into(%{})
 
     map1
     |> Map.merge(new_map)
@@ -57,6 +61,7 @@ defmodule Chaperon.Util do
       case v do
         v when is_map(v) ->
           {k, Map.put(v, k2, v2)}
+
         v ->
           {k, v}
       end
@@ -90,23 +95,24 @@ defmodule Chaperon.Util do
       n when n > 0 ->
         enum
         |> Enum.drop(n)
+
       _ ->
         enum
     end
   end
 
-  @spec shortened_module_name(module, non_neg_integer) :: String.t
+  @spec shortened_module_name(module, non_neg_integer) :: String.t()
   def shortened_module_name(mod, max_nesting \\ 2) do
     mod
-    |> Module.split
+    |> Module.split()
     |> last(max_nesting)
     |> Enum.join(".")
   end
 
-  @spec module_name(module) :: String.t
+  @spec module_name(module) :: String.t()
   def module_name(mod) when is_atom(mod) do
     mod
-    |> Module.split
+    |> Module.split()
     |> Enum.join(".")
   end
 
@@ -115,6 +121,7 @@ defmodule Chaperon.Util do
     case inspect(pid) do
       "#PID<0." <> _ ->
         true
+
       _ ->
         false
     end

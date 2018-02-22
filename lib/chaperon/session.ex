@@ -5,33 +5,31 @@ defmodule Chaperon.Session do
   Most of Chaperon's logic is centered around these sessions.
   """
 
-  defstruct [
-    id: nil,
-    name: nil,
-    results: %{},
-    errors: %{},
-    async_tasks: %{},
-    config: %{},
-    assigned: %{},
-    metrics: %{},
-    scenario: nil,
-    cookies: [],
-    parent_pid: nil
-  ]
+  defstruct id: nil,
+            name: nil,
+            results: %{},
+            errors: %{},
+            async_tasks: %{},
+            config: %{},
+            assigned: %{},
+            metrics: %{},
+            scenario: nil,
+            cookies: [],
+            parent_pid: nil
 
   @type t :: %Chaperon.Session{
-    id: String.t,
-    name: String.t,
-    results: map,
-    errors: map,
-    async_tasks: map,
-    config: map,
-    assigned: map,
-    metrics: map,
-    scenario: Chaperon.Scenario.t,
-    cookies: [String.t],
-    parent_pid: pid | nil
-  }
+          id: String.t(),
+          name: String.t(),
+          results: map,
+          errors: map,
+          async_tasks: map,
+          config: map,
+          assigned: map,
+          metrics: map,
+          scenario: Chaperon.Scenario.t(),
+          cookies: [String.t()],
+          parent_pid: pid | nil
+        }
 
   @type metric :: {atom, any} | any
 
@@ -47,13 +45,13 @@ defmodule Chaperon.Session do
 
   @default_timeout seconds(10)
 
-  @type result_callback :: atom | (Session.t, any -> Session.t)
+  @type result_callback :: atom | (Session.t(), any -> Session.t())
 
   defmacro __using__(_opts) do
     quote do
       require Logger
       require Chaperon.Session
-      import  Chaperon.Session
+      import Chaperon.Session
     end
   end
 
@@ -62,12 +60,12 @@ defmodule Chaperon.Session do
   interval within `session`.
   """
   @spec cc_spread(
-    Session.t,
-    atom,
-    SpreadAsync.rate,
-    SpreadAsync.time,
-    atom | nil
-  ) :: Session.t
+          Session.t(),
+          atom,
+          SpreadAsync.rate(),
+          SpreadAsync.time(),
+          atom | nil
+        ) :: Session.t()
   def cc_spread(session, func_name, rate, interval, task_name \\ nil) do
     session
     |> run_action(%SpreadAsync{
@@ -78,21 +76,23 @@ defmodule Chaperon.Session do
     })
   end
 
-  @type cc_spread_options :: [
-    rate: SpreadAsync.rate,
-    interval: SpreadAsync.time,
-    name: atom | nil
-  ] | %{
-    rate: SpreadAsync.rate,
-    interval: SpreadAsync.time,
-    name: atom | nil
-  }
+  @type cc_spread_options ::
+          [
+            rate: SpreadAsync.rate(),
+            interval: SpreadAsync.time(),
+            name: atom | nil
+          ]
+          | %{
+              rate: SpreadAsync.rate(),
+              interval: SpreadAsync.time(),
+              name: atom | nil
+            }
 
   @doc """
   Concurrently spreads a given action with a given rate over a given time
   interval within `session`.
   """
-  @spec cc_spread(Session.t, atom, cc_spread_options) :: Session.t
+  @spec cc_spread(Session.t(), atom, cc_spread_options) :: Session.t()
   def cc_spread(session, func_name, opts \\ []) do
     session
     |> run_action(%SpreadAsync{
@@ -107,7 +107,7 @@ defmodule Chaperon.Session do
   Loops a given action for a given duration, returning the resulting session at
   the end.
   """
-  @spec loop(Session.t, atom, Chaperon.Timing.duration) :: Session.t
+  @spec loop(Session.t(), atom, Chaperon.Timing.duration()) :: Session.t()
   def loop(session, action_name, duration) do
     session
     |> run_action(%Action.Loop{
@@ -130,8 +130,9 @@ defmodule Chaperon.Session do
       |> foo
       |> foo
   """
-  @spec repeat(Session.t, atom, non_neg_integer) :: Session.t
+  @spec repeat(Session.t(), atom, non_neg_integer) :: Session.t()
   def repeat(session, _, 0), do: session
+
   def repeat(session, func, amount) when amount > 0 do
     session
     |> call(func)
@@ -151,8 +152,9 @@ defmodule Chaperon.Session do
       session
       |> foo("bar", "baz") |> foo("bar", "baz")
   """
-  @spec repeat(Session.t, atom, [any], non_neg_integer) :: Session.t
+  @spec repeat(Session.t(), atom, [any], non_neg_integer) :: Session.t()
   def repeat(session, _, _, 0), do: session
+
   def repeat(session, func, args, amount) when amount > 0 do
     session
     |> call(func, args)
@@ -174,8 +176,9 @@ defmodule Chaperon.Session do
       |> call_traced(:foo)
       |> call_traced(:foo)
   """
-  @spec repeat_traced(Session.t, atom, non_neg_integer) :: Session.t
+  @spec repeat_traced(Session.t(), atom, non_neg_integer) :: Session.t()
   def repeat_traced(session, _, 0), do: session
+
   def repeat_traced(session, func, amount) when amount > 0 do
     session
     |> call_traced(func)
@@ -196,8 +199,9 @@ defmodule Chaperon.Session do
       |> call_traced(:foo, ["bar", "baz"])
       |> call_traced(:foo, ["bar", "baz"])
   """
-  @spec repeat_traced(Session.t, atom, [any], non_neg_integer) :: Session.t
+  @spec repeat_traced(Session.t(), atom, [any], non_neg_integer) :: Session.t()
   def repeat_traced(session, _, _, 0), do: session
+
   def repeat_traced(session, func, args, amount) when amount > 0 do
     session
     |> call_traced(func, args)
@@ -205,10 +209,10 @@ defmodule Chaperon.Session do
   end
 
   @type retry_options :: [
-    retries: non_neg_integer,
-    delay: non_neg_integer,
-    random_delay: non_neg_integer
-  ]
+          retries: non_neg_integer,
+          delay: non_neg_integer,
+          random_delay: non_neg_integer
+        ]
 
   @default_retry_opts [retries: 1, random_delay: 1_000]
 
@@ -235,7 +239,7 @@ defmodule Chaperon.Session do
       session
       |> retry_on_error(:publish_default)
   """
-  @spec retry_on_error(Session.t, atom, [any], retry_options) :: Session.t
+  @spec retry_on_error(Session.t(), atom, [any], retry_options) :: Session.t()
   def retry_on_error(session, func, args \\ [], opts \\ @default_retry_opts) do
     retries = opts[:retries] || 1
 
@@ -245,21 +249,23 @@ defmodule Chaperon.Session do
     rescue
       err ->
         session
-        |> log_error(inspect err)
+        |> log_error(inspect(err))
 
-        retries = case retries do
-          :infinity -> :infinity
-          r         -> r - 1
-        end
+        retries =
+          case retries do
+            :infinity -> :infinity
+            r -> r - 1
+          end
 
         if retries > 0 do
           opts = Keyword.merge(opts, retries: retries)
+
           session
           |> log_error("Retrying #{func} another #{retries} times")
           |> retry_delay(opts)
           |> retry_on_error(func, args, opts)
         else
-          stacktrace = System.stacktrace
+          stacktrace = System.stacktrace()
           reraise err, stacktrace
         end
     end
@@ -294,22 +300,23 @@ defmodule Chaperon.Session do
       iex> session |> Chaperon.Session.timeout
       10
   """
-  @spec timeout(Session.t) :: non_neg_integer
+  @spec timeout(Session.t()) :: non_neg_integer
   def timeout(session) do
     session.config[:timeout] || @default_timeout
   end
 
-  @spec await(Session.t, atom, Task.t) :: Session.t
+  @spec await(Session.t(), atom, Task.t()) :: Session.t()
   def await(session, _task_name, nil), do: session
 
   def await(session, task_name, task = %Task{}) do
     task_session = task |> Task.await(session |> timeout)
+
     session
     |> remove_async_task(task_name, task)
     |> merge_async_task_result(task_session, task_name)
   end
 
-  @spec await(Session.t, atom, [Task.t]) :: Session.t
+  @spec await(Session.t(), atom, [Task.t()]) :: Session.t()
   def await(session, task_name, tasks) when is_list(tasks) do
     tasks
     |> Enum.reduce(session, &await(&2, task_name, &1))
@@ -318,7 +325,7 @@ defmodule Chaperon.Session do
   @doc """
   Await an async task with a given `task_name` in `session`.
   """
-  @spec await(Session.t, atom) :: Session.t
+  @spec await(Session.t(), atom) :: Session.t()
   def await(session, task_name) when is_atom(task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
@@ -327,7 +334,7 @@ defmodule Chaperon.Session do
   @doc """
   Await all async tasks for the given `task_names` in `session`.
   """
-  @spec await(Session.t, [atom]) :: Session.t
+  @spec await(Session.t(), [atom]) :: Session.t()
   def await(session, task_names) when is_list(task_names) do
     task_names
     |> Enum.reduce(session, &await(&2, &1))
@@ -336,7 +343,7 @@ defmodule Chaperon.Session do
   @doc """
   Await all async tasks with a given `task_name` in `session`.
   """
-  @spec await_all(Session.t, atom) :: Session.t
+  @spec await_all(Session.t(), atom) :: Session.t()
   def await_all(session, task_name) do
     session
     |> await(task_name, session.async_tasks[task_name])
@@ -346,7 +353,7 @@ defmodule Chaperon.Session do
   Returns a single task or a list of tasks associated with a given `task_name`
   in `session`.
   """
-  @spec async_task(Session.t, atom) :: (Task.t | [Task.t])
+  @spec async_task(Session.t(), atom) :: Task.t() | [Task.t()]
   def async_task(session, task_name) do
     session.async_tasks[task_name]
   end
@@ -355,7 +362,7 @@ defmodule Chaperon.Session do
   Performs a HTTP GET request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec get(Session.t, String.t, HTTP.options) :: Session.t
+  @spec get(Session.t(), String.t(), HTTP.options()) :: Session.t()
   def get(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.get(path, opts))
@@ -365,7 +372,7 @@ defmodule Chaperon.Session do
   Performs a HTTP POST request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec post(Session.t, String.t, HTTP.options) :: Session.t
+  @spec post(Session.t(), String.t(), HTTP.options()) :: Session.t()
   def post(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.post(path, opts))
@@ -375,7 +382,7 @@ defmodule Chaperon.Session do
   Performs a HTTP PUT request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec put(Session.t, String.t, HTTP.options) :: Session.t
+  @spec put(Session.t(), String.t(), HTTP.options()) :: Session.t()
   def put(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.put(path, opts))
@@ -385,7 +392,7 @@ defmodule Chaperon.Session do
   Performs a HTTP PATCH request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec patch(Session.t, String.t, HTTP.options) :: Session.t
+  @spec patch(Session.t(), String.t(), HTTP.options()) :: Session.t()
   def patch(session, path, opts) do
     session
     |> run_action(Action.HTTP.patch(path, opts))
@@ -395,7 +402,7 @@ defmodule Chaperon.Session do
   Performs a HTTP DELETE request on `session`'s base_url and `path`.
   Takes an optional list of options to be passed to `HTTPotion`.
   """
-  @spec delete(Session.t, String.t, HTTP.options) :: Session.t
+  @spec delete(Session.t(), String.t(), HTTP.options()) :: Session.t()
   def delete(session, path, opts \\ []) do
     session
     |> run_action(Action.HTTP.delete(path, opts))
@@ -405,7 +412,7 @@ defmodule Chaperon.Session do
   Performs a WebSocket connection attempt on `session`'s base_url and
   `path`.
   """
-  @spec ws_connect(Session.t, String.t, Keyword.t) :: Session.t
+  @spec ws_connect(Session.t(), String.t(), Keyword.t()) :: Session.t()
   def ws_connect(session, path, options \\ []) do
     session
     |> run_action(Action.WebSocket.connect(path, options))
@@ -415,7 +422,7 @@ defmodule Chaperon.Session do
   Performs a WebSocket message send on `session`s WebSocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.send/3`.
   """
-  @spec ws_send(Session.t, any, Keyword.t) :: Session.t
+  @spec ws_send(Session.t(), any, Keyword.t()) :: Session.t()
   def ws_send(session, msg, options \\ []) do
     session
     |> run_action(Action.WebSocket.send(msg, options))
@@ -425,7 +432,7 @@ defmodule Chaperon.Session do
   Performs a WebSocket message receive on `session`s WebSocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.recv/2`.
   """
-  @spec ws_recv(Session.t, Keyword.t) :: Session.t
+  @spec ws_recv(Session.t(), Keyword.t()) :: Session.t()
   def ws_recv(session, options \\ []) do
     session
     |> run_action(Action.WebSocket.recv(options))
@@ -435,13 +442,11 @@ defmodule Chaperon.Session do
   Performs a WebSocket message receive on `session`s WebSocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.recv/2`.
   """
-  @spec ws_await_recv(Session.t, any, Keyword.t) :: Session.t
+  @spec ws_await_recv(Session.t(), any, Keyword.t()) :: Session.t()
   def ws_await_recv(session, expected_message, options \\ []) do
     opts =
       options
-      |> Keyword.merge([
-        with_result: &ws_await_recv_loop(&1, expected_message, &2, options)
-      ])
+      |> Keyword.merge(with_result: &ws_await_recv_loop(&1, expected_message, &2, options))
 
     session
     |> ws_recv(opts)
@@ -454,7 +459,7 @@ defmodule Chaperon.Session do
       |> call_callback(options[:with_result], msg)
     else
       session
-      |> log_debug("Ignoring unexpected WS message #{inspect msg}")
+      |> log_debug("Ignoring unexpected WS message #{inspect(msg)}")
       |> ws_await_recv(expected_msg, options)
     end
   end
@@ -466,7 +471,7 @@ defmodule Chaperon.Session do
   defp is_expected_message(msg, expected_msg) do
     case msg do
       ^expected_msg -> true
-      _             -> false
+      _ -> false
     end
   end
 
@@ -474,7 +479,7 @@ defmodule Chaperon.Session do
   Closes the session's websocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.close/2`.
   """
-  @spec ws_close(Session.t, Keyword.t) :: Session.t
+  @spec ws_close(Session.t(), Keyword.t()) :: Session.t()
   def ws_close(session, options \\ []) do
     session
     |> run_action(Action.WebSocket.close(options))
@@ -484,10 +489,9 @@ defmodule Chaperon.Session do
   Calls a function inside the `session`'s scenario module with the given name
   and args, returning the resulting session.
   """
-  @spec call(Session.t, atom, [any]) :: Session.t
+  @spec call(Session.t(), atom, [any]) :: Session.t()
   def call(session, func, args \\ [])
-    when is_atom(func)
-  do
+      when is_atom(func) do
     apply(session.scenario.module, func, [session | args])
   end
 
@@ -495,10 +499,9 @@ defmodule Chaperon.Session do
   Calls a given function or a function with the given name and args, then
   captures duration metrics in `session`.
   """
-  @spec call_traced(Session.t, Action.CallFunction.callback, [any]) :: Session.t
+  @spec call_traced(Session.t(), Action.CallFunction.callback(), [any]) :: Session.t()
   def call_traced(session, func, args \\ [])
-    when is_atom(func) or is_function(func)
-  do
+      when is_atom(func) or is_function(func) do
     session
     |> run_action(%Action.CallFunction{func: func, args: args})
   end
@@ -507,7 +510,7 @@ defmodule Chaperon.Session do
   Runs & captures metrics of running another `Chaperon.Scenario` from `session`
   using `session`s config.
   """
-  @spec run_scenario(Session.t, Action.RunScenario.scenario) :: Session.t
+  @spec run_scenario(Session.t(), Action.RunScenario.scenario()) :: Session.t()
   def run_scenario(session, scenario) do
     session
     |> run_action(Action.RunScenario.new(scenario, session.config, :local))
@@ -518,11 +521,11 @@ defmodule Chaperon.Session do
   with a given `config`.
   """
   @spec run_scenario(
-    Session.t,
-    Action.RunScenario.scenario,
-    map,
-    boolean
-  ) :: Session.t
+          Session.t(),
+          Action.RunScenario.scenario(),
+          map,
+          boolean
+        ) :: Session.t()
   def run_scenario(session, scenario, config, merge_config \\ true) do
     session
     |> run_scenario_with_config(scenario, config, merge_config, :local)
@@ -542,23 +545,23 @@ defmodule Chaperon.Session do
   with a given `config`.
   """
   @spec schedule_scenario(
-    Session.t,
-    Action.RunScenario.scenario,
-    map,
-    boolean
-  ) :: Session.t
+          Session.t(),
+          Action.RunScenario.scenario(),
+          map,
+          boolean
+        ) :: Session.t()
   def schedule_scenario(session, scenario, config, merge_config \\ true) do
     session
     |> run_scenario_with_config(scenario, config, merge_config, :cluster)
   end
 
   @spec run_scenario_with_config(
-    Session.t,
-    Action.RunScenario.scenario,
-    map,
-    boolean,
-    Action.RunScenario.scheduler
-  ) :: Session.t
+          Session.t(),
+          Action.RunScenario.scenario(),
+          map,
+          boolean,
+          Action.RunScenario.scheduler()
+        ) :: Session.t()
   defp run_scenario_with_config(session, scenario, config, merge_config, scheduler) do
     scenario_config =
       if merge_config do
@@ -575,24 +578,31 @@ defmodule Chaperon.Session do
   Runs a given action within `session` and returns the resulting
   session.
   """
-  @spec run_action(Session.t, Chaperon.Actionable.t) :: Session.t
+  @spec run_action(Session.t(), Chaperon.Actionable.t()) :: Session.t()
   def run_action(session, action) do
     case Chaperon.Actionable.run(action, session) do
       {:error, %Chaperon.Session.Error{reason: reason}} ->
         session
-        |> log_error("Session.run_action #{action} failed: #{inspect reason}")
-        put_in session.errors[action], reason
+        |> log_error("Session.run_action #{action} failed: #{inspect(reason)}")
+
+        put_in(session.errors[action], reason)
+
       {:error, %Chaperon.Action.Error{reason: reason}} ->
         session
-        |> log_error("Session.run_action #{action} failed: #{inspect reason}")
-        put_in session.errors[action], reason
+        |> log_error("Session.run_action #{action} failed: #{inspect(reason)}")
+
+        put_in(session.errors[action], reason)
+
       {:error, reason} ->
         session
-        |> log_debug("Session.run_action #{action} failed: #{inspect reason}")
-        put_in session.errors[action], reason
+        |> log_debug("Session.run_action #{action} failed: #{inspect(reason)}")
+
+        put_in(session.errors[action], reason)
+
       {:ok, new_session = %Chaperon.Session{}} ->
         session
         |> log_debug("SUCCESS #{action}")
+
         new_session
     end
   end
@@ -612,11 +622,11 @@ defmodule Chaperon.Session do
       iex> session.assigned
       %{foo: 1, bar: "hello"}
   """
-  @spec assign(Session.t, Keyword.t) :: Session.t
+  @spec assign(Session.t(), Keyword.t()) :: Session.t()
   def assign(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, v}, session ->
-      put_in session.assigned[k], v
+      put_in(session.assigned[k], v)
     end)
   end
 
@@ -637,7 +647,7 @@ defmodule Chaperon.Session do
       iex> session.assigned
       %{api: %{auth_token: "auth123", login: "foo@bar.com"}}
   """
-  @spec assign(Session.t, atom, Keyword.t) :: Session.t
+  @spec assign(Session.t(), atom, Keyword.t()) :: Session.t()
   def assign(session, namespace, assignments) do
     assignments = assignments |> Enum.into(%{})
 
@@ -663,11 +673,11 @@ defmodule Chaperon.Session do
       iex> session.assigned
       %{foo: 3, bar: "hello"}
   """
-  @spec update_assign(Session.t, Keyword.t((any -> any))) :: Session.t
+  @spec update_assign(Session.t(), Keyword.t((any -> any))) :: Session.t()
   def update_assign(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
-      update_in session.assigned[k], func
+      update_in(session.assigned[k], func)
     end)
   end
 
@@ -687,20 +697,20 @@ defmodule Chaperon.Session do
       iex> session.assigned.api
       %{auth_token: "auth123", login: "testfoo@bar.com"}
   """
-  @spec update_assign(Session.t, atom, Keyword.t((any -> any))) :: Session.t
+  @spec update_assign(Session.t(), atom, Keyword.t((any -> any))) :: Session.t()
   def update_assign(session, namespace, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
-      update_in session.assigned[namespace][k], func
+      update_in(session.assigned[namespace][k], func)
     end)
   end
 
   def delete_assign(session, key) do
-    update_in session.assigned, &Map.delete(&1, key)
+    update_in(session.assigned, &Map.delete(&1, key))
   end
 
   def delete_assign(session, namespace, key) do
-    update_in session.assigned[namespace], &Map.delete(&1, key)
+    update_in(session.assigned[namespace], &Map.delete(&1, key))
   end
 
   @doc """
@@ -721,11 +731,11 @@ defmodule Chaperon.Session do
       iex> session.config
       %{foo: 3, bar: "hello"}
   """
-  @spec update_config(Session.t, Keyword.t((any -> any))) :: Session.t
+  @spec update_config(Session.t(), Keyword.t((any -> any))) :: Session.t()
   def update_config(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
-      update_in session.config[k], func
+      update_in(session.config[k], func)
     end)
   end
 
@@ -743,11 +753,11 @@ defmodule Chaperon.Session do
       iex> session.config
       %{foo: 1, bar: %{baz: "hello", quux: 2}}
   """
-  @spec update_config(Session.t, atom, Keyword.t((any -> any))) :: Session.t
+  @spec update_config(Session.t(), atom, Keyword.t((any -> any))) :: Session.t()
   def update_config(session, namespace, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, func}, session ->
-      update_in session.config[namespace][k], func
+      update_in(session.config[namespace][k], func)
     end)
   end
 
@@ -771,11 +781,11 @@ defmodule Chaperon.Session do
       iex> session.config
       %{foo: 10, bar: "hello", baz: "wat"}
   """
-  @spec set_config(Session.t, Keyword.t(any)) :: Session.t
+  @spec set_config(Session.t(), Keyword.t(any)) :: Session.t()
   def set_config(session, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, val}, session ->
-      put_in session.config[k], val
+      put_in(session.config[k], val)
     end)
   end
 
@@ -797,11 +807,11 @@ defmodule Chaperon.Session do
       iex> session.config
       %{foo: 1, bar: %{baz: "hello", quux: 10}}
   """
-  @spec set_config(Session.t, atom, Keyword.t(any)) :: Session.t
+  @spec set_config(Session.t(), atom, Keyword.t(any)) :: Session.t()
   def set_config(session, namespace, assignments) do
     assignments
     |> Enum.reduce(session, fn {k, val}, session ->
-      put_in session.config[namespace][k], val
+      put_in(session.config[namespace][k], val)
     end)
   end
 
@@ -829,7 +839,7 @@ defmodule Chaperon.Session do
       iex> session |> config([:bar, :val2])
       "V2"
   """
-  @spec config(Session.t, [atom] | atom, any) :: Session.t
+  @spec config(Session.t(), [atom] | atom, any) :: Session.t()
   def config(session, key, default_val \\ :no_default_given) do
     case key do
       keys when is_list(keys) ->
@@ -843,7 +853,7 @@ defmodule Chaperon.Session do
             |> required_config(session.config, key)
 
           default ->
-            Map.get session.config, key, default
+            Map.get(session.config, key, default)
         end
     end
   end
@@ -851,7 +861,7 @@ defmodule Chaperon.Session do
   defp find_nested_config_val(session, keys = [key1 | rest], default_val) do
     if Map.has_key?(session.config, key1) do
       rest
-      |> Enum.reduce(session.config[key1], (fn
+      |> Enum.reduce(session.config[key1], fn
         key, acc when is_map(acc) ->
           case default_val do
             :no_default_given ->
@@ -862,9 +872,10 @@ defmodule Chaperon.Session do
               acc
               |> Map.get(key, default)
           end
+
         _key, acc ->
           acc
-      end))
+      end)
     else
       case default_val do
         :no_default_given ->
@@ -889,13 +900,13 @@ defmodule Chaperon.Session do
 
       :error ->
         session
-        |> log_error("Config key #{inspect key} not found")
+        |> log_error("Config key #{inspect(key)} not found")
 
-        raise "Config key #{inspect key} expected but not found for session: #{session}"
+        raise "Config key #{inspect(key)} expected but not found for session: #{session}"
     end
   end
 
-  @spec skip_query_params_in_metrics(Session.t) :: Session.t
+  @spec skip_query_params_in_metrics(Session.t()) :: Session.t()
   def skip_query_params_in_metrics(session) do
     session
     |> set_config(skip_query_params_in_metrics: true)
@@ -904,7 +915,7 @@ defmodule Chaperon.Session do
   @doc """
   Runs a given function with args asynchronously from `session`.
   """
-  @spec async(Session.t, atom, [any], atom | nil) :: Session.t
+  @spec async(Session.t(), atom, [any], atom | nil) :: Session.t()
   def async(session, func_name, args \\ [], task_name \\ nil) do
     session
     |> run_action(%Action.Async{
@@ -930,7 +941,7 @@ defmodule Chaperon.Session do
       |> delay({:random, 3 |> seconds})
       |> get("/")
   """
-  @spec delay(Session.t, Chaperon.Timing.duration) :: Session.t
+  @spec delay(Session.t(), Chaperon.Timing.duration()) :: Session.t()
   def delay(session, {:random, max_duration}) do
     session
     |> random_delay(max_duration)
@@ -945,7 +956,7 @@ defmodule Chaperon.Session do
   Delays further execution of `session` by a random value up to the given
   `duration`.
   """
-  @spec random_delay(Session.t, Chaperon.Timing.duration) :: Session.t
+  @spec random_delay(Session.t(), Chaperon.Timing.duration()) :: Session.t()
   def random_delay(session, max_duration) do
     session
     |> delay(:rand.uniform(max_duration))
@@ -954,9 +965,9 @@ defmodule Chaperon.Session do
   @doc """
   Adds a given `Task` to `session` under a given `name`.
   """
-  @spec add_async_task(Session.t, atom, Task.t) :: Session.t
+  @spec add_async_task(Session.t(), atom, Task.t()) :: Session.t()
   def add_async_task(session, name, task) do
-    update_in session.async_tasks[name], &[task | List.wrap(&1)]
+    update_in(session.async_tasks[name], &[task | List.wrap(&1)])
   end
 
   @doc """
@@ -979,9 +990,9 @@ defmodule Chaperon.Session do
         |> get("/search", json: [tag: tag2])
       end
   """
-  @spec signal(Session.t, atom, any) :: Session.t
+  @spec signal(Session.t(), atom, any) :: Session.t()
   def signal(session, name, signal) do
-    send session.async_tasks[name].pid, {:chaperon_signal, signal}
+    send(session.async_tasks[name].pid, {:chaperon_signal, signal})
     session
   end
 
@@ -1009,9 +1020,9 @@ defmodule Chaperon.Session do
 
       # ...
   """
-  @spec signal_parent(Session.t, any) :: Session.t
+  @spec signal_parent(Session.t(), any) :: Session.t()
   def signal_parent(session, signal) do
-    send session.parent_pid, {:chaperon_signal, signal}
+    send(session.parent_pid, {:chaperon_signal, signal})
     session
   end
 
@@ -1043,17 +1054,17 @@ defmodule Chaperon.Session do
       end
   """
   @spec await_signal_or_timeout(
-    Session.t,
-    non_neg_integer,
-    nil | (Session.t, any -> Session.t)
-  ) :: Session.t
+          Session.t(),
+          non_neg_integer,
+          nil | (Session.t(), any -> Session.t())
+        ) :: Session.t()
   def await_signal_or_timeout(session, timeout, callback \\ nil) do
     receive do
       {:chaperon_signal, signal} ->
         session
         |> call_callback(callback, signal)
-
-      after timeout ->
+    after
+      timeout ->
         session
         |> error({:timeout, :await_signal, timeout})
     end
@@ -1072,17 +1083,17 @@ defmodule Chaperon.Session do
       end)
   """
   @spec await_signal(
-    Session.t,
-    any | (Session.t, any -> Session.t)
-  ) :: Session.t
+          Session.t(),
+          any | (Session.t(), any -> Session.t())
+        ) :: Session.t()
   def await_signal(session, callback) when is_function(callback) do
     timeout = session |> timeout
 
     receive do
       {:chaperon_signal, signal} ->
         callback.(session, signal)
-
-      after timeout ->
+    after
+      timeout ->
         session
         |> error({:timeout, :await_signal, timeout})
     end
@@ -1103,8 +1114,8 @@ defmodule Chaperon.Session do
     receive do
       {:chaperon_signal, ^expected_signal} ->
         session
-
-      after timeout ->
+    after
+      timeout ->
         session
         |> error({:timeout, :await_signal, timeout})
     end
@@ -1119,13 +1130,13 @@ defmodule Chaperon.Session do
       |> await_signal(:continue_search, 5 |> seconds)
       |> get("/search", params: [query: "Got load test?"])
   """
-  @spec await_signal(Session.t, any, non_neg_integer) :: Session.t
+  @spec await_signal(Session.t(), any, non_neg_integer) :: Session.t()
   def await_signal(session, expected_signal, timeout) do
     receive do
       {:chaperon_signal, ^expected_signal} ->
         session
-
-      after timeout ->
+    after
+      timeout ->
         session
         |> error({:timeout, :await_signal, timeout})
     end
@@ -1134,28 +1145,31 @@ defmodule Chaperon.Session do
   @doc """
   Removes a `Task` with a given `task_name` from `session`.
   """
-  @spec remove_async_task(Session.t, atom, Task.t) :: Session.t
+  @spec remove_async_task(Session.t(), atom, Task.t()) :: Session.t()
   def remove_async_task(session, task_name, task) do
     case session.async_tasks[task_name] do
       nil ->
         session
+
       [^task] ->
-        update_in session.async_tasks, &Map.delete(&1, task_name)
+        update_in(session.async_tasks, &Map.delete(&1, task_name))
+
       tasks when is_list(tasks) ->
-        update_in session.async_tasks[task_name], &List.delete(&1, task)
+        update_in(session.async_tasks[task_name], &List.delete(&1, task))
     end
   end
 
   @doc """
   Adds a given HTTP request `result` to `session` for the given `action`.
   """
-  @spec add_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
+  @spec add_result(Session.t(), Chaperon.Actionable.t(), any) :: Session.t()
   def add_result(session, action, result) do
     case session.config[:store_results] do
       true ->
         session
         |> log_debug("Add result #{action}")
-        update_in session.results[action], &[result | List.wrap(&1)]
+
+        update_in(session.results[action], &[result | List.wrap(&1)])
 
       _ ->
         session
@@ -1165,13 +1179,14 @@ defmodule Chaperon.Session do
   @doc """
   Adds a given WebSocket action `result` to `session` for a given `action`.
   """
-  @spec add_ws_result(Session.t, Chaperon.Actionable.t, any) :: Session.t
+  @spec add_ws_result(Session.t(), Chaperon.Actionable.t(), any) :: Session.t()
   def add_ws_result(session, action, result) do
     case session.config[:store_results] do
       true ->
         session
-        |> log_debug("Add WS result #{action} : #{inspect result}")
-        update_in session.results[action], &[result | List.wrap(&1)]
+        |> log_debug("Add WS result #{action} : #{inspect(result)}")
+
+        update_in(session.results[action], &[result | List.wrap(&1)])
 
       _ ->
         session
@@ -1181,13 +1196,13 @@ defmodule Chaperon.Session do
   @doc """
   Stores a given metric `val` under a given `name` in `session`.
   """
-  @spec add_metric(Session.t, metric, any) :: Session.t
+  @spec add_metric(Session.t(), metric, any) :: Session.t()
   def add_metric(session, metric, val) do
     if session |> add_metric?(metric) do
       session
-      |> log_debug("Add metric #{inspect metric} : #{val}")
+      |> log_debug("Add metric #{inspect(metric)} : #{val}")
 
-      update_in session.metrics[metric], &[val | List.wrap(&1)]
+      update_in(session.metrics[metric], &[val | List.wrap(&1)])
     else
       session
     end
@@ -1217,21 +1232,21 @@ defmodule Chaperon.Session do
   inspection.
   """
   @spec add_error(
-    Session.t,
-    Chaperon.Actionable.t,
-    {:error, Error.t}
-  ) :: Session.t
+          Session.t(),
+          Chaperon.Actionable.t(),
+          {:error, Error.t()}
+        ) :: Session.t()
   def add_error(session, action, error) do
-    put_in session.errors[action], error
+    put_in(session.errors[action], error)
   end
 
   @doc """
   Stores HTTP response cookies in `session` cookie store for further outgoing
   requests.
   """
-  @spec store_cookies(Session.t, HTTPoison.Response.t) :: Session.t
+  @spec store_cookies(Session.t(), HTTPoison.Response.t()) :: Session.t()
   def store_cookies(session, response = %HTTPoison.Response{}) do
-    put_in session.cookies, response_cookies(response)
+    put_in(session.cookies, response_cookies(response))
   end
 
   defp response_cookies(response = %HTTPoison.Response{}) do
@@ -1239,6 +1254,7 @@ defmodule Chaperon.Session do
     |> Enum.map(fn
       {"Set-Cookie", cookie} ->
         cookie
+
       _ ->
         nil
     end)
@@ -1253,12 +1269,12 @@ defmodule Chaperon.Session do
       iex> session.cookies
       []
   """
-  @spec delete_cookies(Session.t) :: Session.t
+  @spec delete_cookies(Session.t()) :: Session.t()
   def delete_cookies(session) do
-    put_in session.cookies, []
+    put_in(session.cookies, [])
   end
 
-  @spec async_results(Session.t, atom) :: map
+  @spec async_results(Session.t(), atom) :: map
   defp async_results(task_session, task_name) do
     for {k, v} <- task_session.results do
       {task_name, {:async, k, v}}
@@ -1266,7 +1282,7 @@ defmodule Chaperon.Session do
     |> Enum.into(%{})
   end
 
-  @spec async_metrics(Session.t, atom) :: map
+  @spec async_metrics(Session.t(), atom) :: map
   defp async_metrics(task_session, task_name) do
     for {k, v} <- task_session.metrics do
       {task_name, {:async, k, v}}
@@ -1274,7 +1290,7 @@ defmodule Chaperon.Session do
     |> Enum.into(%{})
   end
 
-  @spec merge_async_task_result(Session.t, Session.t, atom) :: Session.t
+  @spec merge_async_task_result(Session.t(), Session.t(), atom) :: Session.t()
   defp merge_async_task_result(session, task_session, _task_name) do
     session
     |> merge_results(task_session.results)
@@ -1285,7 +1301,7 @@ defmodule Chaperon.Session do
   @doc """
   Merges two session's results & metrics and returns the resulting session.
   """
-  @spec merge(Session.t, Session.t) :: Session.t
+  @spec merge(Session.t(), Session.t()) :: Session.t()
   def merge(session, other_session) do
     session
     |> merge_results(other_session |> session_results)
@@ -1296,24 +1312,24 @@ defmodule Chaperon.Session do
   @doc """
   Merges results of two sessions.
   """
-  @spec merge_results(Session.t, map) :: Session.t
+  @spec merge_results(Session.t(), map) :: Session.t()
   def merge_results(session, results) do
-    update_in session.results, &preserve_vals_merge(&1, results)
+    update_in(session.results, &preserve_vals_merge(&1, results))
   end
 
   @doc """
   Merges metrics of two sessions.
   """
-  @spec merge_metrics(Session.t, map) :: Session.t
+  @spec merge_metrics(Session.t(), map) :: Session.t()
   def merge_metrics(session, metrics) do
-    update_in session.metrics, &preserve_vals_merge(&1, metrics)
+    update_in(session.metrics, &preserve_vals_merge(&1, metrics))
   end
 
   @doc """
   Merges errors of two sessions.
   """
   def merge_errors(session, errors) do
-    update_in session.errors, &preserve_vals_merge(&1, errors)
+    update_in(session.errors, &preserve_vals_merge(&1, errors))
   end
 
   @doc """
@@ -1351,14 +1367,14 @@ defmodule Chaperon.Session do
   @doc """
   Returns `{:ok, reason}`.
   """
-  @spec ok(Session.t) :: {:ok, Session.t}
+  @spec ok(Session.t()) :: {:ok, Session.t()}
   def ok(session), do: {:ok, session}
 
   @doc """
   Returns a `Chaperon.Session.Error` for the given `session` and with a given
   `reason`.
   """
-  @spec error(Session.t, any) :: {:error, Error.t}
+  @spec error(Session.t(), any) :: {:error, Error.t()}
   def error(session, reason) do
     {:error, %Error{reason: reason, session: session}}
   end
@@ -1371,8 +1387,7 @@ defmodule Chaperon.Session do
   For more info have a look at `Chaperon.Action.callback/1` and
   `Chaperon.Action.error_callback/1`.
   """
-  def run_callback(session, %{callback: nil}, _),
-    do: session
+  def run_callback(session, %{callback: nil}, _), do: session
 
   def run_callback(session, action = %{decode: _decode_options}, response) do
     cb = Chaperon.Action.callback(action)
@@ -1386,7 +1401,7 @@ defmodule Chaperon.Session do
       err ->
         error =
           session
-          |> error("Response (#{inspect response}) decoding failed: #{inspect err}")
+          |> error("Response (#{inspect(response)}) decoding failed: #{inspect(err)}")
 
         session
         |> add_error(action, error)
@@ -1407,15 +1422,13 @@ defmodule Chaperon.Session do
   If it's an atom, call the function with that name in `session`'s currently
   running scenario module.
   """
-  @spec call_callback(Session.t, result_callback, any) :: Session.t
-  def call_callback(session, nil, _),
-    do: session
+  @spec call_callback(Session.t(), result_callback, any) :: Session.t()
+  def call_callback(session, nil, _), do: session
 
   def call_callback(session, func_name, arg) when is_atom(func_name),
     do: apply(session.scenario.module, func_name, [session, arg])
 
-  def call_callback(session, cb, arg) when is_function(cb),
-    do: cb.(session, arg)
+  def call_callback(session, cb, arg) when is_function(cb), do: cb.(session, arg)
 
   def run_error_callback(session, action, response) do
     session
@@ -1427,6 +1440,7 @@ defmodule Chaperon.Session do
       case response do
         %HTTPoison.Response{body: body} ->
           body
+
         s when is_binary(s) ->
           s
       end
@@ -1461,7 +1475,7 @@ defmodule Chaperon.Session do
       # this would record the duration of calling:
       # MyModule.my_func(session, arg1, arg2)
   """
-  @spec time(Session.t, metric, atom, atom, [any]) :: Session.t
+  @spec time(Session.t(), metric, atom, atom, [any]) :: Session.t()
   def time(session, metric, module, func, args \\ []) do
     start = timestamp()
     session = apply(module, func, [session | args])
@@ -1484,17 +1498,18 @@ defmodule Chaperon.Session do
         # and at the end return session from inside this function
       end)
   """
-  @spec time(Session.t, metric, (Session.t -> Session.t)) :: Session.t
+  @spec time(Session.t(), metric, (Session.t() -> Session.t())) :: Session.t()
   def time(session, metric, func) do
     start = timestamp()
 
-    session = case func do
-      f when is_atom(f) ->
-        apply(session.scenario.module, f, [session])
+    session =
+      case func do
+        f when is_atom(f) ->
+          apply(session.scenario.module, f, [session])
 
-      f when is_function(f) ->
-        f.(session)
-    end
+        f when is_function(f) ->
+          f.(session)
+      end
 
     session
     |> add_metric(metric, timestamp() - start)
@@ -1587,9 +1602,10 @@ defimpl String.Chars, for: Chaperon.Session do
   def to_string(session) do
     case session.scenario do
       %Chaperon.Scenario{module: scenario_mod} ->
-        "Session{id: #{inspect session.id}, scenario: #{inspect scenario_mod}}"
+        "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}}"
+
       nil ->
-        "Session{id: #{inspect session.id}}"
+        "Session{id: #{inspect(session.id)}}"
     end
   end
 end

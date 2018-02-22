@@ -7,9 +7,7 @@ defmodule Chaperon.Action.WebSocket.Close do
   a session when run.
   """
 
-  defstruct [
-    options: []
-  ]
+  defstruct options: []
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
@@ -25,7 +23,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Close do
     session
     |> log_info("WS_CLOSE #{ws_url}")
     |> WebSocket.delete_for_action(action)
-    |> Session.ok
+    |> Session.ok()
   end
 
   def abort(action, session) do
@@ -35,6 +33,6 @@ end
 
 defimpl String.Chars, for: Chaperon.Action.WebSocket.Close do
   def to_string(%{options: options}) do
-    "WS Close#{inspect options}"
+    "WS Close#{inspect(options)}"
   end
 end

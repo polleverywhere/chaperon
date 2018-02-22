@@ -17,15 +17,17 @@ defmodule Chaperon.Supervisor do
       worker(Chaperon.Scenario.Metrics, []),
       :hackney_pool.child_spec(
         :chaperon,
-        [timeout: 20_000, max_connections: 200_000]
+        timeout: 20_000,
+        max_connections: 200_000
       )
     ]
 
     case Application.get_env(:chaperon, Chaperon.Export.InfluxDB, nil) do
       nil ->
         common_children
+
       _ ->
-        [Chaperon.Export.InfluxDB.child_spec | common_children]
+        [Chaperon.Export.InfluxDB.child_spec() | common_children]
     end
   end
 end

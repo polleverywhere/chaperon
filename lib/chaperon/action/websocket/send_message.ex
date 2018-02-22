@@ -4,15 +4,11 @@ defmodule Chaperon.Action.WebSocket.SendMessage do
   Includes an optional list of `options` to be sent along to `Socket.Web.send/3`.
   """
 
-  defstruct [
-    message: nil,
-    options: []
-  ]
+  defstruct message: nil,
+            options: []
 
-  def encoded_message(%{message: [json: data]}),
-    do: Poison.encode!(data)
-  def encoded_message(%{message: msg}),
-    do: msg
+  def encoded_message(%{message: [json: data]}), do: Poison.encode!(data)
+  def encoded_message(%{message: msg}), do: msg
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
@@ -26,12 +22,14 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
       |> WebSocket.for_action(action)
 
     session
-    |> log_debug("WS_SEND #{ws_url} #{inspect action.message}")
+    |> log_debug("WS_SEND #{ws_url} #{inspect(action.message)}")
 
-    :ok = WebSocket.Client.send_frame(
-      socket,
-      {:binary, action |> encoded_message}
-    )
+    :ok =
+      WebSocket.Client.send_frame(
+        socket,
+        {:binary, action |> encoded_message}
+      )
+
     {:ok, session}
   end
 
@@ -42,5 +40,5 @@ end
 
 defimpl String.Chars, for: Chaperon.Action.WebSocket.SendMessage do
   def to_string(send_msg),
-    do: "WS-Send[#{inspect send_msg.message}, #{inspect send_msg.options}]"
+    do: "WS-Send[#{inspect(send_msg.message)}, #{inspect(send_msg.options)}]"
 end

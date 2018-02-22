@@ -6,19 +6,17 @@ defmodule Chaperon.Master do
   globally as `Chaperon.Master`.
   """
 
-  defstruct [
-    id: nil,
-    sessions: %{},
-    tasks: %{},
-    non_worker_nodes: []
-  ]
+  defstruct id: nil,
+            sessions: %{},
+            tasks: %{},
+            non_worker_nodes: []
 
   @type t :: %Chaperon.Master{
-    id: atom,
-    sessions: %{atom => Chaperon.Session.t},
-    tasks: %{atom => pid},
-    non_worker_nodes: [atom]
-  }
+          id: atom,
+          sessions: %{atom => Chaperon.Session.t()},
+          tasks: %{atom => pid},
+          non_worker_nodes: [atom]
+        }
 
   use GenServer
   require Logger
@@ -27,7 +25,7 @@ defmodule Chaperon.Master do
   @name {:global, __MODULE__}
 
   def start do
-    Chaperon.Master.Supervisor.start_master
+    Chaperon.Master.Supervisor.start_master()
   end
 
   def start_link do
@@ -35,27 +33,27 @@ defmodule Chaperon.Master do
   end
 
   def init([]) do
-    id = Node.self
-    Logger.info "Starting Chaperon.Master #{id}"
+    id = Node.self()
+    Logger.info("Starting Chaperon.Master #{id}")
     {:ok, %Chaperon.Master{id: id}}
   end
 
-  @spec run_load_test(module, Keywort.t) :: Chaperon.Session.t
+  @spec run_load_test(module, Keywort.t()) :: Chaperon.Session.t()
   def run_load_test(lt_mod, options \\ []) do
     timeout = Chaperon.LoadTest.timeout(lt_mod)
 
-    result = GenServer.call(@name,
-      {:run_load_test, lt_mod, run_options(options)},
-      timeout
-    )
+    result = GenServer.call(@name, {:run_load_test, lt_mod, run_options(options)}, timeout)
 
     case result do
       {:remote, session, data} ->
         options
-        |> Chaperon.exporter
+        |> Chaperon.exporter()
         |> apply(:write_output, [
-          lt_mod, data, options[:output]
+          lt_mod,
+          data,
+          options[:output]
         ])
+
         session
 
       session ->
@@ -69,30 +67,36 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
-    Logger.info "Starting LoadTest #{lt_mod} @ Master #{state.id}"
-    task_id = UUID.uuid4
-    {:ok, _} = Task.start_link fn ->
-      session = Chaperon.run_load_test(lt_mod, options)
-      GenServer.cast @name, {:load_test_finished, lt_mod, task_id, session}
-    end
-    state = update_in state.tasks, &Map.put(&1, {lt_mod, task_id}, client)
+    Logger.info("Starting LoadTest #{lt_mod} @ Master #{state.id}")
+    task_id = UUID.uuid4()
+
+    {:ok, _} =
+      Task.start_link(fn ->
+        session = Chaperon.run_load_test(lt_mod, options)
+        GenServer.cast(@name, {:load_test_finished, lt_mod, task_id, session})
+      end)
+
+    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id}, client))
     {:noreply, state}
   end
 
   def handle_call({:ignore_node_as_worker, node}, _, state) do
-    state = update_in state.non_worker_nodes, &[node | &1]
+    state = update_in(state.non_worker_nodes, &[node | &1])
     {:reply, :ok, state}
   end
 
   def handle_cast({:load_test_finished, lt_mod, task_id, session}, state) do
-    Logger.info "LoadTest finished: #{lt_mod}"
+    Logger.info("LoadTest finished: #{lt_mod}")
+
     case state.tasks[{lt_mod, task_id}] do
       nil ->
-        Logger.error "No client found for finished load test: #{lt_mod} @ #{task_id}"
+        Logger.error("No client found for finished load test: #{lt_mod} @ #{task_id}")
+
       client ->
         GenServer.reply(client, session)
     end
-    state = update_in state.tasks, &Map.delete(&1, {lt_mod, task_id})
+
+    state = update_in(state.tasks, &Map.delete(&1, {lt_mod, task_id}))
     {:noreply, state}
   end
 
