@@ -1,8 +1,10 @@
 defmodule ChaperonTest do
   use ExUnit.Case
   doctest Chaperon
+  alias Chaperon.Export
 
-  test "the truth" do
-    assert 1 + 1 == 2
+  test "returns the right exporter implementation module" do
+    assert Chaperon.exporter([]) == Export.CSV
+    assert Chaperon.exporter(export: Export.JSON) == Export.JSON
   end
 end
