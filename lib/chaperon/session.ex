@@ -838,13 +838,26 @@ defmodule Chaperon.Session do
       "V1"
       iex> session |> config([:bar, :val2])
       "V2"
+      iex> session |> config("bar.val1")
+      "V1"
+      iex> session |> config("bar.val2")
+      "V2"
   """
-  @spec config(Session.t(), [atom] | atom, any) :: Session.t()
+  @spec config(Session.t(), [atom] | atom | binary, any) :: Session.t()
   def config(session, key, default_val \\ :no_default_given) do
     case key do
       keys when is_list(keys) ->
         session
         |> find_nested_config_val(keys, default_val)
+
+      path when is_binary(path) ->
+        keys =
+          path
+          |> String.split(".")
+          |> Enum.map(&String.to_atom/1)
+
+        session
+        |> config(keys, default_val)
 
       _ ->
         case default_val do

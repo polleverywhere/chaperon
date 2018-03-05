@@ -15,4 +15,20 @@ defmodule Chaperon.Session.Test do
 
     assert Session.assign(s, foo: 1).assigned == %{foo: 1}
   end
+
+  test "config" do
+    s = %Session{
+      config: %{
+        key: "value",
+        nested: %{nested_key: "okidoki"}
+      }
+    }
+
+    assert Session.config(s, :key) == "value"
+    assert Session.config(s, :nested) == %{nested_key: "okidoki"}
+    assert Session.config(s, [:nested, :nested_key]) == "okidoki"
+    assert Session.config(s, "nested.nested_key") == "okidoki"
+    assert Session.config(s, "nested.nested_key", "default") == "okidoki"
+    assert Session.config(s, "nested.not_defined", "default") == "default"
+  end
 end
