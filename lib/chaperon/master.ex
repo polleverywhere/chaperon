@@ -38,7 +38,7 @@ defmodule Chaperon.Master do
     {:ok, %Chaperon.Master{id: id}}
   end
 
-  @spec run_load_test(module, Keywort.t()) :: Chaperon.Session.t()
+  @spec run_load_test(module, Keyword.t()) :: Chaperon.Session.t()
   def run_load_test(lt_mod, options \\ []) do
     timeout = Chaperon.LoadTest.timeout(lt_mod)
 
