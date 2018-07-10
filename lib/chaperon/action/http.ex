@@ -284,7 +284,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         )
         |> store_cookies(response)
         |> run_callback_if_defined(action, response)
-        |> ok
+        |> handle_callback_response
 
       {:error, reason} ->
         session
@@ -312,6 +312,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
         |> run_error_callback(action, response)
     end
   end
+
+  defp handle_callback_response(session = %Chaperon.Session{}),
+    do: {:ok, session}
+
+  defp handle_callback_response(error), do: error
 
   def abort(action, session) do
     # TODO
