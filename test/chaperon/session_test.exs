@@ -31,4 +31,66 @@ defmodule Chaperon.Session.Test do
     assert Session.config(s, "nested.nested_key", "default") == "okidoki"
     assert Session.config(s, "nested.not_defined", "default") == "default"
   end
+
+  test "abort" do
+    defmodule MaybeRunScenario do
+      use Chaperon.Scenario
+
+      def init(session) do
+        session
+        |> assign(names: [])
+      end
+
+      def run(session) do
+        session
+        |> assign(ran_scenario: true)
+        |> update_assign(names: &[session |> config(:name) | &1])
+      end
+    end
+
+    s = %Session{
+      config: %{
+        key1: "value1",
+        key2: "value2"
+      }
+    }
+
+    s2 = s |> Session.abort("failure")
+    assert s2.cancellation == "failure"
+
+    s3 =
+      s2
+      |> Session.get(
+        "https://polleverywhere.com",
+        with_result: fn
+          session, {:ok, resp} ->
+            session |> Session.assign(response: resp)
+
+          session, {:error, _reason} ->
+            session
+            |> Session.abort("another failure")
+        end
+      )
+
+    assert s3.cancellation == "failure"
+
+    s4 =
+      %Session{}
+      |> Session.assign(ran_scenario: false)
+      |> Session.run_scenario(MaybeRunScenario, %{name: "success_run"})
+
+    s5 =
+      s4
+      |> Session.assign(ran_scenario: false)
+      |> Session.abort("run_failed")
+      |> Session.run_scenario(MaybeRunScenario, %{name: "aborted_run"})
+
+    assert s4.assigned.ran_scenario == true
+    assert s4.cancellation == nil
+    assert s4.assigned.names == ["success_run"]
+
+    assert s5.cancellation == "run_failed"
+    assert s5.assigned.ran_scenario == false
+    assert s5.assigned.names == ["success_run"]
+  end
 end

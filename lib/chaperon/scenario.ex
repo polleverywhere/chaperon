@@ -63,7 +63,7 @@ defmodule Chaperon.Scenario do
       |> Map.put(:compound_scenarios, scenarios)
     end
 
-    def run(initial_session = %{config: %{compound_scenarios: scenarios}}) do
+    def run(initial_session = %Session{config: %{compound_scenarios: scenarios}}) do
       scenarios
       |> Enum.reduce(initial_session, fn scenario, session ->
         session
@@ -143,6 +143,11 @@ defmodule Chaperon.Scenario do
           Scenario.t(),
           Session.t() | {:ok, Session.t()} | {:error, any}
         ) :: Session.t() | {:error, any}
+  def run(scenario, {:ok, session = %Session{cancellation: reason}}) when is_binary(reason) do
+    scenario
+    |> log_cancellation(session)
+  end
+
   def run(scenario, {:ok, session}) do
     scenario
     |> run(session)
@@ -151,6 +156,11 @@ defmodule Chaperon.Scenario do
   def run(scenario, {:error, reason}) do
     Logger.error("Error running #{scenario}: #{inspect(reason)}")
     {:error, reason}
+  end
+
+  def run(scenario, session = %Session{cancellation: reason}) when is_binary(reason) do
+    scenario
+    |> log_cancellation(session)
   end
 
   def run(scenario, session) do
@@ -177,6 +187,11 @@ defmodule Chaperon.Scenario do
       session
       |> Scenario.Metrics.add_histogram_metrics()
     end
+  end
+
+  defp log_cancellation(scenario, session = %Session{cancellation: reason}) do
+    session
+    |> log_warn("Skipping scenario #{scenario.module} due to cancellation: #{reason}")
   end
 
   defp with_scenario(session, scenario, func) do

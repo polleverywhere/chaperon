@@ -15,7 +15,8 @@ defmodule Chaperon.Session do
             metrics: %{},
             scenario: nil,
             cookies: [],
-            parent_pid: nil
+            parent_pid: nil,
+            cancellation: nil
 
   @type t :: %Chaperon.Session{
           id: String.t(),
@@ -28,7 +29,8 @@ defmodule Chaperon.Session do
           metrics: map,
           scenario: Chaperon.Scenario.t(),
           cookies: [String.t()],
-          parent_pid: pid | nil
+          parent_pid: pid | nil,
+          cancellation: String.t() | nil
         }
 
   @type metric :: {atom, any} | any
@@ -579,6 +581,10 @@ defmodule Chaperon.Session do
   session.
   """
   @spec run_action(Session.t(), Chaperon.Actionable.t()) :: Session.t()
+  def run_action(session = %{cancellation: reason}, _) when is_binary(reason) do
+    session
+  end
+
   def run_action(session, action) do
     case Chaperon.Actionable.run(action, session) do
       {:error, %Chaperon.Session.Error{reason: reason}} ->
@@ -1541,6 +1547,11 @@ defmodule Chaperon.Session do
 
     session
     |> add_metric(metric, timestamp() - start)
+  end
+
+  @spec abort(Session.t(), String.t()) :: Session.t()
+  def abort(session, reason) when is_binary(reason) do
+    %{session | cancellation: reason}
   end
 
   @doc """
