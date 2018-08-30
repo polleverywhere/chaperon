@@ -928,11 +928,20 @@ defmodule Chaperon.Session do
   @doc """
   Runs a given function with args asynchronously from `session`.
   """
-  @spec async(Session.t(), atom, [any], atom | nil) :: Session.t()
+  @spec async(Session.t(), atom | {atom, atom}, [any], atom | nil) :: Session.t()
   def async(session, func_name, args \\ [], task_name \\ nil) do
+    {module, func_name} =
+      case func_name do
+        {module, f} ->
+          {module, f}
+
+        f when is_atom(f) ->
+          {session.scenario.module, f}
+      end
+
     session
     |> run_action(%Action.Async{
-      module: session.scenario.module,
+      module: module,
       function: func_name,
       args: args,
       task_name: task_name || func_name
