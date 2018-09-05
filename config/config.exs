@@ -22,6 +22,6 @@ config :chaperon, Chaperon.Export.InfluxDB,
   writer: Instream.Writer.Line
 
 # Custom per env config files override values defined here (if they exist)
-if File.exists?("#{__DIR__}/#{Mix.env}.exs") do
-  import_config "#{Mix.env}.exs"
+if File.exists?("#{__DIR__}/#{Mix.env()}.exs") do
+  import_config "#{Mix.env()}.exs"
 end
