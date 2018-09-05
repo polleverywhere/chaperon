@@ -1268,7 +1268,13 @@ defmodule Chaperon.Session do
   """
   @spec store_cookies(Session.t(), HTTPoison.Response.t()) :: Session.t()
   def store_cookies(session, response = %HTTPoison.Response{}) do
-    put_in(session.cookies, response_cookies(response))
+    case response_cookies(response) do
+      [] ->
+        session
+
+      cookies when is_list(cookies) ->
+        put_in(session.cookies, cookies)
+    end
   end
 
   defp response_cookies(response = %HTTPoison.Response{}) do
