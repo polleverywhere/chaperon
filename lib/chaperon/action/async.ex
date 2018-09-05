@@ -53,7 +53,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
          },
          session
        ) do
-    session = %{session | parent_pid: self()}
+    session =
+      %{session | parent_pid: self()}
+      |> Session.reset_action_metadata()
 
     Task.async(fn ->
       session
