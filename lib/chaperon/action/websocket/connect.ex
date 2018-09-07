@@ -31,6 +31,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
   alias Chaperon.Session
   alias Chaperon.Action.WebSocket
   alias Chaperon.Action.WebSocket.Connect
+  import Chaperon.Timing, only: [seconds: 1]
   use Chaperon.Session.Logging
 
   def run(action, session) do
@@ -63,8 +64,19 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
     parent = self()
 
     spawn_link(fn ->
-      {:ok, ws_client} = WebSocket.Client.start_link(session, ws_url)
-      send(parent, {:ws_connected, ws_client, ws_url})
+      case WebSocket.Client.start_link(session, ws_url) do
+        {:ok, ws_client} ->
+          send(parent, {:ws_connected, ws_client, ws_url})
+
+        {:error, %WebSockex.ConnError{original: :timeout}} ->
+          session
+          |> log_warn("Failed to connect via WS to #{ws_url} - TIMEOUT")
+          |> Session.random_delay(
+            session
+            |> Session.config("ws.connect_timeout", 3 |> seconds)
+          )
+          |> async_connect(ws_url)
+      end
     end)
   end
 end
