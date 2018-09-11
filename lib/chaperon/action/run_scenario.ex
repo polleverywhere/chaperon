@@ -37,6 +37,9 @@ defmodule Chaperon.Action.RunScenario do
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
+  alias Chaperon.Worker
+  use Chaperon.Session.Logging
+
   import Chaperon.Session,
     only: [
       set_config: 2,
@@ -45,7 +48,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       add_metric: 3
     ]
 
-  alias Chaperon.Worker
   import Chaperon.Timing
 
   def run(%{scheduler: scheduler, scenario: scenario, config: config}, session) do
@@ -79,11 +81,25 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
 
     merge_scenario_sessions = session.config[:merge_scenario_sessions]
 
+    scenario_session =
+      case scenario_session do
+        nil ->
+          session
+          |> log_error(
+            "Trying to merge scenario_session that failed (Worker task most likely timed out): #{
+              inspect(scenario)
+            }"
+          )
+
+        _ ->
+          session
+          |> merge_scenario_session(scenario_session)
+          |> add_metric({:run_scenario, scenario.module}, timestamp() - start)
+      end
+
     merged_session =
-      session
-      |> merge_scenario_session(scenario_session)
+      scenario_session
       |> set_config(merge_scenario_sessions: merge_scenario_sessions)
-      |> add_metric({:run_scenario, scenario.module}, timestamp() - start)
 
     {:ok, merged_session}
   end
