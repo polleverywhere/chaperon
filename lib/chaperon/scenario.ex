@@ -271,11 +271,13 @@ defmodule Chaperon.Scenario do
       "Scenarios.Bruteforce.Login"
   """
   @spec name(Scenario.t()) :: String.t()
-  def name(%Scenario{module: mod}) do
-    mod
-    |> Module.split()
-    |> Enum.join(".")
-  end
+  def name(%Scenario{module: mod}), do: name(mod)
+
+  def name(mod) when is_atom(mod),
+    do:
+      mod
+      |> Module.split()
+      |> Enum.join(".")
 
   @spec session_name(Scenario.t(), map) :: String.t()
   def session_name(_scenario, %{name: name}), do: name
