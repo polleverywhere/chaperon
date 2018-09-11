@@ -110,7 +110,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
       session |> reset_action_metadata,
       scenario_config
     )
-    |> Worker.await(Worker.timeout(scenario_config))
+    |> Worker.await(:infinity)
   end
 
   defp schedule_local_worker(scenario, scenario_config, session) do
