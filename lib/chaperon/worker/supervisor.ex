@@ -51,11 +51,11 @@ defmodule Chaperon.Worker.Supervisor do
         session
 
       {:exit, reason} ->
-        Logger.info("Worker exited with reason: #{scenario_mod} : #{inspect(reason)}")
+        Logger.error("Worker exited with reason: #{inspect(scenario_mod)} : #{inspect(reason)}")
         nil
 
       nil ->
-        Logger.info("Worker timed out: #{scenario_mod}")
+        Logger.error("Worker timed out: #{inspect(scenario_mod)}")
         nil
     end
   end
