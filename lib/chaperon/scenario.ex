@@ -85,8 +85,12 @@ defmodule Chaperon.Scenario do
 
       @spec new_session(map) :: Session.t()
       def new_session(config) do
+        scenario = %Chaperon.Scenario{module: __MODULE__}
+
         %Chaperon.Session{
-          scenario: %Chaperon.Scenario{module: __MODULE__},
+          id: UUID.uuid4(),
+          name: session_name(scenario, config),
+          scenario: scenario,
           config: config
         }
       end
