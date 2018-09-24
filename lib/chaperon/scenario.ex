@@ -83,12 +83,6 @@ defmodule Chaperon.Scenario do
       import Chaperon.Session
       import Chaperon.Session.Logging
 
-      # def start_link(config) do
-      #   with {:ok, session} <- __MODULE__ |> init(config |> new_session) do
-      #     Chaperon.Scenario.Task.start_link session
-      #   end
-      # end
-
       @spec new_session(map) :: Session.t()
       def new_session(config) do
         %Chaperon.Session{
