@@ -67,7 +67,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
-    Logger.info("Starting LoadTest #{lt_mod} @ Master #{state.id}")
+    Logger.info("Starting LoadTest #{Chaperon.LoadTest.name(lt_mod)} @ Master #{state.id}")
     task_id = UUID.uuid4()
 
     {:ok, _} =
@@ -86,11 +86,12 @@ defmodule Chaperon.Master do
   end
 
   def handle_cast({:load_test_finished, lt_mod, task_id, session}, state) do
-    Logger.info("LoadTest finished: #{lt_mod}")
+    lt_name = Chaperon.LoadTest.name(lt_mod)
+    Logger.info("LoadTest finished: #{lt_name}")
 
     case state.tasks[{lt_mod, task_id}] do
       nil ->
-        Logger.error("No client found for finished load test: #{lt_mod} @ #{task_id}")
+        Logger.error("No client found for finished load test: #{lt_name} @ #{task_id}")
 
       client ->
         GenServer.reply(client, session)

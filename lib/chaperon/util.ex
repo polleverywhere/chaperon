@@ -101,15 +101,26 @@ defmodule Chaperon.Util do
     end
   end
 
-  @spec shortened_module_name(module, non_neg_integer) :: String.t()
-  def shortened_module_name(mod, max_nesting \\ 2) do
+  @spec shortened_module_name(module | map, non_neg_integer) :: String.t()
+  def shortened_module_name(mod, max_nesting \\ 2)
+
+  def shortened_module_name(%{name: name}, max_nesting) when is_binary(name) do
+    name
+    |> String.split(".")
+    |> last(max_nesting)
+    |> Enum.join(".")
+  end
+
+  def shortened_module_name(mod, max_nesting) do
     mod
     |> Module.split()
     |> last(max_nesting)
     |> Enum.join(".")
   end
 
-  @spec module_name(module) :: String.t()
+  @spec module_name(module | %{name: String.t()}) :: String.t()
+  def module_name(%{name: name}) when is_binary(name), do: name
+
   def module_name(mod) when is_atom(mod) do
     mod
     |> Module.split()

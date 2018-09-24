@@ -39,7 +39,7 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
     require Logger
 
     def write_output(lt_mod, data, _) do
-      Logger.info("Writing data for #{lt_mod |> Util.module_name()} to InfluxDB")
+      Logger.info("Writing data for #{Chaperon.LoadTest.name(lt_mod)} to InfluxDB")
 
       for d <- data do
         :ok = __MODULE__.write(d)

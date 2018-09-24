@@ -114,16 +114,17 @@ defmodule Chaperon do
 
     duration_s = results.duration_ms / 1_000
     duration_min = Float.round(results.duration_ms / 60_000, 2)
+    lt_name = Chaperon.LoadTest.name(lt_mod)
 
     Logger.info(
-      "#{lt_mod} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
+      "#{lt_name} finished in #{results.duration_ms} ms (#{duration_s} s / #{duration_min} min)"
     )
 
     if results.timed_out > 0 do
       succeeded = Enum.count(results.sessions)
 
       Logger.warn(
-        "#{lt_mod} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
+        "#{lt_name} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
       )
     end
 
@@ -192,7 +193,8 @@ defmodule Chaperon do
   defp default_output_file(options, lt_mod) do
     mod_name =
       lt_mod
-      |> Module.split()
+      |> Chaperon.LoadTest.name()
+      |> String.split(".")
       |> Enum.join("/")
 
     timestamp =

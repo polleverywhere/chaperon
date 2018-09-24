@@ -58,6 +58,8 @@ defmodule Chaperon.LoadTest do
           config: map
         }
 
+  @type lt_conf :: module | %{name: String.t()}
+
   defmodule Results do
     @moduledoc """
     LoadTest results struct.
@@ -93,7 +95,7 @@ defmodule Chaperon.LoadTest do
   alias Chaperon.LoadTest.Results
   require Logger
 
-  @spec run(module, map) :: Chaperon.LoadTest.Results.t()
+  @spec run(lt_conf(), map) :: Chaperon.LoadTest.Results.t()
   def run(lt_mod, extra_config \\ %{}) do
     start_time = Chaperon.Timing.timestamp()
 
@@ -115,6 +117,11 @@ defmodule Chaperon.LoadTest do
     }
   end
 
+  @spec default_config(lt_conf()) :: any()
+  def default_config(lt_conf) when is_map(lt_conf) do
+    lt_conf[:default_config] || %{}
+  end
+
   def default_config(lt_mod) do
     if lt_mod.module_info(:exports)[:default_config] do
       lt_mod.default_config
@@ -123,8 +130,15 @@ defmodule Chaperon.LoadTest do
     end
   end
 
+  defp scenarios(%{scenarios: scenarios}), do: scenarios
+  defp scenarios(lt_mod) when is_atom(lt_mod), do: lt_mod.scenarios()
+
+  @spec name(lt_conf()) :: String.t()
+  def name(lt_mod), do: Chaperon.Util.module_name(lt_mod)
+
   defp start_workers_with_config(lt_mod, extra_config) do
-    lt_mod.scenarios
+    lt_mod
+    |> scenarios
     |> Enum.map(fn
       {scenario, name, scenario_config} ->
         config =

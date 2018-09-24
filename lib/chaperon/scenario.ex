@@ -272,12 +272,7 @@ defmodule Chaperon.Scenario do
   """
   @spec name(Scenario.t()) :: String.t()
   def name(%Scenario{module: mod}), do: name(mod)
-
-  def name(mod) when is_atom(mod),
-    do:
-      mod
-      |> Module.split()
-      |> Enum.join(".")
+  def name(mod) when is_atom(mod), do: Chaperon.Util.module_name(mod)
 
   @spec session_name(Scenario.t(), map) :: String.t()
   def session_name(_scenario, %{name: name}), do: name

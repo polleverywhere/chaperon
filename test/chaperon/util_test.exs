@@ -39,4 +39,20 @@ defmodule Chaperon.Util.Test do
              bar: [0, 100, 200, 10, 20, 30]
            }
   end
+
+  test "shortened_module_name" do
+    assert shortened_module_name(Chaperon.Util.Test) == "Util.Test"
+    assert shortened_module_name(%{name: "Foo.Bar"}) == "Foo.Bar"
+
+    assert shortened_module_name(Chaperon.Util.Test, 1) == "Test"
+    assert shortened_module_name(%{name: "Foo.Bar"}, 1) == "Bar"
+
+    assert shortened_module_name(Chaperon.Util.Test, 3) == "Chaperon.Util.Test"
+    assert shortened_module_name(%{name: "Foo.Bar"}, 3) == "Foo.Bar"
+  end
+
+  test "module_name" do
+    assert module_name(Chaperon.Util.Test) == "Chaperon.Util.Test"
+    assert module_name(%{name: "Foo.Bar"}) == "Foo.Bar"
+  end
 end
