@@ -1285,14 +1285,8 @@ defmodule Chaperon.Session do
 
   defp response_cookies(response = %HTTPoison.Response{}) do
     response.headers
-    |> Enum.map(fn
-      {"Set-Cookie", cookie} ->
-        cookie
-
-      _ ->
-        nil
-    end)
-    |> Enum.reject(&is_nil/1)
+    |> Enum.filter(fn {key,_} -> String.match?(key, ~r/\Aset-cookie\z/i) end)
+    |> Enum.map(fn {_, value} -> value end)
   end
 
   @doc """
