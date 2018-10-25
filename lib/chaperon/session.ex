@@ -1268,25 +1268,40 @@ defmodule Chaperon.Session do
     put_in(session.errors[action], error)
   end
 
+  defp store_cookies(session, []) do
+    session # do nothing
+  end
+
+  defp store_cookies(session, cookies) when is_list(cookies) do
+    cookies
+    |> Enum.join("; ")
+    |> put_in(session.cookies)
+  end
+
   @doc """
   Stores HTTP response cookies in `session` cookie store for further outgoing
   requests.
   """
   @spec store_cookies(Session.t(), HTTPoison.Response.t()) :: Session.t()
   def store_cookies(session, response = %HTTPoison.Response{}) do
-    case response_cookies(response) do
-      [] ->
-        session
-
-      cookies when is_list(cookies) ->
-        put_in(session.cookies, cookies)
-    end
+    response
+    |> response_cookies()
+    |> strip_cookie_attributes()
+    |> store_cookies(session)
   end
 
   defp response_cookies(response = %HTTPoison.Response{}) do
     response.headers
     |> Enum.filter(fn {key,_} -> String.match?(key, ~r/\Aset-cookie\z/i) end)
     |> Enum.map(fn {_, value} -> value end)
+  end
+
+  # Strips attributes like Expires and HttpOnly from cookies. Only the name and
+  # value are allowed when sending cookies in requests.
+  defp strip_cookie_attributes(cookies) do
+    cookies |> Enum.map(fn value ->
+      String.replace(value, ~r/;.*$/, "", global: false)
+    end)
   end
 
   @doc """
