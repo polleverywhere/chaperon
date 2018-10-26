@@ -1268,24 +1268,12 @@ defmodule Chaperon.Session do
     put_in(session.errors[action], error)
   end
 
-  def store_cookies(session, []) do
-    # do nothing
-    session
-  end
-
-  def store_cookies(session, cookies) when is_list(cookies) do
-    put_in(
-      session.cookies,
-      cookies |> Enum.join("; ")
-    )
-  end
-
   @doc """
   Stores HTTP response cookies in `session` cookie store for further outgoing
   requests.
   """
-  @spec store_cookies(Session.t(), HTTPoison.Response.t()) :: Session.t()
-  def store_cookies(session, response = %HTTPoison.Response{}) do
+  @spec store_response_cookies(Session.t(), HTTPoison.Response.t()) :: Session.t()
+  def store_response_cookies(session, response = %HTTPoison.Response{}) do
     response
     |> response_cookies()
     |> strip_cookie_attributes()
@@ -1305,6 +1293,18 @@ defmodule Chaperon.Session do
     |> Enum.map(fn value ->
       String.replace(value, ~r/;.*$/, "", global: false)
     end)
+  end
+
+  defp store_cookies([], session) do
+    # do nothing
+    session
+  end
+
+  defp store_cookies(cookies, session) do
+    put_in(
+      session.cookies,
+      cookies |> Enum.join("; ")
+    )
   end
 
   @doc """

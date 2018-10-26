@@ -19,13 +19,13 @@ defmodule Chaperon.Action.HTTP.Test do
     action = %HTTP{}
 
     session = %Chaperon.Session{
-      cookies: ["cookie1", "cookie2"]
+      cookies: ["cookie1; cookie2"]
     }
 
     assert HTTP.options(action, session) == [
              params: %{},
              hackney: [
-               cookie: ["cookie1", "cookie2"],
+               cookie: ["cookie1; cookie2"],
                pool: :chaperon
              ]
            ]
@@ -51,14 +51,14 @@ defmodule Chaperon.Action.HTTP.Test do
     action = %HTTP{}
 
     session = %Chaperon.Session{
-      cookies: ["cookie1", "cookie2"],
+      cookies: ["cookie1; cookie2"],
       config: %{basic_auth: {"user1", "password1"}}
     }
 
     assert HTTP.options(action, session) == [
              params: %{},
              hackney: [
-               cookie: ["cookie1", "cookie2"],
+               cookie: ["cookie1; cookie2"],
                basic_auth: {"user1", "password1"},
                pool: :chaperon
              ]
