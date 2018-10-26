@@ -93,4 +93,17 @@ defmodule Chaperon.Session.Test do
     assert s5.assigned.ran_scenario == false
     assert s5.assigned.names == ["success_run"]
   end
+
+  test "store_response_cookies" do
+    response = %HTTPoison.Response{
+      headers: [
+        {"Set-Cookie", "cookie1=value1; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly"},
+        {"set-cookie", "cookie2=value2"},
+        {"ETag", "ignored"}
+      ]
+    }
+    session = Chaperon.Session.store_response_cookies(%Chaperon.Session{}, response)
+
+    assert session.cookies == "cookie1=value1; cookie2=value2"
+  end
 end

@@ -282,7 +282,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
           {action.method, HTTP.metrics_url(action, session)},
           timestamp() - start
         )
-        |> store_cookies(response)
+        |> store_response_cookies(response)
         |> run_callback_if_defined(action, response)
         |> ok
 
