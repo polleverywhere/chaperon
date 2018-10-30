@@ -1300,7 +1300,7 @@ defmodule Chaperon.Session do
     session
   end
 
-  defp store_cookies(cookies, session) do
+  defp store_cookies(cookies, session) when is_list(cookies) do
     put_in(session.cookies, [cookies |> Enum.join("; ")])
   end
 
