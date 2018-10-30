@@ -102,8 +102,9 @@ defmodule Chaperon.Session.Test do
         {"ETag", "ignored"}
       ]
     }
+
     session = Chaperon.Session.store_response_cookies(%Chaperon.Session{}, response)
 
-    assert session.cookies == "cookie1=value1; cookie2=value2"
+    assert session.cookies == ["cookie1=value1; cookie2=value2"]
   end
 end

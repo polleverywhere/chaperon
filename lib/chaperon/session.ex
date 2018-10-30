@@ -1301,10 +1301,7 @@ defmodule Chaperon.Session do
   end
 
   defp store_cookies(cookies, session) do
-    put_in(
-      session.cookies,
-      cookies |> Enum.join("; ")
-    )
+    put_in(session.cookies, [cookies |> Enum.join("; ")])
   end
 
   @doc """
