@@ -35,6 +35,8 @@ defmodule Chaperon.Session do
 
   @type metric :: {atom, any} | any
 
+  @type config_key :: [atom] | atom | String.t()
+
   require Logger
   alias Chaperon.Session
   alias Chaperon.Session.Error
@@ -835,7 +837,7 @@ defmodule Chaperon.Session do
       iex> try do
       iex>   session |> config(:invalid) # no default value given
       iex> rescue
-      iex>   _ in RuntimeError -> :failed
+      iex>   _ in Chaperon.Session.RequiredConfigMissing -> :failed
       iex> end
       :failed
       iex> session |> config(:invalid, "default")
@@ -849,7 +851,7 @@ defmodule Chaperon.Session do
       iex> session |> config("bar.val2")
       "V2"
   """
-  @spec config(Session.t(), [atom] | atom | binary, any) :: Session.t()
+  @spec config(Session.t(), config_key, any) :: Session.t()
   def config(session, key, default_val \\ :no_default_given) do
     case key do
       keys when is_list(keys) ->
@@ -907,6 +909,25 @@ defmodule Chaperon.Session do
     end
   end
 
+  defmodule RequiredConfigMissing do
+    defexception config_key: nil, session: nil
+
+    @type t :: %__MODULE__{
+            config_key: Chaperon.Session.config_key(),
+            session: Chaperon.Session.t()
+          }
+
+    @spec new(Chaperon.Session.config_key(), Chaperon.Session.t()) :: t()
+    def new(key, session) do
+      %__MODULE__{config_key: key, session: session}
+    end
+
+    @spec message(t()) :: String.t()
+    def message(%__MODULE__{config_key: key, session: session}) do
+      "[Chaperon.Session.RequiredConfigMissing #{session.id} #{session.name}] | #{inspect(key)} "
+    end
+  end
+
   defp required_config(session, key) do
     session
     |> required_config(session.config, key)
@@ -921,7 +942,7 @@ defmodule Chaperon.Session do
         session
         |> log_error("Config key #{inspect(key)} not found")
 
-        raise "Config key #{inspect(key)} expected but not found for session: #{session}"
+        raise RequiredConfigMissing.new(key, session)
     end
   end
 

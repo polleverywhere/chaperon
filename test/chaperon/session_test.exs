@@ -18,6 +18,8 @@ defmodule Chaperon.Session.Test do
 
   test "config" do
     s = %Session{
+      id: UUID.uuid4(),
+      name: "test-session",
       config: %{
         key: "value",
         nested: %{nested_key: "okidoki"}
@@ -30,6 +32,18 @@ defmodule Chaperon.Session.Test do
     assert Session.config(s, "nested.nested_key") == "okidoki"
     assert Session.config(s, "nested.nested_key", "default") == "okidoki"
     assert Session.config(s, "nested.not_defined", "default") == "default"
+
+    assert_raise(Chaperon.Session.RequiredConfigMissing, fn ->
+      Session.config(s, :not_found)
+    end)
+
+    assert_raise(Chaperon.Session.RequiredConfigMissing, fn ->
+      Session.config(s, [:invalid, :config, :key, :path])
+    end)
+
+    assert_raise(Chaperon.Session.RequiredConfigMissing, fn ->
+      Session.config(s, "invalid.config.key.path")
+    end)
   end
 
   test "abort" do
