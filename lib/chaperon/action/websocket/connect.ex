@@ -64,20 +64,25 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
     parent = self()
 
     spawn_link(fn ->
-      case WebSocket.Client.start_link(session, ws_url) do
-        {:ok, ws_client} ->
-          send(parent, {:ws_connected, ws_client, ws_url})
-
-        {:error, %WebSockex.ConnError{original: :timeout}} ->
-          session
-          |> log_warn("Failed to connect via WS to #{ws_url} - TIMEOUT")
-          |> Session.random_delay(
-            session
-            |> Session.config("ws.connect_timeout", 3 |> seconds)
-          )
-          |> async_connect(ws_url)
-      end
+      session
+      |> connection_attempt_loop(ws_url, parent)
     end)
+  end
+
+  defp connection_attempt_loop(session, ws_url, parent) do
+    case WebSocket.Client.start_link(session, ws_url) do
+      {:ok, ws_client} ->
+        send(parent, {:ws_connected, ws_client, ws_url})
+
+      {:error, %WebSockex.ConnError{original: :timeout}} ->
+        session
+        |> log_warn("Failed to connect via WS to #{ws_url} - TIMEOUT")
+        |> Session.random_delay(
+          session
+          |> Session.config("ws.connect_timeout", 3 |> seconds)
+        )
+        |> connection_attempt_loop(ws_url, parent)
+    end
   end
 end
 
