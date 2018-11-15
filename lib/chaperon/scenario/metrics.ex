@@ -131,8 +131,16 @@ defmodule Chaperon.Scenario.Metrics do
   @doc false
   def record_metric(_, []), do: :ok
 
+  require Logger
+
   def record_metric(k, [v | vals]) do
-    record_metric(k, v)
+    try do
+      record_metric(k, v)
+    rescue
+      err in RuntimeError ->
+        Logger.error("Failed to record metric: #{inspect(err)}")
+    end
+
     record_metric(k, vals)
   end
 
