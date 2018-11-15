@@ -48,7 +48,8 @@ defmodule Chaperon.Mixfile do
         :websockex,
         :ssl,
         :crypto,
-        :instream
+        :instream,
+        :deep_merge
       ],
       mod: {Chaperon, []}
     ]
@@ -93,6 +94,7 @@ defmodule Chaperon.Mixfile do
       {:websockex, "~> 0.4"},
       {:e_q, "~> 1.0.0"},
       {:instream, "~> 0.16.0"},
+      {:deep_merge, "~> 0.1.1"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false}

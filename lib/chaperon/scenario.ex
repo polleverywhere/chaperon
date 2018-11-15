@@ -261,7 +261,7 @@ defmodule Chaperon.Scenario do
 
   @spec nested_session(Scenario.t(), Session.t(), map) :: Session.t()
   def nested_session(scenario, session, config) do
-    config = session.config |> Map.merge(config)
+    config = session.config |> DeepMerge.deep_merge(config)
 
     %{
       session

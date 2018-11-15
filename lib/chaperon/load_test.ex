@@ -144,8 +144,8 @@ defmodule Chaperon.LoadTest do
         config =
           lt_mod
           |> default_config
-          |> Map.merge(scenario_config)
-          |> Map.merge(extra_config)
+          |> DeepMerge.deep_merge(scenario_config)
+          |> DeepMerge.deep_merge(extra_config)
 
         start_worker(scenario, Map.put(config, :session_name, name))
 
@@ -153,8 +153,8 @@ defmodule Chaperon.LoadTest do
         config =
           lt_mod
           |> default_config
-          |> Map.merge(scenario_config)
-          |> Map.merge(extra_config)
+          |> DeepMerge.deep_merge(scenario_config)
+          |> DeepMerge.deep_merge(extra_config)
 
         start_worker(scenario, config)
     end)

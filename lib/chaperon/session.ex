@@ -569,7 +569,7 @@ defmodule Chaperon.Session do
   defp run_scenario_with_config(session, scenario, config, merge_config, scheduler) do
     scenario_config =
       if merge_config do
-        Map.merge(session.config, config)
+        DeepMerge.deep_merge(session.config, config)
       else
         config
       end

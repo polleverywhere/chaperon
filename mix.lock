@@ -3,6 +3,7 @@
   "certifi": {:hex, :certifi, "1.2.1", "c3904f192bd5284e5b13f20db3ceac9626e14eeacfbb492e19583cf0e37b22be", [:rebar3], [], "hexpm"},
   "cowlib": {:hex, :cowlib, "1.3.0", "6c80ca7f2863c0d7a21c946312baf473432b56a79e46e20bc27a3bac07c40439", [:make], [], "hexpm"},
   "credo": {:hex, :credo, "0.10.2", "03ad3a1eff79a16664ed42fc2975b5e5d0ce243d69318060c626c34720a49512", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
+  "deep_merge": {:hex, :deep_merge, "0.1.1", "c27866a7524a337b6a039eeb8dd4f17d458fd40fbbcb8c54661b71a22fffe846", [:mix], [], "hexpm"},
   "dialyxir": {:hex, :dialyxir, "0.5.1", "b331b091720fd93e878137add264bac4f644e1ddae07a70bf7062c7862c4b952", [:mix], [], "hexpm"},
   "e_q": {:hex, :e_q, "1.0.0", "7b4dab148b8f482fac6be0e3b5ecf5b4ca86d6148b33b96ee7ca9f2e2fcf2fb7", [:mix], [], "hexpm"},
   "e_queue": {:git, "https://github.com/bakkdoor/e_queue.git", "be8e9c1ac18458f92007090228f6aeffa8b03e81", []},
