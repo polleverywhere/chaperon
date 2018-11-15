@@ -90,7 +90,7 @@ defmodule Chaperon.Mixfile do
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:histogrex, "~> 0.0.4"},
-      {:websockex, "~> 0.2"},
+      {:websockex, "~> 0.4"},
       {:e_q, "~> 1.0.0"},
       {:instream, "~> 0.16.0"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
