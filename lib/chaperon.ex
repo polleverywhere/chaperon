@@ -234,10 +234,15 @@ defmodule Chaperon do
     File.write!(
       path <> ".config.exs",
       inspect(
-        %{
-          scenarios: lt_mod.scenarios,
-          default_config: Chaperon.LoadTest.default_config(lt_mod)
-        },
+        Chaperon.LoadTest.default_config(lt_mod),
+        pretty: true
+      )
+    )
+
+    File.write!(
+      path <> ".scenarios.exs",
+      inspect(
+        lt_mod.scenarios,
         pretty: true
       )
     )
