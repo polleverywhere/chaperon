@@ -1444,6 +1444,15 @@ defmodule Chaperon.Session do
   end
 
   @doc """
+  Returns a `Chaperon.Session.Error` for the given `session` and with a given
+  `reason` for a given `action`.
+  """
+  # @spec error(Session.t(), any, any) :: {:error, Error.t()}
+  def error(session, reason, action) do
+    {:error, %Chaperon.Action.Error{reason: reason, action: action, session: session}}
+  end
+
+  @doc """
   Runs a potentially configured callback for a given action in case of success.
   In case of failure, runs the configured error callback with an
   `{:error, reason}` tuple.

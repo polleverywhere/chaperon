@@ -44,7 +44,8 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.ReceiveMessage do
       {:error, {:timeout, timeout}} ->
         session
         |> log_error("WS_RECV timeout: #{timeout}")
-        |> error({:timeout, timeout})
+        |> run_error_callback(action, {:timeout, timeout})
+        |> error({:timeout, timeout}, action)
 
       other ->
         session
