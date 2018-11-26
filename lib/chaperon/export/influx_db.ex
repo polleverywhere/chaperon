@@ -38,7 +38,7 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
     alias __MODULE__.LoadTestMeasurement
     require Logger
 
-    def write_output(lt_mod, data, _) do
+    def write_output(lt_mod, _runtime_config, data, _) do
       Logger.info("Writing data for #{Chaperon.LoadTest.name(lt_mod)} to InfluxDB")
 
       for d <- data do

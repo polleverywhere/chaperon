@@ -40,8 +40,8 @@ defmodule Chaperon.Export.JSON do
     {:ok, data}
   end
 
-  def write_output(lt_mod, data, filename) do
-    Chaperon.write_output_to_file(lt_mod, data, filename <> ".json")
+  def write_output(lt_mod, runtime_config, data, filename) do
+    Chaperon.write_output_to_file(lt_mod, runtime_config, data, filename <> ".json")
   end
 
   def metrics([]), do: %{}

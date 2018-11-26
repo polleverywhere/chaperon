@@ -50,6 +50,7 @@ defmodule Chaperon.Master do
         |> Chaperon.exporter()
         |> apply(:write_output, [
           lt_mod,
+          Keyword.get(options, :config, %{}),
           data,
           options[:output]
         ])

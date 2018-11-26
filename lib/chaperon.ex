@@ -172,6 +172,7 @@ defmodule Chaperon do
           |> exporter
           |> apply(:write_output, [
             lt_mod,
+            Keyword.get(options, :config, %{}),
             data,
             output
           ])
@@ -224,7 +225,7 @@ defmodule Chaperon do
     :ok
   end
 
-  def write_output_to_file(lt_mod, output, path) do
+  def write_output_to_file(lt_mod, runtime_config, output, path) do
     path
     |> Path.dirname()
     |> File.mkdir_p!()
@@ -234,7 +235,9 @@ defmodule Chaperon do
     File.write!(
       path <> ".config.exs",
       inspect(
-        Chaperon.LoadTest.default_config(lt_mod),
+        lt_mod
+        |> Chaperon.LoadTest.default_config()
+        |> DeepMerge.deep_merge(runtime_config),
         pretty: true
       )
     )
