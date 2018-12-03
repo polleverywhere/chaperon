@@ -1593,6 +1593,11 @@ defmodule Chaperon.Session do
     %{session | cancellation: reason}
   end
 
+  def abort(session, reason) do
+    session
+    |> abort(inspect(reason))
+  end
+
   @doc """
   Makes a given function call async for `session`.
 
