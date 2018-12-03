@@ -162,7 +162,8 @@ defmodule Chaperon.Action.HTTP do
   end
 
   @default_headers %{
-    "User-Agent" => "chaperon"
+    "User-Agent" => "chaperon",
+    "Accept" => "*/*"
   }
 
   @spec add_options(any, Chaperon.Action.HTTP.options()) :: t
@@ -240,7 +241,7 @@ defmodule Chaperon.Action.HTTP do
 
   defp json_body(data) do
     {
-      %{"Content-Type" => "application/json"},
+      %{"Content-Type" => "application/json", "Accept" => "application/json"},
       data |> Poison.encode!()
     }
   end
@@ -272,7 +273,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
            action.method,
            HTTP.url(action, session),
            action.body || "",
-           action.headers |> Enum.into([]),
+           action.headers,
            HTTP.options(action, session)
          ) do
       {:ok, response} ->
