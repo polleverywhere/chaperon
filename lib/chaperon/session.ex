@@ -835,6 +835,45 @@ defmodule Chaperon.Session do
       iex> session |> config(:foo)
       1
       iex> try do
+      iex>   session |> config(:invalid) # does not exist
+      iex> rescue
+      iex>   _ in Chaperon.Session.RequiredConfigMissing -> :failed
+      iex> end
+      :failed
+      iex> session |> config([:bar, :val1])
+      "V1"
+      iex> session |> config([:bar, :val2])
+      "V2"
+      iex> session |> config("bar.val1")
+      "V1"
+      iex> session |> config("bar.val2")
+      "V2"
+  """
+  @spec config(Session.t(), config_key, any) :: any
+  def config(session, key) do
+    case config(session, key, :___no_default_config_given___) do
+      :___no_default_config_given___ ->
+        session
+        |> required_config(session.config, key)
+
+      val ->
+        val
+    end
+  end
+
+  @doc """
+  Get a (possibly nested) config value and return the given default value,
+  if config value does not exist.
+
+  ## Example
+
+      iex> alias Chaperon.Session; import Session
+      iex> session = %Session{config: %{foo: 1, bar: %{val1: "V1", val2: "V2"}}}
+      iex> session.config
+      %{foo: 1, bar: %{val1: "V1", val2: "V2"}}
+      iex> session |> config(:foo)
+      1
+      iex> try do
       iex>   session |> config(:invalid) # no default value given
       iex> rescue
       iex>   _ in Chaperon.Session.RequiredConfigMissing -> :failed
@@ -852,7 +891,7 @@ defmodule Chaperon.Session do
       "V2"
   """
   @spec config(Session.t(), config_key, any) :: any
-  def config(session, key, default_val \\ :no_default_given) do
+  def config(session, key, default_val) do
     case key do
       keys when is_list(keys) ->
         session
@@ -868,44 +907,23 @@ defmodule Chaperon.Session do
         |> config(keys, default_val)
 
       _ ->
-        case default_val do
-          :no_default_given ->
-            session
-            |> required_config(session.config, key)
-
-          default ->
-            Map.get(session.config, key, default)
-        end
+        Map.get(session.config, key, default_val)
     end
   end
 
-  defp find_nested_config_val(session, keys = [key1 | rest], default_val) do
+  defp find_nested_config_val(session, _keys = [key1 | rest], default_val) do
     if Map.has_key?(session.config, key1) do
       rest
       |> Enum.reduce(session.config[key1], fn
         key, acc when is_map(acc) ->
-          case default_val do
-            :no_default_given ->
-              session
-              |> required_config(acc, key)
-
-            default ->
-              acc
-              |> Map.get(key, default)
-          end
+          acc
+          |> Map.get(key, default_val)
 
         _key, acc ->
           acc
       end)
     else
-      case default_val do
-        :no_default_given ->
-          session
-          |> required_config(keys)
-
-        default ->
-          default
-      end
+      default_val
     end
   end
 
