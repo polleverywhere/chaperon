@@ -70,7 +70,32 @@ defmodule Chaperon.Session do
           SpreadAsync.time(),
           atom | nil
         ) :: Session.t()
-  def cc_spread(session, func_name, rate, interval, task_name \\ nil) do
+
+  def cc_spread(session, func_name, rate, interval) do
+    cc_spread(session, func_name, rate, interval, nil)
+  end
+
+  def cc_spread(session, func_name, rate, interval, task_name)
+      when is_float(rate) or is_float(interval) do
+    new_rate = round(rate)
+    new_interval = round(interval)
+
+    if is_float(rate) do
+      session
+      |> log_warn("cc_spread rate is float: #{rate}, rounding to: #{new_rate}")
+    end
+
+    if is_float(interval) do
+      session
+      |> log_warn("cc_spread interval is float: #{interval}, rounding to: #{new_interval}")
+    end
+
+    session
+    |> cc_spread(func_name, new_rate, interval, task_name)
+  end
+
+  def cc_spread(session, func_name, rate, interval, task_name)
+      when is_integer(rate) and is_integer(interval) do
     session
     |> run_action(%SpreadAsync{
       func: func_name,
