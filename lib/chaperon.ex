@@ -238,7 +238,9 @@ defmodule Chaperon do
         lt_mod
         |> Chaperon.LoadTest.default_config()
         |> DeepMerge.deep_merge(runtime_config),
-        pretty: true
+        pretty: true,
+        limit: :infinity,
+        printable_limit: :infinity
       )
     )
 
@@ -246,7 +248,9 @@ defmodule Chaperon do
       path <> ".scenarios.exs",
       inspect(
         lt_mod.scenarios,
-        pretty: true
+        pretty: true,
+        limit: :infinity,
+        printable_limit: :infinity
       )
     )
   end
