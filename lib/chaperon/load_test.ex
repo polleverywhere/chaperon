@@ -262,6 +262,10 @@ defmodule Chaperon.LoadTest do
     %Session{}
   end
 
+  def merge_sessions(r = %Results{sessions: [nil | sessions]}) do
+    merge_sessions(%{r | sessions: sessions})
+  end
+
   def merge_sessions(%Results{sessions: [s | sessions]}) do
     sessions
     |> Enum.reduce(s |> prepare_merge, &Session.merge(&2, &1))
