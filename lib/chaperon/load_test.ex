@@ -263,6 +263,7 @@ defmodule Chaperon.LoadTest do
   end
 
   def merge_sessions(r = %Results{sessions: [nil | sessions]}) do
+    Logger.warn("Skipping timed out session while merging session metrics & results")
     merge_sessions(%{r | sessions: sessions})
   end
 
