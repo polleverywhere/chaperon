@@ -14,12 +14,7 @@ defmodule Chaperon.Supervisor do
     common_children = [
       supervisor(Chaperon.Master.Supervisor, []),
       supervisor(Chaperon.Worker.Supervisor, []),
-      worker(Chaperon.Scenario.Metrics, []),
-      :hackney_pool.child_spec(
-        :chaperon,
-        timeout: 20_000,
-        max_connections: 200_000
-      )
+      worker(Chaperon.Scenario.Metrics, [])
     ]
 
     case Application.get_env(:chaperon, Chaperon.Export.InfluxDB, nil) do

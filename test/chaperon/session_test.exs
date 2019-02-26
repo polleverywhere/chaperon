@@ -2,6 +2,7 @@ defmodule Chaperon.Session.Test do
   use ExUnit.Case
   doctest Chaperon.Session
   alias Chaperon.Session
+  alias Chaperon.Action.HTTP
 
   setup do
     {:ok, %{session: %Session{}}}
@@ -109,7 +110,7 @@ defmodule Chaperon.Session.Test do
   end
 
   test "store_response_cookies" do
-    response = %HTTPoison.Response{
+    response = %HTTP.Response{
       headers: [
         {"Set-Cookie", "cookie1=value1; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly"},
         {"set-cookie", "cookie2=value2"},

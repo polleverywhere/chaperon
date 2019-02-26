@@ -58,10 +58,12 @@ defmodule Chaperon.Scenario.Metrics do
     Metrics.reduce([], fn {name, hist}, tasks ->
       t =
         Task.async(fn ->
-          session
-          |> log_info(inspect(name))
+          vals = histogram_vals(hist)
 
-          {name, histogram_vals(hist)}
+          session
+          |> log_info("#{vals[:total_count]} x #{inspect(name)}")
+
+          {name, vals}
         end)
 
       [t | tasks]

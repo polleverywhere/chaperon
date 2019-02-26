@@ -53,7 +53,7 @@ defmodule Chaperon.Action do
           session
           |> log_error("Failed to greet")
 
-        (session, %HTTPoison.Response{body: response}) ->
+        (session, %HTTP.Response{body: response}) ->
           # do something with successful response here
           session
           |> log_info("Greeted successfully!")

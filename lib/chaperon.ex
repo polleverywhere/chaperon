@@ -10,7 +10,6 @@ defmodule Chaperon do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    HTTPoison.start()
     Chaperon.Supervisor.start_link()
   end
 
@@ -287,7 +286,7 @@ defmodule Chaperon do
               |> Enum.each(&print_result(name, &1))
 
             {:async, name, res} ->
-              Logger.info("~> #{name} -> #{res.status_code}")
+              Logger.info("~> #{name} -> #{res.status}")
 
             results when is_list(results) ->
               results
@@ -301,7 +300,7 @@ defmodule Chaperon do
     end
   end
 
-  defp print_result(action, %HTTPoison.Response{status_code: status_code}) do
+  defp print_result(action, %Chaperon.Action.HTTP.Response{status: status_code}) do
     Logger.info("#{action} -> #{status_code}")
   end
 
