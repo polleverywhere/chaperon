@@ -255,7 +255,7 @@ defmodule Chaperon.LoadTest do
   def merge_sessions(results = %Results{sessions: [], max_timeout: timeout}) do
     Logger.warn(
       "No scenario task finished in time (timeout = #{timeout}) for load_test: #{
-        results.load_test
+        inspect(results.load_test)
       }"
     )
 
