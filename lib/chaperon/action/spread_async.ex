@@ -46,7 +46,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.SpreadAsync do
     session =
       session
       |> Session.delay(delay)
-      |> Session.reset_action_metadata()
+      |> Session.fork()
 
     Chaperon.Worker.Supervisor.schedule_async(fn ->
       session
