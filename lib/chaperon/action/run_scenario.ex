@@ -107,7 +107,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.RunScenario do
   defp schedule_cluster_worker(scenario, scenario_config, session) do
     scenario
     |> Worker.start_nested(
-      session |> reset_action_metadata,
+      session |> Chaperon.Session.fork(),
       scenario_config
     )
     |> Worker.await(:infinity)
