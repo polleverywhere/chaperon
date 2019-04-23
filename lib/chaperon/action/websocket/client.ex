@@ -100,7 +100,7 @@ defmodule Chaperon.Action.WebSocket.Client do
     send(pid, {:next_frame, self()})
 
     case timeout do
-      nil ->
+      x when x in [nil, :infinity] ->
         receive do
           {:next_frame, msg} ->
             msg
