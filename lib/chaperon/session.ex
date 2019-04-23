@@ -1738,8 +1738,13 @@ end
 defimpl String.Chars, for: Chaperon.Session do
   def to_string(session) do
     case session.scenario do
-      %Chaperon.Scenario{module: scenario_mod} ->
+      %Chaperon.Scenario{module: scenario_mod, parent_id: nil} ->
         "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}}"
+
+      %Chaperon.Scenario{module: scenario_mod, parent_id: parent_id} ->
+        "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}, parent_id: #{
+          inspect(parent_id)
+        }}"
 
       nil ->
         "Session{id: #{inspect(session.id)}}"
