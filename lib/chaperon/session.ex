@@ -484,19 +484,22 @@ defmodule Chaperon.Session do
   """
   @spec ws_await_recv(Session.t(), any, Keyword.t()) :: Session.t()
   def ws_await_recv(session, expected_message, options \\ []) do
+    callback = options[:with_result]
+    
     opts =
       options
-      |> Keyword.merge(with_result: &ws_await_recv_loop(&1, expected_message, &2, options))
+      |> Keyword.delete(:with_result)
+      |> Keyword.merge(with_result: &ws_await_recv_loop(&1, expected_message, &2, callback, options))
 
     session
     |> ws_recv(opts)
   end
 
-  defp ws_await_recv_loop(session, expected_msg, msg, options) do
+  defp ws_await_recv_loop(session, expected_msg, msg, callback, options) do
     if is_expected_message(msg, expected_msg) do
       session
       |> log_debug("Awaited expected WS message")
-      |> call_callback(options[:with_result], msg)
+      |> call_callback(callback, msg)
     else
       session
       |> log_debug("Ignoring unexpected WS message #{inspect(msg)}")
