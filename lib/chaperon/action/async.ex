@@ -53,9 +53,10 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
          },
          session
        ) do
+    session = session |> Session.fork()
+
     Task.async(fn ->
       session
-      |> Session.fork()
       |> Session.time(task_name, fn sess ->
         apply(mod, func_name, [sess | args])
       end)
