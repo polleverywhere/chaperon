@@ -15,7 +15,7 @@ defmodule Chaperon.Session.Logging do
     quote do
       require Logger
       session = unquote(session)
-      Logger.info("#{session.id} #{session.name} | #{unquote(message)} ")
+      Logger.info("#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} ")
       session
     end
   end
@@ -24,7 +24,11 @@ defmodule Chaperon.Session.Logging do
     quote do
       require Logger
       session = unquote(session)
-      Logger.debug(fn -> "#{session.id} #{session.name} | #{unquote(message)} " end)
+
+      Logger.debug(fn ->
+        "#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} "
+      end)
+
       session
     end
   end
@@ -33,7 +37,11 @@ defmodule Chaperon.Session.Logging do
     quote do
       require Logger
       session = unquote(session)
-      Logger.error("#{session.id} #{session.name} | #{unquote(message)} ")
+
+      Logger.error(
+        "#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} "
+      )
+
       session
     end
   end
@@ -44,7 +52,9 @@ defmodule Chaperon.Session.Logging do
       session = unquote(session)
 
       Logger.error(
-        "#{session.id} #{session.name} | #{unquote(message)} #{inspect(unquote(reason))}"
+        "#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} #{
+          inspect(unquote(reason))
+        }"
       )
 
       session

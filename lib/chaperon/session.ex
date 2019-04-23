@@ -1733,18 +1733,29 @@ defmodule Chaperon.Session do
       |> Chaperon.Session.call_traced(unquote(func), unquote(args))
     end
   end
+
+  def id_string(%Chaperon.Session{id: id, parent_id: nil}) do
+    id
+  end
+
+  def id_string(%Chaperon.Session{id: id, parent_id: parent_id}) do
+    id <> "(" <> parent_id <> ")"
+  end
 end
 
 defimpl String.Chars, for: Chaperon.Session do
   def to_string(session) do
     case session.scenario do
-      %Chaperon.Scenario{module: scenario_mod, parent_id: nil} ->
-        "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}}"
+      %Chaperon.Scenario{module: scenario_mod} ->
+        case session.parent_id do
+          nil ->
+            "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}}"
 
-      %Chaperon.Scenario{module: scenario_mod, parent_id: parent_id} ->
-        "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}, parent_id: #{
-          inspect(parent_id)
-        }}"
+          parent_id ->
+            "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}, parent_id: #{
+              inspect(parent_id)
+            }}"
+        end
 
       nil ->
         "Session{id: #{inspect(session.id)}}"
