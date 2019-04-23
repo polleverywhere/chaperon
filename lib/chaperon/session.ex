@@ -15,6 +15,7 @@ defmodule Chaperon.Session do
             metrics: %{},
             scenario: nil,
             cookies: [],
+            parent_id: nil,
             parent_pid: nil,
             cancellation: nil
 
@@ -29,6 +30,7 @@ defmodule Chaperon.Session do
           metrics: map,
           scenario: Chaperon.Scenario.t(),
           cookies: [String.t()],
+          parent_id: String.t() | nil,
           parent_pid: pid | nil,
           cancellation: String.t() | nil
         }
@@ -57,6 +59,15 @@ defmodule Chaperon.Session do
       require Chaperon.Session
       import Chaperon.Session
     end
+  end
+
+  def new_id() do
+    UUID.uuid4()
+  end
+
+  def fork(session) do
+    %{session | id: new_id(), parent_id: session.id, parent_pid: self()}
+    |> reset_action_metadata()
   end
 
   @doc """

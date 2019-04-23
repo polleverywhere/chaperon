@@ -18,7 +18,7 @@ defmodule Chaperon.Session.Test do
 
   test "config" do
     s = %Session{
-      id: UUID.uuid4(),
+      id: Chaperon.Session.new_id(),
       name: "test-session",
       config: %{
         key: "value",

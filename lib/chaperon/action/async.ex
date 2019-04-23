@@ -53,14 +53,11 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.Async do
          },
          session
        ) do
-    session =
-      %{session | parent_pid: self()}
-      |> Session.reset_action_metadata()
-
     Task.async(fn ->
       session
-      |> Session.time(task_name, fn session ->
-        apply(mod, func_name, [session | args])
+      |> Session.fork()
+      |> Session.time(task_name, fn sess ->
+        apply(mod, func_name, [sess | args])
       end)
     end)
   end
