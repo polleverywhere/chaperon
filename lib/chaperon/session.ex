@@ -1739,7 +1739,7 @@ defmodule Chaperon.Session do
   end
 
   def id_string(%Chaperon.Session{id: id, parent_id: parent_id}) do
-    id <> "(" <> parent_id <> ")"
+    id <> " [" <> parent_id <> "]"
   end
 end
 
