@@ -65,7 +65,7 @@ defmodule Chaperon.Session.Logging do
     quote do
       require Logger
       session = unquote(session)
-      Logger.warn("#{session.id} #{session.name} | #{unquote(message)} ")
+      Logger.warn("#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} ")
       session
     end
   end
