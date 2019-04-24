@@ -30,18 +30,21 @@ end
 defmodule WS.Echo.LoadTest do
   use Chaperon.LoadTest
 
-  def default_config, do: %{
-    base_url: "wss://echo.websocket.org",
-    merge_scenario_sessions: true
-  }
+  def default_config,
+    do: %{
+      base_url: "wss://echo.websocket.org",
+      merge_scenario_sessions: true
+    }
 
-  def scenarios, do: [
-    {{100, WS.Echo.Scenario}, %{
-      echo: %{
-        iterations: 10
-      }
-    }}
-  ]
+  def scenarios,
+    do: [
+      {{100, WS.Echo.Scenario},
+       %{
+         echo: %{
+           iterations: 10
+         }
+       }}
+    ]
 end
 
 Chaperon.run_load_test(WS.Echo.LoadTest)

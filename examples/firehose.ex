@@ -25,6 +25,7 @@ defmodule Firehose.Scenario.SubscribeChannel do
 
   def subscribe(session) do
     :timer.sleep(:rand.uniform(session.config.base_interval))
+
     session
     ~> subscribe(session.config.channel)
   end
@@ -49,7 +50,8 @@ defmodule Firehose.Scenario.WSSubscribeChannel do
   end
 
   def subscribe(session, channel, amount) do
-    Logger.info "WS subscribe #{channel} (Awaiting #{amount} messages)"
+    Logger.info("WS subscribe #{channel} (Awaiting #{amount} messages)")
+
     session
     |> ws_connect(channel)
     |> ws_send(json: %{last_message_sequence: 0})
@@ -58,7 +60,7 @@ defmodule Firehose.Scenario.WSSubscribeChannel do
 
   def receive_messages(session, 0) do
     amount = session |> expected_messages
-    Logger.info "WS received #{amount}/#{amount} messages"
+    Logger.info("WS received #{amount}/#{amount} messages")
     session
   end
 
@@ -110,9 +112,11 @@ defmodule Firehose.Scenario.PublishChannel do
 
   def publish(session, channel) do
     session
-    |> put(channel,
-           json: %{"hello" => "world", "time" => Chaperon.Timing.timestamp},
-           headers: %{"X-Firehose-Persist" => true})
+    |> put(
+      channel,
+      json: %{"hello" => "world", "time" => Chaperon.Timing.timestamp()},
+      headers: %{"X-Firehose-Persist" => true}
+    )
   end
 end
 
@@ -123,72 +127,75 @@ defmodule Firehose.LoadTest.Local do
 
   use Chaperon.LoadTest
 
-  def default_config, do: %{
-    # scenario_timeout: 12_000,
-    merge_scenario_sessions: true,
-    base_url: "http://localhost:7474",
-    timeout: :infinity,
-    channel: "/testchannel"
-  }
+  def default_config,
+    do: %{
+      # scenario_timeout: 12_000,
+      merge_scenario_sessions: true,
+      base_url: "http://localhost:7474",
+      timeout: :infinity,
+      channel: "/testchannel"
+    }
 
-  def scenarios, do: [
-    {PublishChannel, "p1", %{
-      delay: 1 |> seconds,
-      duration: 1 |> seconds,
-      base_interval: 50,
-      publications_per_loop: 5
-    }},
-
-    {PublishChannel, "p2", %{
-      delay: 4 |> seconds,
-      duration: 10 |> seconds,
-      base_interval: 250,
-      publications_per_loop: 1
-    }},
-
-    {SubscribeChannel, "s1", %{
-      delay: 5 |> seconds,
-      duration: 1 |> seconds,
-      base_interval: 50,
-      subscriptions_per_loop: 5
-    }},
-
-    {SubscribeChannel, "s2", %{
-      duration: 15 |> seconds,
-      base_interval: 500,
-      subscriptions_per_loop: 5
-    }},
-
-    {SubscribeChannel, "s3", %{
-      delay: 7.5 |> seconds,
-      duration: 3 |> seconds,
-      base_interval: 75,
-      subscriptions_per_loop: 20
-    }},
-
-    {SubscribeChannel, "s4", %{
-      delay: 2 |> seconds,
-      duration: 3 |> seconds,
-      base_interval: 150,
-      subscriptions_per_loop: 1
-    }},
-
-    {WSSubscribeChannel, "ws1", %{
-      await_messages: 10
-    }},
-
-    {WSSubscribeChannel, "ws2", %{
-      await_messages: 50
-    }},
-
-    {WSSubscribeChannel, "ws3", %{
-      await_messages: 100
-    }},
-
-    {WSSubscribeChannel, "ws4", %{
-      await_messages: 200
-    }},
-  ]
+  def scenarios,
+    do: [
+      {PublishChannel, "p1",
+       %{
+         delay: 1 |> seconds,
+         duration: 1 |> seconds,
+         base_interval: 50,
+         publications_per_loop: 5
+       }},
+      {PublishChannel, "p2",
+       %{
+         delay: 4 |> seconds,
+         duration: 10 |> seconds,
+         base_interval: 250,
+         publications_per_loop: 1
+       }},
+      {SubscribeChannel, "s1",
+       %{
+         delay: 5 |> seconds,
+         duration: 1 |> seconds,
+         base_interval: 50,
+         subscriptions_per_loop: 5
+       }},
+      {SubscribeChannel, "s2",
+       %{
+         duration: 15 |> seconds,
+         base_interval: 500,
+         subscriptions_per_loop: 5
+       }},
+      {SubscribeChannel, "s3",
+       %{
+         delay: 7.5 |> seconds,
+         duration: 3 |> seconds,
+         base_interval: 75,
+         subscriptions_per_loop: 20
+       }},
+      {SubscribeChannel, "s4",
+       %{
+         delay: 2 |> seconds,
+         duration: 3 |> seconds,
+         base_interval: 150,
+         subscriptions_per_loop: 1
+       }},
+      {WSSubscribeChannel, "ws1",
+       %{
+         await_messages: 10
+       }},
+      {WSSubscribeChannel, "ws2",
+       %{
+         await_messages: 50
+       }},
+      {WSSubscribeChannel, "ws3",
+       %{
+         await_messages: 100
+       }},
+      {WSSubscribeChannel, "ws4",
+       %{
+         await_messages: 200
+       }}
+    ]
 end
 
 Chaperon.run_load_test(Firehose.LoadTest.Local)

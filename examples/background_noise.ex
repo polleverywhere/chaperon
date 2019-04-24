@@ -12,18 +12,22 @@ defmodule BackgroundNoise.Scenario do
   def run(session) do
     session
     |> async(:search, ["foo"])
-    ~> search("foo") # same as above
+    # same as above
+    ~> search("foo")
     # await async search results
     |> await(:search)
-    <~ search # same as above
+    # same as above
+    <~ search
     |> spread_post_data
   end
 
   def spread_post_data(session) do
     session
-    |> cc_spread(:post_data,
-                 round(session.assigned.rate),
-                 session.assigned.interval)
+    |> cc_spread(
+      :post_data,
+      round(session.assigned.rate),
+      session.assigned.interval
+    )
     |> await_all(:post_data)
     |> increase_noise
   end
@@ -31,6 +35,7 @@ defmodule BackgroundNoise.Scenario do
   def search(session, query \\ "WHO AM I?") do
     session
     |> get("/", params: [q: query])
+
     # # we could store a potential JSON response inside the session for further use:
     # |> get("/", params: [q: query], decode: :json, with_result: &add_search_result(&1, query, &2))
   end
@@ -46,7 +51,8 @@ defmodule BackgroundNoise.Scenario do
 
   def increase_noise(session) do
     session
-    |> update_assign(rate: &(&1 * 1.025)) # increase by 2.5%
+    # increase by 2.5%
+    |> update_assign(rate: &(&1 * 1.025))
   end
 
   def add_search_result(session, query, result) do
@@ -58,23 +64,27 @@ end
 defmodule BackgroundNoise.LoadTest.Production do
   use Chaperon.LoadTest
 
-  def default_config, do: %{
-    # scenario_timeout: 12_000,
-    base_url: "http://google.com/",
-    http: %{
-      # additional http (hackney request) parameters, if needed
+  def default_config,
+    do: %{
+      # scenario_timeout: 12_000,
+      base_url: "http://google.com/",
+      http:
+        %{
+          # additional http (hackney request) parameters, if needed
+        }
     }
-  }
 
-  def scenarios, do: [
-    {BackgroundNoise.Scenario, %{
-      post_data: true
-    }},
-
-    {BackgroundNoise.Scenario, %{
-      post_data: true
-    }}
-  ]
+  def scenarios,
+    do: [
+      {BackgroundNoise.Scenario,
+       %{
+         post_data: true
+       }},
+      {BackgroundNoise.Scenario,
+       %{
+         post_data: true
+       }}
+    ]
 end
 
 Chaperon.run_load_test(BackgroundNoise.LoadTest.Production, print_results: true)
