@@ -1101,7 +1101,15 @@ defmodule Chaperon.Session do
   """
   @spec signal(Session.t(), atom, any) :: Session.t()
   def signal(session, name, signal) do
-    send(session.async_tasks[name].pid, {:chaperon_signal, signal})
+    case session.async_tasks[name] do
+      ts when is_list(ts) ->
+        ts
+        |> Enum.each(&send(&1.pid, {:chaperon_signal, signal}))
+
+      t ->
+        send(t.pid, {:chaperon_signal, signal})
+    end
+
     session
   end
 
