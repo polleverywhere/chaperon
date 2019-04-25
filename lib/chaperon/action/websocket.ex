@@ -106,4 +106,9 @@ defmodule Chaperon.Action.WebSocket do
         |> Session.update_assign(:websocket, named_connections: &Map.delete(&1, name))
     end
   end
+
+  def reset_websockets(session) do
+    session
+    |> Chaperon.Session.delete_assign(:websocket)
+  end
 end

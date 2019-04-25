@@ -68,6 +68,12 @@ defmodule Chaperon.Session do
   def fork(session) do
     %{session | id: new_id(), parent_id: session.id, parent_pid: self()}
     |> reset_action_metadata()
+    |> ws_reset()
+  end
+
+  def ws_reset(session) do
+    session
+    |> Chaperon.Action.WebSocket.reset_websockets()
   end
 
   @doc """
