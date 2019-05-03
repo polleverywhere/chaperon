@@ -171,6 +171,13 @@ defmodule Chaperon.Session.Test do
       assert %Session{} =
         session |> Session.await_signal(:test_signal, 1)
     end
+
+    test "infinite timeout", %{session: session} do
+      send(self(), {:chaperon_signal, :test_signal})
+
+      assert %Session{} =
+        session |> Session.await_signal(:test_signal, :infinity)
+    end
   end
 
   describe "await_signal_or_timeout/3" do
@@ -191,8 +198,66 @@ defmodule Chaperon.Session.Test do
     end
   end
 
+  describe "awaits with interval" do
+    setup %{session: session} do
+      session =
+        session
+        |> Session.assign(interval_count: 0)
+        |> Session.update_config(interval: fn _ -> {50, &interval_fun/1} end)
+        |> Session.update_config(timeout: fn _ -> 200 end)
+
+      {:ok, session: session}
+    end
+
+    test "simple interval, timeout", %{session: session} do
+      assert {:error, %{reason: {:timeout, :await_signal, 200}}} =
+        session |> Session.await_signal(:no_signal_coming)
+
+      assert_receive {:interval_called, 0}
+      assert_receive {:interval_called, 1}
+      assert_receive {:interval_called, 2}
+      refute_receive {:interval_called, 3}
+    end
+
+    test "simple interval, success", %{session: session} do
+      Process.send_after(self(), {:chaperon_signal, :test_signal}, 125)
+
+      assert %Session{assigned: %{interval_count: 2}} =
+        session |> Session.await_signal(:test_signal)
+
+      assert_receive {:interval_called, 0}
+      assert_receive {:interval_called, 1}
+      refute_receive {:interval_called, 2}
+    end
+
+    test "explicit timeout, timeout", %{session: session} do
+      assert {:error, %{reason: {:timeout, :await_signal, 75}}} =
+        session |> Session.await_signal(:no_signal_coming, 75)
+
+      assert_receive {:interval_called, 0}
+      refute_receive {:interval_called, 1}
+    end
+
+    test "explicit timeout, success", %{session: session} do
+      Process.send_after(self(), {:chaperon_signal, :test_signal}, 70)
+
+      assert %Session{assigned: %{interval_count: 1}} =
+        session |> Session.await_signal(:test_signal, 90)
+
+      assert_receive {:interval_called, 0}
+      refute_receive {:interval_called, 1}
+    end
+  end
+
   defp test_callback(_session, signal) do
     send(self(), {:callback_called, signal})
     :callback_called
+  end
+
+  defp interval_fun(session) do
+    count = session.assigned.interval_count
+
+    send(self(), {:interval_called, count})
+    session |> Session.assign(interval_count: count + 1)
   end
 end
