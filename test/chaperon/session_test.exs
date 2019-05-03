@@ -121,4 +121,78 @@ defmodule Chaperon.Session.Test do
 
     assert session.cookies == ["cookie1=value1; cookie2=value2"]
   end
+
+  describe "await_signal/2" do
+    setup %{session: session} do
+      session =
+        session
+        |> Session.update_config(timeout: fn _ -> 1 end)
+      {:ok, session: session}
+    end
+
+    test "without callback, timeout", %{session: session} do
+      assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
+        session |> Session.await_signal(:no_signal_coming)
+    end
+
+    test "without callback, success", %{session: session} do
+      send(self(), {:chaperon_signal, :test_signal})
+
+      assert %Session{} =
+        session |> Session.await_signal(:test_signal)
+    end
+
+    test "with callback, timeout", %{session: session} do
+      assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
+        session |> Session.await_signal(&test_callback/2)
+
+      refute_receive {:callback_called, :no_signal_coming}
+    end
+
+    test "with callback, success", %{session: session} do
+      send(self(), {:chaperon_signal, :test_signal})
+
+      assert :callback_called ==
+        session |> Session.await_signal(&test_callback/2)
+
+      assert_receive {:callback_called, :test_signal}
+    end
+  end
+
+  describe "await_signal/3" do
+    test "timeout", %{session: session} do
+      assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
+        session |> Session.await_signal(:no_signal_coming, 1)
+    end
+
+    test "success", %{session: session} do
+      send(self(), {:chaperon_signal, :test_signal})
+
+      assert %Session{} =
+        session |> Session.await_signal(:test_signal, 1)
+    end
+  end
+
+  describe "await_signal_or_timeout/3" do
+    test "timeout", %{session: session} do
+      assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
+        session |> Session.await_signal_or_timeout(1, &test_callback/2)
+
+      refute_receive {:callback_called, :no_signal_coming}
+    end
+
+    test "success", %{session: session} do
+      send(self(), {:chaperon_signal, :test_signal})
+
+      assert :callback_called ==
+        session |> Session.await_signal_or_timeout(1, &test_callback/2)
+
+      assert_receive {:callback_called, :test_signal}
+    end
+  end
+
+  defp test_callback(_session, signal) do
+    send(self(), {:callback_called, signal})
+    :callback_called
+  end
 end
