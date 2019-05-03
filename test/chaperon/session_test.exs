@@ -198,7 +198,7 @@ defmodule Chaperon.Session.Test do
     end
   end
 
-  describe "awaits with interval" do
+  describe "await_signal with interval" do
     setup %{session: session} do
       session =
         session
@@ -249,6 +249,69 @@ defmodule Chaperon.Session.Test do
     end
   end
 
+  describe "await task" do
+    setup %{session: session} do
+      session =
+        session
+        |> Session.update_config(timeout: fn _ -> 100 end)
+      {:ok, session: session}
+    end
+
+    test "await by name, success", %{session: session} do
+      assert %Session{} =
+        session
+        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+        |> Session.await(:async_name)
+    end
+
+    test "await by name, timeout", %{session: session} do
+      catch_exit(
+        session
+        |> Session.async({__MODULE__, :async_fun}, [500], :async_name)
+        |> Session.await(:async_name)
+      )
+    end
+
+    test "await multiple tasks, success", %{session: session} do
+      assert %Session{} =
+        session
+        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+        |> Session.await(:async_name)
+    end
+
+    test "await multiple tasks, timeout", %{session: session} do
+      catch_exit(
+        session
+        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+        |> Session.async({__MODULE__, :async_fun}, [500], :async_name)
+        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+        |> Session.await(:async_name)
+      )
+    end
+
+    test "await multipe names, success", %{session: session} do
+      assert %Session{} =
+        session
+        |> Session.async({__MODULE__, :async_fun}, [0], :a)
+        |> Session.async({__MODULE__, :async_fun}, [0], :b)
+        |> Session.async({__MODULE__, :async_fun}, [0], :c)
+        |> Session.await([:a, :b, :c])
+    end
+
+    test "await multiple names, timeout", %{session: session} do
+      catch_exit(
+        session
+        |> Session.async({__MODULE__, :async_fun}, [0], :a)
+        |> Session.async({__MODULE__, :async_fun}, [500], :b)
+        |> Session.async({__MODULE__, :async_fun}, [0], :c)
+        |> Session.await([:a, :b, :c])
+      )
+    end
+  end
+
+
   defp test_callback(_session, signal) do
     send(self(), {:callback_called, signal})
     :callback_called
@@ -259,5 +322,10 @@ defmodule Chaperon.Session.Test do
 
     send(self(), {:interval_called, count})
     session |> Session.assign(interval_count: count + 1)
+  end
+
+  def async_fun(session, duration) do
+    Process.sleep(duration)
+    session
   end
 end
