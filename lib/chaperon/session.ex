@@ -17,7 +17,8 @@ defmodule Chaperon.Session do
             cookies: [],
             parent_id: nil,
             parent_pid: nil,
-            cancellation: nil
+            cancellation: nil,
+            timeout_at: nil
 
   @type t :: %Chaperon.Session{
           id: String.t(),
@@ -32,7 +33,8 @@ defmodule Chaperon.Session do
           cookies: [String.t()],
           parent_id: String.t() | nil,
           parent_pid: pid | nil,
-          cancellation: String.t() | nil
+          cancellation: String.t() | nil,
+          timeout_at: DateTime.t() | nil
         }
 
   @type metric :: {atom, any} | any
@@ -1184,15 +1186,12 @@ defmodule Chaperon.Session do
           nil | (Session.t(), any -> Session.t())
         ) :: Session.t()
   def await_signal_or_timeout(session, timeout, callback \\ nil) do
-    receive do
-      {:chaperon_signal, signal} ->
-        session
-        |> call_callback(callback, signal)
-    after
-      timeout ->
-        session
-        |> error({:timeout, :await_signal, timeout})
-    end
+    await_common(
+      session,
+      :__no_expected_signal__,
+      fn (session, signal) -> session |> call_callback(callback, signal) end,
+      timeout
+    )
   end
 
   @doc """
@@ -1212,16 +1211,12 @@ defmodule Chaperon.Session do
           any | (Session.t(), any -> Session.t())
         ) :: Session.t()
   def await_signal(session, callback) when is_function(callback) do
-    timeout = session |> timeout
-
-    receive do
-      {:chaperon_signal, signal} ->
-        callback.(session, signal)
-    after
-      timeout ->
-        session
-        |> error({:timeout, :await_signal, timeout})
-    end
+    await_common(
+      session,
+      :__no_expected_signal__,
+      callback,
+      session |> timeout
+    )
   end
 
   @doc """
@@ -1234,16 +1229,12 @@ defmodule Chaperon.Session do
       |> get("/search", params: [query: "Got load test?"])
   """
   def await_signal(session, expected_signal) do
-    timeout = session |> timeout
-
-    receive do
-      {:chaperon_signal, ^expected_signal} ->
-        session
-    after
-      timeout ->
-        session
-        |> error({:timeout, :await_signal, timeout})
-    end
+    await_common(
+      session,
+      expected_signal,
+      fn (session, _) -> session end,
+      session |> timeout
+    )
   end
 
   @doc """
@@ -1257,15 +1248,69 @@ defmodule Chaperon.Session do
   """
   @spec await_signal(Session.t(), any, non_neg_integer) :: Session.t()
   def await_signal(session, expected_signal, timeout) do
+    await_common(
+      session,
+      expected_signal,
+      fn (session, _) -> session end,
+      timeout
+    )
+  end
+
+  defp await_common(session, expected_signal, callback, timeout) do
+    session =
+      %{session | timeout_at: get_timeout_at(timeout)}
+
+    msg_ref = make_ref()
+
+    tref = case session.config[:interval] do
+      {interval, fun} ->
+        :timer.send_interval(interval, {:chaperon_interval, msg_ref, fun})
+      nil ->
+        nil
+    end
+
+    session = do_await_common(session, expected_signal, callback, timeout, msg_ref)
+
+    tref && :timer.cancel(tref)
+
+    session
+  end
+
+  defp get_timeout_at(:infinity), do: :infinity
+  defp get_timeout_at(timeout), do:
+    DateTime.utc_now() |> DateTime.add(timeout, :millisecond)
+
+  defp do_await_common(
+    session,
+    expected_signal,
+    callback,
+    timeout,
+    msg_ref
+    ) do
+
+    remaining_time = max(0, get_remaining_time(session.timeout_at))
+
     receive do
       {:chaperon_signal, ^expected_signal} ->
+        callback.(session, expected_signal)
+
+      {:chaperon_signal, signal}
+      when expected_signal == :__no_expected_signal__ ->
+        callback.(session, signal)
+
+      {:chaperon_interval, ^msg_ref, fun} ->
         session
-    after
-      timeout ->
-        session
-        |> error({:timeout, :await_signal, timeout})
+        |> fun.()
+        |> do_await_common(expected_signal, callback, timeout, msg_ref)
+
+    after remaining_time ->
+        session |> error({:timeout, :await_signal, timeout})
     end
   end
+
+  defp get_remaining_time(:infinity), do: :infinity
+  defp get_remaining_time(timeout_at), do:
+    DateTime.diff(timeout_at, DateTime.utc_now(), :millisecond)
 
   @doc """
   Removes a `Task` with a given `task_name` from `session`.
