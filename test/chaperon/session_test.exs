@@ -200,10 +200,13 @@ defmodule Chaperon.Session.Test do
 
   describe "await_signal with interval" do
     setup %{session: session} do
+      self = self()
+
       session =
         session
         |> Session.assign(interval_count: 0)
-        |> Session.update_config(interval: fn _ -> {50, &interval_fun/1} end)
+        |> Session.update_config(
+          interval: fn _ -> {50, fn session -> interval_fun(session, self) end} end)
         |> Session.update_config(timeout: fn _ -> 200 end)
 
       {:ok, session: session}
@@ -311,17 +314,45 @@ defmodule Chaperon.Session.Test do
     end
   end
 
+  describe "await task with interval" do
+    setup %{session: session} do
+      self = self()
+
+      session =
+        session
+        |> Session.update_config(
+          interval: fn _ -> {50, fn session -> interval_fun(session, self) end} end)
+        |> Session.update_config(timeout: fn _ -> 200 end)
+
+      {:ok, session: session}
+    end
+
+    test "await by name, success", %{session: session} do
+      assert %Session{} =
+        session
+        |> Session.async({__MODULE__, :async_fun}, [80], :async_name)
+        |> Session.await(:async_name)
+
+      assert_receive {:interval_called, 0}
+      refute_receive {:interval_called, 1}
+    end
+  end
 
   defp test_callback(_session, signal) do
     send(self(), {:callback_called, signal})
     :callback_called
   end
 
-  defp interval_fun(session) do
-    count = session.assigned.interval_count
+  defp interval_fun(session, target) do
+    {count, session} =
+      case session.assigned[:interval_count] do
+        nil -> {0, session |> Session.assign(interval_count: 0)}
+        n -> {n, session |> Session.assign(interval_count: n + 1)}
+    end
 
-    send(self(), {:interval_called, count})
-    session |> Session.assign(interval_count: count + 1)
+    send(target, {:interval_called, count})
+
+    session
   end
 
   def async_fun(session, duration) do
