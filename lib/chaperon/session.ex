@@ -18,7 +18,8 @@ defmodule Chaperon.Session do
             parent_id: nil,
             parent_pid: nil,
             cancellation: nil,
-            timeout_at: nil
+            timeout_at: nil,
+            interval_task: nil
 
   @type t :: %Chaperon.Session{
           id: String.t(),
@@ -34,7 +35,8 @@ defmodule Chaperon.Session do
           parent_id: String.t() | nil,
           parent_pid: pid | nil,
           cancellation: String.t() | nil,
-          timeout_at: DateTime.t() | nil
+          timeout_at: DateTime.t() | nil,
+          interval_task: Task.t() | nil
         }
 
   @type metric :: {atom, any} | any
@@ -357,9 +359,12 @@ defmodule Chaperon.Session do
   def await(session, _task_name, nil), do: session
 
   def await(session, task_name, task = %Task{}) do
+    session = session |> maybe_spawn_interval_task()
+
     task_session = task |> Task.await(session |> timeout)
 
     session
+    |> maybe_end_interval_task()
     |> remove_async_task(task_name, task)
     |> merge_async_task_result(task_session, task_name)
   end
@@ -1619,6 +1624,36 @@ defmodule Chaperon.Session do
   def run_error_callback(session, action, response) do
     session
     |> call_callback(Chaperon.Action.error_callback(action), response)
+  end
+
+  defp maybe_spawn_interval_task(session) do
+    task = case session.config[:interval] do
+      {interval, fun} ->
+        Task.async(fn -> session |> interval_fun(interval, fun) end)
+      nil ->
+        nil
+    end
+    %{session | interval_task: task}
+  end
+
+  defp interval_fun(session, interval, fun) do
+    receive do
+      :end_interval_task ->
+        session
+    after interval ->
+        session
+        |> fun.()
+        |> interval_fun(interval, fun)
+    end
+  end
+
+  defp maybe_end_interval_task(%{interval_task: nil} = session), do: session
+  defp maybe_end_interval_task(%{interval_task: task} = session) do
+    send(task.pid, :end_interval_task)
+    interval_session = Task.await(task)
+    session
+    |> merge_async_task_result(interval_session, nil)
+    |> Map.put(:interval_task, nil)
   end
 
   defp decode_response(action, response) do
