@@ -5,10 +5,15 @@ defmodule Chaperon.Action.WebSocket.SendMessage do
   """
 
   defstruct message: nil,
+            type: :text,
             options: []
 
   def encoded_message(%{message: [json: data]}), do: Poison.encode!(data)
   def encoded_message(%{message: msg}), do: msg
+
+  def message_type(%{message: [json: _]}), do: :text
+  def message_type(%{type: nil}), do: :text
+  def message_type(%{type: type}), do: type
 end
 
 defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
@@ -27,7 +32,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
     :ok =
       WebSocket.Client.send_frame(
         socket,
-        {:binary, action |> encoded_message}
+        {action |> message_type, action |> encoded_message}
       )
 
     {:ok, session}
@@ -39,6 +44,6 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.SendMessage do
 end
 
 defimpl String.Chars, for: Chaperon.Action.WebSocket.SendMessage do
-  def to_string(send_msg),
-    do: "WS-Send[#{inspect(send_msg.message)}, #{inspect(send_msg.options)}]"
+  def to_string(%{type: type, message: msg, options: options}),
+    do: "WS-Send[#{inspect(type)} | #{inspect(msg)} | #{inspect(options)}]"
 end

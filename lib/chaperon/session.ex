@@ -477,10 +477,10 @@ defmodule Chaperon.Session do
   Performs a WebSocket message send on `session`s WebSocket connection.
   Takes an optional list of `options` to be passed along to `Socket.Web.send/3`.
   """
-  @spec ws_send(Session.t(), any, Keyword.t()) :: Session.t()
-  def ws_send(session, msg, options \\ []) do
+  @spec ws_send(Session.t(), any, Action.WebSocket.msg_type(), Keyword.t()) :: Session.t()
+  def ws_send(session, msg, type \\ :text, options \\ []) do
     session
-    |> run_action(Action.WebSocket.send(msg, options))
+    |> run_action(Action.WebSocket.send(msg, type, options))
   end
 
   @doc """

@@ -6,6 +6,8 @@ defmodule Chaperon.Action.WebSocket do
   alias __MODULE__
   alias Chaperon.Session
 
+  @type msg_type :: :text | :binary
+
   @doc """
   Returns a `Chaperon.WebSocket.Connect` action for a given `path`.
   """
@@ -17,9 +19,11 @@ defmodule Chaperon.Action.WebSocket do
   Returns a `Chaperon.WebSocket.SendMessage` action with a given `message` and
   `options`.
   """
-  def send(message, options \\ []) do
+  @spec send(any(), :text | :binary) :: %WebSocket.SendMessage{}
+  def send(message, type \\ :text, options \\ []) do
     %WebSocket.SendMessage{
       message: message,
+      type: type,
       options: options
     }
   end
