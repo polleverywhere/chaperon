@@ -39,6 +39,8 @@ defmodule Chaperon.Session do
 
   @type config_key :: [atom] | atom | String.t()
 
+  @type func :: Chaperon.Action.CallFunction.callback()
+
   require Logger
   alias Chaperon.Session
   alias Chaperon.Session.Error
@@ -176,7 +178,7 @@ defmodule Chaperon.Session do
       |> foo
       |> foo
   """
-  @spec repeat(Session.t(), atom, non_neg_integer) :: Session.t()
+  @spec repeat(Session.t(), func, non_neg_integer) :: Session.t()
   def repeat(session, _, 0), do: session
 
   def repeat(session, func, amount) when amount > 0 do
@@ -198,7 +200,7 @@ defmodule Chaperon.Session do
       session
       |> foo("bar", "baz") |> foo("bar", "baz")
   """
-  @spec repeat(Session.t(), atom, [any], non_neg_integer) :: Session.t()
+  @spec repeat(Session.t(), func, [any], non_neg_integer) :: Session.t()
   def repeat(session, _, _, 0), do: session
 
   def repeat(session, func, args, amount) when amount > 0 do
@@ -222,7 +224,7 @@ defmodule Chaperon.Session do
       |> call_traced(:foo)
       |> call_traced(:foo)
   """
-  @spec repeat_traced(Session.t(), atom, non_neg_integer) :: Session.t()
+  @spec repeat_traced(Session.t(), func, non_neg_integer) :: Session.t()
   def repeat_traced(session, _, 0), do: session
 
   def repeat_traced(session, func, amount) when amount > 0 do
@@ -245,7 +247,7 @@ defmodule Chaperon.Session do
       |> call_traced(:foo, ["bar", "baz"])
       |> call_traced(:foo, ["bar", "baz"])
   """
-  @spec repeat_traced(Session.t(), atom, [any], non_neg_integer) :: Session.t()
+  @spec repeat_traced(Session.t(), func, [any], non_neg_integer) :: Session.t()
   def repeat_traced(session, _, _, 0), do: session
 
   def repeat_traced(session, func, args, amount) when amount > 0 do
@@ -285,7 +287,7 @@ defmodule Chaperon.Session do
       session
       |> retry_on_error(:publish_default)
   """
-  @spec retry_on_error(Session.t(), atom, [any], retry_options) :: Session.t()
+  @spec retry_on_error(Session.t(), func, [any], retry_options) :: Session.t()
   def retry_on_error(session, func, args \\ [], opts \\ @default_retry_opts) do
     retries = opts[:retries] || 1
 
@@ -535,19 +537,25 @@ defmodule Chaperon.Session do
   Calls a function inside the `session`'s scenario module with the given name
   and args, returning the resulting session.
   """
-  @spec call(Session.t(), atom, [any]) :: Session.t()
   def call(session, func, args \\ [])
+
+  @spec call(Session.t(), func, [any]) :: Session.t()
+  def call(session, func, args)
       when is_atom(func) do
     apply(session.scenario.module, func, [session | args])
+  end
+
+  def call(session, {module, func}, args)
+      when is_atom(module) and is_atom(func) do
+    apply(module, func, [session | args])
   end
 
   @doc """
   Calls a given function or a function with the given name and args, then
   captures duration metrics in `session`.
   """
-  @spec call_traced(Session.t(), Action.CallFunction.callback(), [any]) :: Session.t()
-  def call_traced(session, func, args \\ [])
-      when is_atom(func) or is_function(func) do
+  @spec call_traced(Session.t(), func, [any]) :: Session.t()
+  def call_traced(session, func, args \\ []) do
     session
     |> run_action(%Action.CallFunction{func: func, args: args})
   end
