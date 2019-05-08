@@ -9,6 +9,7 @@ defmodule Chaperon.Action.CallFunction do
 
   @type callback ::
           atom
+          | {module, atom}
           | (Chaperon.Session.t() -> Chaperon.Session.t())
 
   @type t :: %Chaperon.Action.CallFunction{
@@ -26,6 +27,16 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
     session
     |> Session.time(metric, fn session ->
       apply(session.scenario.module, f, [session | args])
+    end)
+    |> Session.ok()
+  end
+
+  def run(%{func: {mod, f}, args: args}, session) do
+    metric = {:call, {mod, f}}
+
+    session
+    |> Session.time(metric, fn session ->
+      apply(mod, f, [session | args])
     end)
     |> Session.ok()
   end
