@@ -39,17 +39,9 @@ defmodule Chaperon.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [
-      applications: [
+      extra_applications: [
         :logger,
-        :httpoison,
-        :uuid,
-        :poison,
-        :histogrex,
-        :websockex,
-        :ssl,
-        :crypto,
-        :instream,
-        :deep_merge
+        :inets
       ],
       mod: {Chaperon, []}
     ]
