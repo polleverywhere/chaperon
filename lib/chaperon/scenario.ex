@@ -83,7 +83,7 @@ defmodule Chaperon.Scenario do
       import Chaperon.Session
       import Chaperon.Session.Logging
 
-      @spec new_session(map) :: Session.t()
+      @spec new_session(map) :: Chaperon.Session.t()
       def new_session(config) do
         scenario = %Chaperon.Scenario{module: __MODULE__}
 
