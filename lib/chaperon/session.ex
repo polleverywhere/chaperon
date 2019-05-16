@@ -1194,7 +1194,7 @@ defmodule Chaperon.Session do
     await_common(
       session,
       :__no_expected_signal__,
-      fn (session, signal) -> session |> call_callback(callback, signal) end,
+      fn session, signal -> session |> call_callback(callback, signal) end,
       timeout
     )
   end
@@ -1237,7 +1237,7 @@ defmodule Chaperon.Session do
     await_common(
       session,
       expected_signal,
-      fn (session, _) -> session end,
+      fn session, _ -> session end,
       session |> timeout
     )
   end
@@ -1256,43 +1256,44 @@ defmodule Chaperon.Session do
     await_common(
       session,
       expected_signal,
-      fn (session, _) -> session end,
+      fn session, _ -> session end,
       timeout
     )
   end
 
   defp await_common(session, expected_signal, callback, timeout) do
-    session =
-      %{session | timeout_at: get_timeout_at(timeout)}
+    session = %{session | timeout_at: get_timeout_at(timeout)}
 
     msg_ref = make_ref()
 
-    tref = case session.config[:interval] do
-      {interval, fun} ->
-        :timer.send_interval(interval, {:chaperon_interval, msg_ref, fun})
-      nil ->
-        nil
-    end
+    tref =
+      case session.config[:interval] do
+        {interval, fun} ->
+          :timer.send_interval(interval, {:chaperon_interval, msg_ref, fun})
+
+        nil ->
+          nil
+      end
 
     session = do_await_common(session, expected_signal, callback, timeout, msg_ref)
 
-    tref && :timer.cancel(tref)
+    if tref do
+      :timer.cancel(tref)
+    end
 
     session
   end
 
   defp get_timeout_at(:infinity), do: :infinity
-  defp get_timeout_at(timeout), do:
-    DateTime.utc_now() |> DateTime.add(timeout, :millisecond)
+  defp get_timeout_at(timeout), do: DateTime.utc_now() |> DateTime.add(timeout, :millisecond)
 
   defp do_await_common(
-    session,
-    expected_signal,
-    callback,
-    timeout,
-    msg_ref
-    ) do
-
+         session,
+         expected_signal,
+         callback,
+         timeout,
+         msg_ref
+       ) do
     remaining_time = max(0, get_remaining_time(session.timeout_at))
 
     receive do
@@ -1307,15 +1308,16 @@ defmodule Chaperon.Session do
         session
         |> fun.()
         |> do_await_common(expected_signal, callback, timeout, msg_ref)
-
-    after remaining_time ->
+    after
+      remaining_time ->
         session |> error({:timeout, :await_signal, timeout})
     end
   end
 
   defp get_remaining_time(:infinity), do: :infinity
-  defp get_remaining_time(timeout_at), do:
-    DateTime.diff(timeout_at, DateTime.utc_now(), :millisecond)
+
+  defp get_remaining_time(timeout_at),
+    do: DateTime.diff(timeout_at, DateTime.utc_now(), :millisecond)
 
   @doc """
   Removes a `Task` with a given `task_name` from `session`.
@@ -1635,12 +1637,15 @@ defmodule Chaperon.Session do
   end
 
   defp maybe_spawn_interval_task(session) do
-    task = case session.config[:interval] do
-      {interval, fun} ->
-        Task.async(fn -> session |> interval_fun(interval, fun) end)
-      nil ->
-        nil
-    end
+    task =
+      case session.config[:interval] do
+        {interval, fun} ->
+          Task.async(fn -> session |> interval_fun(interval, fun) end)
+
+        nil ->
+          nil
+      end
+
     %{session | interval_task: task}
   end
 
@@ -1648,7 +1653,8 @@ defmodule Chaperon.Session do
     receive do
       :end_interval_task ->
         session
-    after interval ->
+    after
+      interval ->
         session
         |> fun.()
         |> interval_fun(interval, fun)
@@ -1656,9 +1662,11 @@ defmodule Chaperon.Session do
   end
 
   defp maybe_end_interval_task(%{interval_task: nil} = session), do: session
+
   defp maybe_end_interval_task(%{interval_task: task} = session) do
     send(task.pid, :end_interval_task)
     interval_session = Task.await(task)
+
     session
     |> merge_async_task_result(interval_session, nil)
     |> Map.put(:interval_task, nil)

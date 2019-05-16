@@ -127,24 +127,24 @@ defmodule Chaperon.Session.Test do
       session =
         session
         |> Session.update_config(timeout: fn _ -> 1 end)
+
       {:ok, session: session}
     end
 
     test "without callback, timeout", %{session: session} do
       assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
-        session |> Session.await_signal(:no_signal_coming)
+               session |> Session.await_signal(:no_signal_coming)
     end
 
     test "without callback, success", %{session: session} do
       send(self(), {:chaperon_signal, :test_signal})
 
-      assert %Session{} =
-        session |> Session.await_signal(:test_signal)
+      assert %Session{} = session |> Session.await_signal(:test_signal)
     end
 
     test "with callback, timeout", %{session: session} do
       assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
-        session |> Session.await_signal(&test_callback/2)
+               session |> Session.await_signal(&test_callback/2)
 
       refute_receive {:callback_called, :no_signal_coming}
     end
@@ -153,7 +153,7 @@ defmodule Chaperon.Session.Test do
       send(self(), {:chaperon_signal, :test_signal})
 
       assert :callback_called ==
-        session |> Session.await_signal(&test_callback/2)
+               session |> Session.await_signal(&test_callback/2)
 
       assert_receive {:callback_called, :test_signal}
     end
@@ -162,28 +162,26 @@ defmodule Chaperon.Session.Test do
   describe "await_signal/3" do
     test "timeout", %{session: session} do
       assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
-        session |> Session.await_signal(:no_signal_coming, 1)
+               session |> Session.await_signal(:no_signal_coming, 1)
     end
 
     test "success", %{session: session} do
       send(self(), {:chaperon_signal, :test_signal})
 
-      assert %Session{} =
-        session |> Session.await_signal(:test_signal, 1)
+      assert %Session{} = session |> Session.await_signal(:test_signal, 1)
     end
 
     test "infinite timeout", %{session: session} do
       send(self(), {:chaperon_signal, :test_signal})
 
-      assert %Session{} =
-        session |> Session.await_signal(:test_signal, :infinity)
+      assert %Session{} = session |> Session.await_signal(:test_signal, :infinity)
     end
   end
 
   describe "await_signal_or_timeout/3" do
     test "timeout", %{session: session} do
       assert {:error, %{reason: {:timeout, :await_signal, 1}}} =
-        session |> Session.await_signal_or_timeout(1, &test_callback/2)
+               session |> Session.await_signal_or_timeout(1, &test_callback/2)
 
       refute_receive {:callback_called, :no_signal_coming}
     end
@@ -192,7 +190,7 @@ defmodule Chaperon.Session.Test do
       send(self(), {:chaperon_signal, :test_signal})
 
       assert :callback_called ==
-        session |> Session.await_signal_or_timeout(1, &test_callback/2)
+               session |> Session.await_signal_or_timeout(1, &test_callback/2)
 
       assert_receive {:callback_called, :test_signal}
     end
@@ -206,7 +204,8 @@ defmodule Chaperon.Session.Test do
         session
         |> Session.assign(interval_count: 0)
         |> Session.update_config(
-          interval: fn _ -> {50, fn session -> interval_fun(session, self) end} end)
+          interval: fn _ -> {50, fn session -> interval_fun(session, self) end} end
+        )
         |> Session.update_config(timeout: fn _ -> 200 end)
 
       {:ok, session: session}
@@ -214,7 +213,7 @@ defmodule Chaperon.Session.Test do
 
     test "simple interval, timeout", %{session: session} do
       assert {:error, %{reason: {:timeout, :await_signal, 200}}} =
-        session |> Session.await_signal(:no_signal_coming)
+               session |> Session.await_signal(:no_signal_coming)
 
       assert_receive {:interval_called, 0}
       assert_receive {:interval_called, 1}
@@ -226,7 +225,7 @@ defmodule Chaperon.Session.Test do
       Process.send_after(self(), {:chaperon_signal, :test_signal}, 125)
 
       assert %Session{assigned: %{interval_count: 2}} =
-        session |> Session.await_signal(:test_signal)
+               session |> Session.await_signal(:test_signal)
 
       assert_receive {:interval_called, 0}
       assert_receive {:interval_called, 1}
@@ -235,7 +234,7 @@ defmodule Chaperon.Session.Test do
 
     test "explicit timeout, timeout", %{session: session} do
       assert {:error, %{reason: {:timeout, :await_signal, 75}}} =
-        session |> Session.await_signal(:no_signal_coming, 75)
+               session |> Session.await_signal(:no_signal_coming, 75)
 
       assert_receive {:interval_called, 0}
       refute_receive {:interval_called, 1}
@@ -245,7 +244,7 @@ defmodule Chaperon.Session.Test do
       Process.send_after(self(), {:chaperon_signal, :test_signal}, 70)
 
       assert %Session{assigned: %{interval_count: 1}} =
-        session |> Session.await_signal(:test_signal, 90)
+               session |> Session.await_signal(:test_signal, 90)
 
       assert_receive {:interval_called, 0}
       refute_receive {:interval_called, 1}
@@ -257,14 +256,15 @@ defmodule Chaperon.Session.Test do
       session =
         session
         |> Session.update_config(timeout: fn _ -> 100 end)
+
       {:ok, session: session}
     end
 
     test "await by name, success", %{session: session} do
       assert %Session{} =
-        session
-        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
-        |> Session.await(:async_name)
+               session
+               |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+               |> Session.await(:async_name)
     end
 
     test "await by name, timeout", %{session: session} do
@@ -277,11 +277,11 @@ defmodule Chaperon.Session.Test do
 
     test "await multiple tasks, success", %{session: session} do
       assert %Session{} =
-        session
-        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
-        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
-        |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
-        |> Session.await(:async_name)
+               session
+               |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+               |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+               |> Session.async({__MODULE__, :async_fun}, [0], :async_name)
+               |> Session.await(:async_name)
     end
 
     test "await multiple tasks, timeout", %{session: session} do
@@ -296,11 +296,11 @@ defmodule Chaperon.Session.Test do
 
     test "await multipe names, success", %{session: session} do
       assert %Session{} =
-        session
-        |> Session.async({__MODULE__, :async_fun}, [0], :a)
-        |> Session.async({__MODULE__, :async_fun}, [0], :b)
-        |> Session.async({__MODULE__, :async_fun}, [0], :c)
-        |> Session.await([:a, :b, :c])
+               session
+               |> Session.async({__MODULE__, :async_fun}, [0], :a)
+               |> Session.async({__MODULE__, :async_fun}, [0], :b)
+               |> Session.async({__MODULE__, :async_fun}, [0], :c)
+               |> Session.await([:a, :b, :c])
     end
 
     test "await multiple names, timeout", %{session: session} do
@@ -321,7 +321,8 @@ defmodule Chaperon.Session.Test do
       session =
         session
         |> Session.update_config(
-          interval: fn _ -> {50, fn session -> interval_fun(session, self) end} end)
+          interval: fn _ -> {50, fn session -> interval_fun(session, self) end} end
+        )
         |> Session.update_config(timeout: fn _ -> 200 end)
 
       {:ok, session: session}
@@ -329,9 +330,9 @@ defmodule Chaperon.Session.Test do
 
     test "await by name, success", %{session: session} do
       assert %Session{} =
-        session
-        |> Session.async({__MODULE__, :async_fun}, [80], :async_name)
-        |> Session.await(:async_name)
+               session
+               |> Session.async({__MODULE__, :async_fun}, [80], :async_name)
+               |> Session.await(:async_name)
 
       assert_receive {:interval_called, 0}
       refute_receive {:interval_called, 1}
@@ -348,7 +349,7 @@ defmodule Chaperon.Session.Test do
       case session.assigned[:interval_count] do
         nil -> {0, session |> Session.assign(interval_count: 0)}
         n -> {n, session |> Session.assign(interval_count: n + 1)}
-    end
+      end
 
     send(target, {:interval_called, count})
 
