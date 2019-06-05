@@ -23,6 +23,17 @@ defmodule Chaperon do
     end
   end
 
+  @version Mix.Project.config()[:version]
+  def version do
+    suffix =
+      case System.get_env("VERSION_SUFFIX") do
+        nil -> ""
+        v -> " (#{v})"
+      end
+
+    "#{@version}#{suffix}"
+  end
+
   @doc """
   Connect the current node to a Chaperon cluster without taking on any work
   (not running any load test Session tasks).

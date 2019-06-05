@@ -7,6 +7,8 @@ config :logger, :console,
   format: "$date $time [$level] $metadata$message\n",
   metadata: [:user_id]
 
+config :chaperon, :http, port: 8080
+
 config :chaperon, Chaperon.Export.InfluxDB,
   database: System.get_env("CHAPERON_INFLUX_DB") || "chaperon",
   host: System.get_env("CHAPERON_INFLUX_HOST") || "localhost",

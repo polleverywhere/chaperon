@@ -1,0 +1,61 @@
+defmodule Chaperon.API.HTTP do
+  require Logger
+  require Poison
+
+  use Plug.Router
+  use Plug.Builder
+  import Plug.Conn
+
+  if Mix.env() == :dev do
+    use Plug.Debugger, otp_app: :cutlass
+  end
+
+  plug(Plug.RequestId)
+  plug(:self_logger)
+  plug(:match)
+  plug(:dispatch)
+
+  def start_link(port) do
+    Logger.info("Starting Chaperon.API.HTTP on port #{port}")
+
+    Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 200], port: port)
+  end
+
+  get "/" do
+    conn
+    |> send_resp(200, "Chaperon @ #{Chaperon.version()}")
+  end
+
+  get "/load_tests" do
+    conn
+    |> send_resp(200, "")
+  end
+
+  post "/load_tests" do
+    conn
+    |> send_resp(200, "")
+  end
+
+  get "/version" do
+    conn
+    |> send_resp(200, Chaperon.version())
+  end
+
+  get "/*_" do
+    conn
+    |> send_resp(404, "")
+  end
+
+  post "/*_" do
+    conn
+    |> send_resp(404, "")
+  end
+
+  defp self_logger(conn, opts) do
+    if conn.request_path == "/healthcheck" do
+      conn
+    else
+      Plug.Logger.call(conn, Plug.Logger.init(opts))
+    end
+  end
+end
