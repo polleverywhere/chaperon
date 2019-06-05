@@ -9,13 +9,15 @@ defmodule Chaperon.Master do
   defstruct id: nil,
             sessions: %{},
             tasks: %{},
-            non_worker_nodes: []
+            non_worker_nodes: [],
+            scheduled_load_tests: %{}
 
   @type t :: %Chaperon.Master{
           id: atom,
           sessions: %{atom => Chaperon.Session.t()},
           tasks: %{atom => pid},
-          non_worker_nodes: [atom]
+          non_worker_nodes: [atom],
+          scheduled_load_tests: %{String.t() => Chaperon.LoadTest.t()}
         }
 
   use GenServer
@@ -66,6 +68,14 @@ defmodule Chaperon.Master do
     GenServer.call(@name, :running_load_tests)
   end
 
+  def schedule_load_test(lt) do
+    GenServer.call(@name, {:schedule_load_test, lt})
+  end
+
+  def scheduled_load_tests() do
+    GenServer.call(@name, :scheduled_load_tests)
+  end
+
   @spec ignore_node_as_worker(atom) :: :ok
   def ignore_node_as_worker(node) do
     GenServer.call(@name, {:ignore_node_as_worker, node})
@@ -94,6 +104,23 @@ defmodule Chaperon.Master do
     Logger.info("Requesting running load tests")
 
     {:reply, Map.keys(state.tasks), state}
+  end
+
+  def handle_call(
+        {:schedule_load_test, lt = %{name: name, scenarios: _, config: _}},
+        _,
+        state
+      ) do
+    Logger.info("Scheduling load test with name: #{name}")
+    id = UUID.uuid4()
+
+    state = update_in(state.scheduled_load_tests, &Map.put(&1, id, lt))
+    {:reply, id, state}
+  end
+
+  def handle_call(:scheduled_load_tests, _, state) do
+    Logger.info("Requesting scheduled load tests")
+    {:reply, state.scheduled_load_tests, state}
   end
 
   def handle_cast({:load_test_finished, lt_mod, task_id, session}, state) do

@@ -35,8 +35,14 @@ defmodule Chaperon.API.HTTP do
   end
 
   post "/load_tests" do
+    load_tests = conn.params["load_tests"] || []
+
+    for lt <- load_tests do
+      Chaperon.Master.schedule_load_test(lt)
+    end
+
     conn
-    |> send_resp(200, "")
+    |> send_resp(202, "")
   end
 
   get "/version" do
