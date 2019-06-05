@@ -87,6 +87,8 @@ defmodule Chaperon.Mixfile do
       {:e_q, "~> 1.0.0"},
       {:instream, "~> 0.16.0"},
       {:deep_merge, "~> 0.1.1"},
+      {:cowboy, "~> 2.6"},
+      {:plug, "~> 1.8"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false}
