@@ -62,6 +62,10 @@ defmodule Chaperon.Master do
     end
   end
 
+  def running_load_tests() do
+    GenServer.call(@name, :running_load_tests)
+  end
+
   @spec ignore_node_as_worker(atom) :: :ok
   def ignore_node_as_worker(node) do
     GenServer.call(@name, {:ignore_node_as_worker, node})
@@ -84,6 +88,12 @@ defmodule Chaperon.Master do
   def handle_call({:ignore_node_as_worker, node}, _, state) do
     state = update_in(state.non_worker_nodes, &[node | &1])
     {:reply, :ok, state}
+  end
+
+  def handle_call(:running_load_tests, client, state) do
+    Logger.info("Requesting running load tests")
+
+    {:reply, Map.keys(state.tasks), state}
   end
 
   def handle_cast({:load_test_finished, lt_mod, task_id, session}, state) do

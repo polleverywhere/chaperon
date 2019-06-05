@@ -12,12 +12,15 @@ defmodule Chaperon.API.HTTP do
 
   plug(Plug.RequestId)
   plug(:self_logger)
+  plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
   plug(:match)
   plug(:dispatch)
 
   def start_link(port) do
     Logger.info("Starting Chaperon.API.HTTP on port #{port}")
 
+    # make sure master is running
+    Chaperon.Master.start()
     Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 200], port: port)
   end
 
@@ -28,7 +31,7 @@ defmodule Chaperon.API.HTTP do
 
   get "/load_tests" do
     conn
-    |> send_resp(200, "")
+    |> send_json_resp(200, %{load_tests: Chaperon.Master.running_load_tests()})
   end
 
   post "/load_tests" do
@@ -57,5 +60,10 @@ defmodule Chaperon.API.HTTP do
     else
       Plug.Logger.call(conn, Plug.Logger.init(opts))
     end
+  end
+
+  defp send_json_resp(conn, status_code, data) do
+    conn
+    |> send_resp(status_code, Poison.encode!(data))
   end
 end
