@@ -85,13 +85,18 @@ defmodule Chaperon.Master do
     Logger.info("Starting LoadTest #{Chaperon.LoadTest.name(lt_mod)} @ Master #{state.id}")
     task_id = UUID.uuid4()
 
-    {:ok, _} =
-      Task.start_link(fn ->
-        session = Chaperon.run_load_test(lt_mod, options)
-        GenServer.cast(@name, {:load_test_finished, lt_mod, task_id, session})
+    {:ok, task_pid} =
+      Task.start(fn ->
+        try do
+          session = Chaperon.run_load_test(lt_mod, options)
+          GenServer.cast(@name, {:load_test_finished, {lt_mod, task_id, self()}, session})
+        catch
+          err ->
+            GenServer.cast(@name, {:load_test_failed, {lt_mod, task_id, self()}, err})
+        end
       end)
 
-    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id}, client))
+    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id, task_pid}, client))
     {:noreply, state}
   end
 
@@ -100,10 +105,15 @@ defmodule Chaperon.Master do
     {:reply, :ok, state}
   end
 
-  def handle_call(:running_load_tests, client, state) do
+  def handle_call(:running_load_tests, _, state) do
     Logger.info("Requesting running load tests")
 
     {:reply, Map.keys(state.tasks), state}
+  end
+
+  def handle_call(:scheduled_load_tests, _, state) do
+    Logger.info("Requesting scheduled load tests")
+    {:reply, state.scheduled_load_tests, state}
   end
 
   def handle_call(
@@ -118,16 +128,11 @@ defmodule Chaperon.Master do
     {:reply, id, state}
   end
 
-  def handle_call(:scheduled_load_tests, _, state) do
-    Logger.info("Requesting scheduled load tests")
-    {:reply, state.scheduled_load_tests, state}
-  end
-
-  def handle_cast({:load_test_finished, lt_mod, task_id, session}, state) do
+  def handle_cast({:load_test_finished, task = {lt_mod, task_id, _}, session}, state) do
     lt_name = Chaperon.LoadTest.name(lt_mod)
-    Logger.info("LoadTest finished: #{lt_name}")
+    Logger.info("LoadTest finished: #{lt_name} / #{task_id}")
 
-    case state.tasks[{lt_mod, task_id}] do
+    case state.tasks[task] do
       nil ->
         Logger.error("No client found for finished load test: #{lt_name} @ #{task_id}")
 
@@ -135,7 +140,19 @@ defmodule Chaperon.Master do
         GenServer.reply(client, session)
     end
 
-    state = update_in(state.tasks, &Map.delete(&1, {lt_mod, task_id}))
+    state = update_in(state.tasks, &Map.delete(&1, task))
+    {:noreply, state}
+  end
+
+  def handle_cast({:load_test_failed, task = {lt_mod, task_id, _}, err}, state) do
+    lt_name = Chaperon.LoadTest.name(lt_mod)
+    Logger.info("LoadTest failed: #{lt_name} / #{task_id} with error: #{inspect(err)}")
+
+    if client = state.tasks[task] do
+      GenServer.reply(client, {:error, err})
+    end
+
+    state = update_in(state.tasks, &Map.delete(&1, task))
     {:noreply, state}
   end
 
