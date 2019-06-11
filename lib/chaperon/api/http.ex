@@ -21,7 +21,7 @@ defmodule Chaperon.API.HTTP do
 
     # make sure master is running
     Chaperon.Master.start()
-    Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 200], port: port)
+    Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
   end
 
   get "/" do
