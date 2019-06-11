@@ -58,7 +58,7 @@ defmodule Chaperon.LoadTest do
           config: map
         }
 
-  @type lt_conf :: module | %{name: String.t()}
+  @type lt_conf :: module | %{name: String.t(), scenarios: [Chaperon.Scenario.t()], config: map}
 
   defmodule Results do
     @moduledoc """

@@ -906,7 +906,7 @@ defmodule Chaperon.Session do
       iex> session |> config("bar.val2")
       "V2"
   """
-  @spec config(Session.t(), config_key, any) :: any
+  @spec config(Session.t(), config_key) :: any
   def config(session, key) do
     case config(session, key, :___no_default_config_given___) do
       :___no_default_config_given___ ->
