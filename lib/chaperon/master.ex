@@ -72,6 +72,10 @@ defmodule Chaperon.Master do
     GenServer.call(@name, {:schedule_load_test, lt})
   end
 
+  def schedule_load_tests(lts) do
+    GenServer.call(@name, {:schedule_load_tests, lts})
+  end
+
   def scheduled_load_tests() do
     GenServer.call(@name, :scheduled_load_tests)
   end
@@ -122,10 +126,25 @@ defmodule Chaperon.Master do
         state
       ) do
     Logger.info("Scheduling load test with name: #{name}")
-    id = UUID.uuid4()
 
-    state = update_in(state.scheduled_load_tests, &Map.put(&1, id, lt))
+    %{state: state, id: id} = state |> add_load_test(lt)
     {:reply, id, state}
+  end
+
+  def handle_call({:schedule_load_tests, []}, client, state) do
+    Logger.warn("Client #{inspect(client)} tried to schedule empty list of load tests - Aborting")
+    {:reply, {:error, :no_load_tests_given}, state}
+  end
+
+  def handle_call({:schedule_load_tests, load_tests}, _, state) do
+    lt_names = for %{name: name} <- load_tests, do: name
+
+    Logger.info(
+      "Scheduling #{Enum.count(load_tests)} load tests with names: #{inspect(lt_names)}"
+    )
+
+    %{state: state, ids: ids} = state |> add_load_tests(load_tests)
+    {:reply, {:ok, ids}, state}
   end
 
   def handle_cast({:load_test_finished, task = {lt_mod, task_id, _}, session}, state) do
@@ -169,5 +188,25 @@ defmodule Chaperon.Master do
           |> Keyword.merge(output: :remote)
         end
     end
+  end
+
+  defp add_load_test(state, lt = %{name: name, scenarios: _, config: _}) do
+    id = UUID.uuid4()
+    Logger.debug("Scheduling load test #{name} with ID #{id}")
+    state = update_in(state.scheduled_load_tests, &Map.put(&1, id, lt))
+    %{state: state, id: id}
+  end
+
+  defp add_load_tests(state, load_tests) when is_list(load_tests) do
+    init_acc = %{state: state, ids: []}
+
+    %{state: state, ids: ids} =
+      load_tests
+      |> Enum.reduce(init_acc, fn lt, %{state: state, ids: ids} ->
+        %{state: state, id: id} = state |> add_load_test(lt)
+        %{state: state, ids: [id | ids]}
+      end)
+
+    %{state: state, ids: ids |> Enum.reverse()}
   end
 end
