@@ -121,10 +121,11 @@ defmodule Chaperon.Master do
   end
 
   def handle_call(
-        {:schedule_load_test, lt = %{name: name, scenarios: _, config: _}},
+        {:schedule_load_test, lt = %{test: lt_mod, options: _}},
         _,
         state
       ) do
+    name = Chaperon.LoadTest.name(lt_mod)
     Logger.info("Scheduling load test with name: #{name}")
 
     %{state: state, id: id} = state |> add_load_test(lt)
@@ -137,7 +138,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:schedule_load_tests, load_tests}, _, state) do
-    lt_names = for %{name: name} <- load_tests, do: name
+    lt_names = for %{test: lt_mod} <- load_tests, do: Chaperon.LoadTest.name(lt_mod)
 
     Logger.info(
       "Scheduling #{Enum.count(load_tests)} load tests with names: #{inspect(lt_names)}"
@@ -190,8 +191,9 @@ defmodule Chaperon.Master do
     end
   end
 
-  defp add_load_test(state, lt = %{name: name, scenarios: _, config: _}) do
+  defp add_load_test(state, lt = %{test: lt_mod, options: _}) do
     id = UUID.uuid4()
+    name = Chaperon.LoadTest.name(lt_mod)
     Logger.debug("Scheduling load test #{name} with ID #{id}")
     state = update_in(state.scheduled_load_tests, &Map.put(&1, id, lt))
     %{state: state, id: id}

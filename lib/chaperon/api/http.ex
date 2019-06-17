@@ -56,7 +56,7 @@ defmodule Chaperon.API.HTTP do
     load_tests =
       for cfg <- conn.params["load_tests"] || [] do
         cfg
-        |> Map.take(["name", "scenarios", "config"])
+        |> Map.take(["test", "options"])
         |> symbolize_keys()
       end
 
