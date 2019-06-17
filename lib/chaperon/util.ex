@@ -146,4 +146,22 @@ defmodule Chaperon.Util do
 
     :"percentile_#{p}"
   end
+
+  def symbolize_keys(map) do
+    map
+    |> Map.new(fn {k, v} ->
+      k = String.to_atom(k)
+
+      v =
+        case v do
+          nested_map when is_map(nested_map) ->
+            symbolize_keys(nested_map)
+
+          _ ->
+            v
+        end
+
+      {k, v}
+    end)
+  end
 end

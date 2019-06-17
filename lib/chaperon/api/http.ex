@@ -3,8 +3,8 @@ defmodule Chaperon.API.HTTP do
   require Poison
 
   use Plug.Router
-  use Plug.Builder
   import Plug.Conn
+  import Chaperon.Util, only: [symbolize_keys: 1]
 
   if Mix.env() == :dev do
     use Plug.Debugger, otp_app: :cutlass
@@ -34,8 +34,23 @@ defmodule Chaperon.API.HTTP do
     |> send_json_resp(200, %{load_tests: Chaperon.Master.running_load_tests()})
   end
 
+  get "/version" do
+    conn
+    |> send_resp(200, Chaperon.version())
+  end
+
+  get "/*_" do
+    conn
+    |> send_resp(404, "")
+  end
+
   post "/load_tests" do
-    load_tests = conn.params["load_tests"] || []
+    load_tests =
+      for cfg <- conn.params["load_tests"] || [] do
+        cfg
+        |> Map.take(["name", "scenarios", "config"])
+        |> symbolize_keys()
+      end
 
     case Chaperon.Master.schedule_load_tests(load_tests) do
       {:error, reason} ->
@@ -46,16 +61,6 @@ defmodule Chaperon.API.HTTP do
         conn
         |> send_resp(202, %{scheduled: ids})
     end
-  end
-
-  get "/version" do
-    conn
-    |> send_resp(200, Chaperon.version())
-  end
-
-  get "/*_" do
-    conn
-    |> send_resp(404, "")
   end
 
   post "/*_" do

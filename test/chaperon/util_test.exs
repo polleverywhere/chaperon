@@ -55,4 +55,15 @@ defmodule Chaperon.Util.Test do
     assert module_name(Chaperon.Util.Test) == "Chaperon.Util.Test"
     assert module_name(%{name: "Foo.Bar"}) == "Foo.Bar"
   end
+
+  test "symbolize_keys" do
+    assert symbolize_keys(%{"foo" => "bar", "hello" => 123}) ==
+             %{foo: "bar", hello: 123}
+
+    assert symbolize_keys(%{"foo" => "bar", "hello" => %{"a" => 123, "b" => "456"}}) ==
+             %{foo: "bar", hello: %{a: 123, b: "456"}}
+
+    assert symbolize_keys(%{"a" => %{"b" => %{"c" => "d", "e" => %{"f" => "g"}}}}) ==
+             %{a: %{b: %{c: "d", e: %{f: "g"}}}}
+  end
 end
