@@ -20,9 +20,7 @@ defmodule Chaperon.Supervisor do
         timeout: 20_000,
         max_connections: 200_000
       ),
-      worker(Chaperon.API.HTTP, [
-        Application.get_env(:chaperon, :http)[:port]
-      ])
+      worker(Chaperon.API.HTTP, [])
     ]
 
     case Application.get_env(:chaperon, Chaperon.Export.InfluxDB, nil) do

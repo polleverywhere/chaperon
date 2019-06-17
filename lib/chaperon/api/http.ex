@@ -16,12 +16,20 @@ defmodule Chaperon.API.HTTP do
   plug(:match)
   plug(:dispatch)
 
-  def start_link(port) do
+  def start_link() do
+    port = api_port()
     Logger.info("Starting Chaperon.API.HTTP on port #{port}")
 
     # make sure master is running
     Chaperon.Master.start()
     Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
+  end
+
+  def api_port() do
+    case System.get_env("CHAPERON_PORT") do
+      nil -> Application.get_env(:chaperon, :http)[:port] || 8080
+      port -> port |> String.to_integer()
+    end
   end
 
   get "/" do
