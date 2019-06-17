@@ -17,7 +17,9 @@ defmodule Chaperon.Master do
           sessions: %{atom => Chaperon.Session.t()},
           tasks: %{atom => pid},
           non_worker_nodes: [atom],
-          scheduled_load_tests: %{String.t() => Chaperon.LoadTest.t()}
+          scheduled_load_tests: %{
+            String.t() => %{test: Chaperon.LoadTest.lt_conf(), options: map}
+          }
         }
 
   use GenServer
