@@ -58,7 +58,7 @@ defmodule Chaperon.API.HTTP do
         cfg
         |> Map.take(["test", "options"])
         |> symbolize_keys()
-        |> Map.update(:test, &(&1 |> String.split(".") |> Module.concat()))
+        |> Map.update(:test, cfg["test"], &(&1 |> String.split(".") |> Module.concat()))
       end
 
     case Chaperon.Master.schedule_load_tests(load_tests) do
