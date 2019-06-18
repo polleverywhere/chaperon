@@ -64,11 +64,11 @@ defmodule Chaperon.API.HTTP do
     case Chaperon.Master.schedule_load_tests(load_tests) do
       {:error, reason} ->
         conn
-        |> send_resp(400, %{error: reason |> to_string})
+        |> send_json_resp(400, %{error: reason |> inspect})
 
       {:ok, ids} ->
         conn
-        |> send_resp(202, %{scheduled: ids})
+        |> send_json_resp(202, %{scheduled: ids})
     end
   end
 
