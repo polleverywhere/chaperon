@@ -12,6 +12,7 @@ defmodule Chaperon.API.HTTP do
 
   plug(Plug.RequestId)
   plug(:self_logger)
+  plug(BasicAuth, use_config: {:chaperon, Chaperon.API.HTTP})
   plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
   plug(:match)
   plug(:dispatch)
@@ -31,7 +32,7 @@ defmodule Chaperon.API.HTTP do
 
   def api_port() do
     case System.get_env("CHAPERON_PORT") do
-      nil -> Application.get_env(:chaperon, :http)[:port]
+      nil -> Application.get_env(:chaperon, __MODULE__)[:port]
       port -> port |> String.to_integer()
     end
   end
