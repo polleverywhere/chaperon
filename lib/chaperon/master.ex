@@ -10,16 +10,14 @@ defmodule Chaperon.Master do
             sessions: %{},
             tasks: %{},
             non_worker_nodes: [],
-            scheduled_load_tests: %{}
+            scheduled_load_tests: EQ.new()
 
   @type t :: %Chaperon.Master{
           id: atom,
           sessions: %{atom => Chaperon.Session.t()},
           tasks: %{atom => pid},
           non_worker_nodes: [atom],
-          scheduled_load_tests: %{
-            String.t() => %{test: Chaperon.LoadTest.lt_conf(), options: map}
-          }
+          scheduled_load_tests: EQ.t()
         }
 
   use GenServer
@@ -89,20 +87,10 @@ defmodule Chaperon.Master do
 
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
     Logger.info("Starting LoadTest #{Chaperon.LoadTest.name(lt_mod)} @ Master #{state.id}")
-    task_id = UUID.uuid4()
 
-    {:ok, task_pid} =
-      Task.start(fn ->
-        try do
-          session = Chaperon.run_load_test(lt_mod, options)
-          GenServer.cast(@name, {:load_test_finished, {lt_mod, task_id, self()}, session})
-        catch
-          err ->
-            GenServer.cast(@name, {:load_test_failed, {lt_mod, task_id, self()}, err})
-        end
-      end)
+    %{state: state, id: task_id} =
+      start_load_test(state, client, %{test: lt_mod, options: options})
 
-    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id, task_pid}, client))
     {:noreply, state}
   end
 
@@ -119,18 +107,24 @@ defmodule Chaperon.Master do
 
   def handle_call(:scheduled_load_tests, _, state) do
     Logger.info("Requesting scheduled load tests")
-    {:reply, state.scheduled_load_tests, state}
+    {:reply, EQ.to_list(state.scheduled_load_tests), state}
   end
 
   def handle_call(
         {:schedule_load_test, lt = %{test: lt_mod, options: _}},
-        _,
+        client,
         state
       ) do
     name = Chaperon.LoadTest.name(lt_mod)
     Logger.info("Scheduling load test with name: #{name}")
 
-    %{state: state, id: id} = state |> add_load_test(lt)
+    %{state: state, id: id} =
+      if running_load_test?(state) do
+        state |> add_load_test(lt)
+      else
+        state |> start_load_test(nil, lt)
+      end
+
     {:reply, id, state}
   end
 
@@ -147,6 +141,15 @@ defmodule Chaperon.Master do
     )
 
     %{state: state, ids: ids} = state |> add_load_tests(load_tests)
+
+    state =
+      if running_load_test?(state) do
+        state
+      else
+        state
+        |> schedule_next()
+      end
+
     {:reply, {:ok, ids}, state}
   end
 
@@ -162,7 +165,10 @@ defmodule Chaperon.Master do
         GenServer.reply(client, session)
     end
 
-    state = update_in(state.tasks, &Map.delete(&1, task))
+    state
+    |> remove_task(task)
+    |> schedule_next()
+
     {:noreply, state}
   end
 
@@ -174,7 +180,10 @@ defmodule Chaperon.Master do
       GenServer.reply(client, {:error, err})
     end
 
-    state = update_in(state.tasks, &Map.delete(&1, task))
+    state
+    |> remove_task(task)
+    |> schedule_next()
+
     {:noreply, state}
   end
 
@@ -197,7 +206,7 @@ defmodule Chaperon.Master do
     id = UUID.uuid4()
     name = Chaperon.LoadTest.name(lt_mod)
     Logger.debug("Scheduling load test #{name} with ID #{id}")
-    state = update_in(state.scheduled_load_tests, &Map.put(&1, id, lt))
+    state = update_in(state.scheduled_load_tests, &EQ.push(&1, Map.merge(%{id: id}, lt)))
     %{state: state, id: id}
   end
 
@@ -212,5 +221,46 @@ defmodule Chaperon.Master do
       end)
 
     %{state: state, ids: ids |> Enum.reverse()}
+  end
+
+  defp running_load_test?(state) do
+    Map.size(state.tasks) > 0
+  end
+
+  defp start_load_test(state, client, %{test: lt_mod, options: options}, task_id \\ UUID.uuid4()) do
+    {:ok, task_pid} =
+      Task.start(fn ->
+        try do
+          session = Chaperon.run_load_test(lt_mod, options)
+          GenServer.cast(@name, {:load_test_finished, {lt_mod, task_id, self()}, session})
+        catch
+          err ->
+            GenServer.cast(@name, {:load_test_failed, {lt_mod, task_id, self()}, err})
+        end
+      end)
+
+    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id, task_pid}, client))
+
+    %{state: state, id: task_id}
+  end
+
+  defp remove_task(state, task) do
+    update_in(state.tasks, &Map.delete(&1, task))
+  end
+
+  defp schedule_next(state) do
+    if EQ.empty?(state.scheduled_load_tests) do
+      state
+    else
+      case EQ.pop(state.scheduled_load_tests) do
+        {{:value, next}, remaining} ->
+          Logger.info("Starting next scheduled load test with id #{next.id}")
+          %{state: state, id: _} = state |> start_load_test(nil, next, next.id)
+          %{state | scheduled_load_tests: remaining}
+
+        {:empty, remaining} ->
+          state
+      end
+    end
   end
 end
