@@ -19,9 +19,15 @@ defmodule Chaperon.Supervisor do
         :chaperon,
         timeout: 20_000,
         max_connections: 200_000
-      ),
-      worker(Chaperon.API.HTTP, [])
+      )
     ]
+
+    common_children =
+      if Chaperon.API.HTTP.enabled?() do
+        common_children ++ [worker(Chaperon.API.HTTP, [])]
+      else
+        common_children
+      end
 
     case Application.get_env(:chaperon, Chaperon.Export.InfluxDB, nil) do
       nil ->

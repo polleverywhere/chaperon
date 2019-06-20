@@ -25,9 +25,13 @@ defmodule Chaperon.API.HTTP do
     Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
   end
 
+  def enabled?() do
+    api_port() != nil
+  end
+
   def api_port() do
     case System.get_env("CHAPERON_PORT") do
-      nil -> Application.get_env(:chaperon, :http)[:port] || 8080
+      nil -> Application.get_env(:chaperon, :http)[:port]
       port -> port |> String.to_integer()
     end
   end
