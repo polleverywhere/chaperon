@@ -24,7 +24,8 @@ config :chaperon, Chaperon.Export.InfluxDB,
 config :chaperon, Chaperon.API.HTTP,
   username: "chaperon",
   password: {:system, "CHAPERON_API_TOKEN"},
-  realm: "Chaperon load test API"
+  realm: "Chaperon load test API",
+  option_parser: Chaperon.API.OptionParser.Default
 
 # Custom per env config files override values defined here (if they exist)
 if File.exists?("#{__DIR__}/#{Mix.env()}.exs") do

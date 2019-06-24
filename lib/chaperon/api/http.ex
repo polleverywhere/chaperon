@@ -60,10 +60,14 @@ defmodule Chaperon.API.HTTP do
   post "/load_tests" do
     load_tests =
       for cfg <- conn.params["load_tests"] || [] do
+        cfg =
+          cfg
+          |> Map.take(["test", "options"])
+          |> symbolize_keys()
+
         cfg
-        |> Map.take(["test", "options"])
-        |> symbolize_keys()
-        |> Map.update(:test, cfg["test"], &(&1 |> String.split(".") |> Module.concat()))
+        |> Map.update(:test, cfg[:test], &(&1 |> String.split(".") |> Module.concat()))
+        |> Map.update(:options, cfg[:options], &parse_options/1)
       end
 
     case Chaperon.Master.schedule_load_tests(load_tests) do
@@ -93,5 +97,18 @@ defmodule Chaperon.API.HTTP do
   defp send_json_resp(conn, status_code, data) do
     conn
     |> send_resp(status_code, Poison.encode!(data))
+  end
+
+  def parse_options(options) do
+    parser = Application.get_env(:chaperon, __MODULE__)[:option_parser]
+
+    case parser.parse_options(options) do
+      {:ok, options} ->
+        options
+
+      {:error, reason} ->
+        Logger.error("Error parsing options using parser #{parser}: #{reason}")
+        options
+    end
   end
 end
