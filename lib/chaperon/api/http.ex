@@ -2,6 +2,28 @@ defmodule Chaperon.API.HTTP do
   require Logger
   require Poison
 
+  defmodule HealthCheckPlug do
+    import Plug.Conn
+    @behaviour Plug
+
+    @intercepted_routes [
+      # root page (GET /)
+      [],
+      ["healthcheck"]
+    ]
+
+    def init(opts), do: opts
+
+    def call(conn = %{method: "GET", path_info: path_info}, _opts)
+        when path_info in @intercepted_routes do
+      conn
+      |> send_resp(200, "Chaperon @ #{Chaperon.version()}")
+      |> halt()
+    end
+
+    def call(conn, _opts), do: conn
+  end
+
   use Plug.Router
   import Plug.Conn
   import Chaperon.Util, only: [symbolize_keys: 1]
@@ -10,8 +32,9 @@ defmodule Chaperon.API.HTTP do
     use Plug.Debugger, otp_app: :cutlass
   end
 
-  plug(Plug.RequestId)
+  plug(Chaperon.API.HTTP.HealthCheckPlug)
   plug(:self_logger)
+  plug(Plug.RequestId)
   plug(BasicAuth, use_config: {:chaperon, Chaperon.API.HTTP})
   plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
   plug(:match)
