@@ -23,7 +23,8 @@ defmodule Chaperon.Export.CSV do
     {:ok, data}
   end
 
-  def write_output(lt_mod, runtime_config, data, filename) do
+  def write_output(lt_mod, options, data, filename) do
+    runtime_config = Keyword.get(options, :config, %{})
     Chaperon.write_output_to_file(lt_mod, runtime_config, data, filename <> ".csv")
   end
 

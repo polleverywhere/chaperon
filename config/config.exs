@@ -27,6 +27,10 @@ config :chaperon, Chaperon.API.HTTP,
   realm: "Chaperon load test API",
   option_parser: Chaperon.API.OptionParser.Default
 
+config :ex_aws,
+  access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
+  secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role]
+
 # Custom per env config files override values defined here (if they exist)
 if File.exists?("#{__DIR__}/#{Mix.env()}.exs") do
   import_config "#{Mix.env()}.exs"

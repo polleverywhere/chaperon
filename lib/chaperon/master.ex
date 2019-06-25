@@ -48,11 +48,12 @@ defmodule Chaperon.Master do
 
     case result do
       {:remote, session, data} ->
-        options
-        |> Chaperon.exporter()
+        {exporter, options} = options |> Chaperon.exporter()
+
+        exporter
         |> apply(:write_output, [
           lt_mod,
-          Keyword.get(options, :config, %{}),
+          options,
           data,
           options[:output]
         ])

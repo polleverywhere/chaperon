@@ -63,7 +63,9 @@ defmodule Chaperon do
   - `lt_mod` LoadTest module to be executed
   - `options` List of options to be used. Valid values are:
       - `:print_results` If set to `true`, will print all action results.
-      - `:encode` Can be set to `:json`, defaults to `:csv`
+      - `:export` Can be set to any module implementing the `Chaperon.Exporter` behaviour.
+        Defaults to `Chaperon.Export.CSV`. When using `Chaperon.Export.S3` it defaults to the CSV export format.
+        You can use another export format by wrapping it in a tuple, like so: `{Chaperon.Export.S3, Chaperon.Export.JSON}`
       - `:output` Can be set to a file path
       - `:tag` Can be set to be used when using the default export filename.
         Allows adding a custom 'tag' string as a prefix to the generated result
@@ -161,9 +163,10 @@ defmodule Chaperon do
 
     print_separator()
 
+    {exporter, options} = options |> exporter
+
     {:ok, data} =
-      options
-      |> exporter
+      exporter
       |> apply(:encode, [
         session,
         Keyword.merge(
@@ -178,12 +181,13 @@ defmodule Chaperon do
         {:remote, session, data}
 
       output ->
-        :ok =
-          options
-          |> exporter
+        {exporter, options} = options |> exporter
+
+        {:ok, _} =
+          exporter
           |> apply(:write_output, [
             lt_mod,
-            Keyword.get(options, :config, %{}),
+            options,
             data,
             output
           ])
@@ -198,7 +202,17 @@ defmodule Chaperon do
   end
 
   def exporter(options) do
-    Keyword.get(options, :export, Chaperon.Export.CSV)
+    case Keyword.get(options, :export, Chaperon.Export.CSV) do
+      {Chaperon.Export.S3, exporter} ->
+        options =
+          options
+          |> Keyword.put(:export, exporter)
+
+        {Chaperon.Export.S3, options}
+
+      exporter ->
+        {exporter, options |> Keyword.delete(:export)}
+    end
   end
 
   # if output not defined by user, use default output format and file name
@@ -243,8 +257,10 @@ defmodule Chaperon do
 
     File.write!(path, output)
 
+    config_file_path = path <> ".config.exs"
+
     File.write!(
-      path <> ".config.exs",
+      config_file_path,
       inspect(
         lt_mod
         |> Chaperon.LoadTest.default_config()
@@ -255,8 +271,10 @@ defmodule Chaperon do
       )
     )
 
+    scenarios_file_path = path <> ".scenarios.exs"
+
     File.write!(
-      path <> ".scenarios.exs",
+      scenarios_file_path,
       inspect(
         lt_mod.scenarios,
         pretty: true,
@@ -264,6 +282,8 @@ defmodule Chaperon do
         printable_limit: :infinity
       )
     )
+
+    {:ok, [path, config_file_path, scenarios_file_path]}
   end
 
   defp print_separator do
