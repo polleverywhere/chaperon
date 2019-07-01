@@ -89,7 +89,7 @@ defmodule Chaperon.Master do
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
     Logger.info("Starting LoadTest #{Chaperon.LoadTest.name(lt_mod)} @ Master #{state.id}")
 
-    %{state: state, id: task_id} =
+    %{state: state, id: _task_id} =
       start_load_test(state, client, %{test: lt_mod, options: options})
 
     {:noreply, state}
@@ -113,7 +113,7 @@ defmodule Chaperon.Master do
 
   def handle_call(
         {:schedule_load_test, lt = %{test: lt_mod, options: _}},
-        client,
+        _client,
         state
       ) do
     name = Chaperon.LoadTest.name(lt_mod)
@@ -259,7 +259,7 @@ defmodule Chaperon.Master do
           %{state: state, id: _} = state |> start_load_test(nil, next, next.id)
           %{state | scheduled_load_tests: remaining}
 
-        {:empty, remaining} ->
+        {:empty, _remaining} ->
           state
       end
     end
