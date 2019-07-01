@@ -62,7 +62,10 @@ defmodule Chaperon.API.HTTP do
 
   get "/load_tests" do
     conn
-    |> send_json_resp(200, %{load_tests: Chaperon.Master.running_load_tests()})
+    |> send_json_resp(200, %{
+      running: Chaperon.Master.running_load_tests(),
+      scheduled: Chaperon.Master.scheduled_load_tests()
+    })
   end
 
   get "/version" do
