@@ -103,12 +103,21 @@ defmodule Chaperon.Master do
   def handle_call(:running_load_tests, _, state) do
     Logger.info("Requesting running load tests")
 
-    {:reply, Map.keys(state.tasks), state}
+    running =
+      for {lt_conf, id, _pid} <- Map.keys(state.tasks) do
+        %{name: Chaperon.LoadTest.name(lt_conf}, id: id}
+      end
+
+    {:reply, running, state}
   end
 
   def handle_call(:scheduled_load_tests, _, state) do
     Logger.info("Requesting scheduled load tests")
-    {:reply, EQ.to_list(state.scheduled_load_tests), state}
+    scheduled =
+      for %{test: lt_conf, id: id } <- EQ.to_list(state.scheduled_load_tests) do
+        %{name: Chaperon.LoadTest.name(lt_conf), id: id}
+      end
+    {:reply, scheduled, state}
   end
 
   def handle_call(
