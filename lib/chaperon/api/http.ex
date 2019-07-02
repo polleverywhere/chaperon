@@ -44,8 +44,6 @@ defmodule Chaperon.API.HTTP do
     port = api_port()
     Logger.info("Starting Chaperon.API.HTTP on port #{port}")
 
-    # make sure master is running
-    Chaperon.Master.start()
     Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
   end
 
