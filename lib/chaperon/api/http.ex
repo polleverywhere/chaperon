@@ -93,7 +93,7 @@ defmodule Chaperon.API.HTTP do
 
       {:ok, ids} ->
         conn
-        |> send_json_resp(202, %{scheduled: ids})
+        |> send_json_resp(200, %{scheduled: ids})
     end
   end
 
