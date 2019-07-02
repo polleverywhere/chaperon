@@ -81,6 +81,10 @@ defmodule Chaperon.Master do
     GenServer.call(@name, :scheduled_load_tests)
   end
 
+  def delete_scheduled(id) do
+    GenServer.call(@name, {:delete_scheduled, id})
+  end
+
   @spec ignore_node_as_worker(atom) :: :ok
   def ignore_node_as_worker(node) do
     GenServer.call(@name, {:ignore_node_as_worker, node})
@@ -163,6 +167,11 @@ defmodule Chaperon.Master do
       end
 
     {:reply, {:ok, ids}, state}
+  end
+
+  def handle_call({:delete_scheduled, id}, _, state) do
+    state = state |> remove_scheduled(id)
+    {:reply, :ok, state}
   end
 
   def handle_cast({:load_test_finished, task = {lt_mod, task_id, _}, session}, state) do
@@ -258,6 +267,14 @@ defmodule Chaperon.Master do
 
   defp remove_task(state, task) do
     update_in(state.tasks, &Map.delete(&1, task))
+  end
+
+  defp remove_scheduled(state, id) do
+    remaining =
+      state.scheduled_load_tests
+      |> EQ.filter(fn s -> s.id != id end)
+
+    %{state | scheduled_load_tests: remaining}
   end
 
   defp schedule_next(state) do
