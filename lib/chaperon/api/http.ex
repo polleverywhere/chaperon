@@ -98,7 +98,7 @@ defmodule Chaperon.API.HTTP do
   end
 
   delete "/load_tests/:id" do
-    case Chaperon.Master.delete_scheduled(conn.params["id"]) do
+    case Chaperon.Master.cancel_running_or_scheduled(conn.params["id"]) do
       {:error, reason} ->
         conn
         |> send_json_resp(400, %{

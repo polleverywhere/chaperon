@@ -81,8 +81,8 @@ defmodule Chaperon.Master do
     GenServer.call(@name, :scheduled_load_tests)
   end
 
-  def delete_scheduled(id) do
-    GenServer.call(@name, {:delete_scheduled, id})
+  def cancel_running_or_scheduled(id) do
+    GenServer.call(@name, {:cancel_running_or_scheduled, id})
   end
 
   @spec ignore_node_as_worker(atom) :: :ok
@@ -169,16 +169,26 @@ defmodule Chaperon.Master do
     {:reply, {:ok, ids}, state}
   end
 
-  def handle_call({:delete_scheduled, id}, _, state) do
-    state = state |> remove_scheduled(id)
+  def handle_call({:cancel_running_or_scheduled, id}, _, state) do
+    state =
+      case state |> running_task_key(id) do
+        nil ->
+          state
+          |> remove_scheduled(id)
+
+        task_key ->
+          state
+          |> cancel_running_task(task_key)
+      end
+
     {:reply, :ok, state}
   end
 
-  def handle_cast({:load_test_finished, task = {lt_mod, task_id, _}, session}, state) do
+  def handle_cast({:load_test_finished, {lt_mod, task_id}, session}, state) do
     lt_name = Chaperon.LoadTest.name(lt_mod)
     Logger.info("LoadTest finished: #{lt_name} / #{task_id}")
 
-    case state.tasks[task] do
+    case state.tasks[state |> running_task_key(task_id)] do
       nil ->
         Logger.error("No client found for finished load test: #{lt_name} @ #{task_id}")
 
@@ -187,22 +197,22 @@ defmodule Chaperon.Master do
     end
 
     state
-    |> remove_task(task)
+    |> remove_task(task_id)
     |> schedule_next()
 
     {:noreply, state}
   end
 
-  def handle_cast({:load_test_failed, task = {lt_mod, task_id, _}, err}, state) do
+  def handle_cast({:load_test_failed, {lt_mod, task_id}, err}, state) do
     lt_name = Chaperon.LoadTest.name(lt_mod)
     Logger.info("LoadTest failed: #{lt_name} / #{task_id} with error: #{inspect(err)}")
 
-    if client = state.tasks[task] do
+    if client = state.tasks[state |> running_task_key(task_id)] do
       GenServer.reply(client, {:error, err})
     end
 
     state
-    |> remove_task(task)
+    |> remove_task(task_id)
     |> schedule_next()
 
     {:noreply, state}
@@ -249,24 +259,29 @@ defmodule Chaperon.Master do
   end
 
   defp start_load_test(state, client, %{test: lt_mod, options: options}, task_id \\ UUID.uuid4()) do
-    {:ok, task_pid} =
-      Task.start(fn ->
+    task =
+      Task.async(fn ->
         try do
           session = Chaperon.run_load_test(lt_mod, options)
-          GenServer.cast(@name, {:load_test_finished, {lt_mod, task_id, self()}, session})
+          GenServer.cast(@name, {:load_test_finished, {lt_mod, task_id}, session})
         catch
           err ->
-            GenServer.cast(@name, {:load_test_failed, {lt_mod, task_id, self()}, err})
+            GenServer.cast(@name, {:load_test_failed, {lt_mod, task_id}, err})
         end
       end)
 
-    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id, task_pid}, client))
+    state = update_in(state.tasks, &Map.put(&1, {lt_mod, task_id, task}, client))
 
     %{state: state, id: task_id}
   end
 
-  defp remove_task(state, task) do
-    update_in(state.tasks, &Map.delete(&1, task))
+  defp remove_task(state, task_id) when is_binary(task_id) do
+    state
+    |> remove_task(state |> running_task_key(task_id))
+  end
+
+  defp remove_task(state, task_key = {_lt_mod, _task_id, _task}) do
+    update_in(state.tasks, &Map.delete(&1, task_key))
   end
 
   defp remove_scheduled(state, id) do
@@ -291,5 +306,21 @@ defmodule Chaperon.Master do
           state
       end
     end
+  end
+
+  defp cancel_running_task(state, task_key = {lt_mod, task_id, task}) do
+    Logger.info("Canceling running task #{inspect(task)}")
+    Task.shutdown(task)
+
+    state
+    |> remove_task(task_key)
+  end
+
+  defp running_task_key(state, id) do
+    state.tasks
+    |> Map.keys()
+    |> Enum.find(fn {_lt_mod, task_id, _task} ->
+      task_id == id
+    end)
   end
 end
