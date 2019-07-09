@@ -179,6 +179,7 @@ defmodule Chaperon.Master do
         task_key ->
           state
           |> cancel_running_task(task_key)
+          |> schedule_next()
       end
 
     {:reply, :ok, state}
