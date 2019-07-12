@@ -276,13 +276,13 @@ defmodule Chaperon.Master do
     %{state: state, id: task_id}
   end
 
+  defp remove_task(state, task_key = {_lt_mod, _task_id, _task}) do
+    update_in(state.tasks, &Map.delete(&1, task_key))
+  end
+
   defp remove_task(state, task_id) when is_binary(task_id) do
     state
     |> remove_task(state |> running_task_key(task_id))
-  end
-
-  defp remove_task(state, task_key = {_lt_mod, _task_id, _task}) do
-    update_in(state.tasks, &Map.delete(&1, task_key))
   end
 
   defp remove_scheduled(state, id) do
