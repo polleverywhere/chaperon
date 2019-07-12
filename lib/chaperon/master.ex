@@ -20,6 +20,8 @@ defmodule Chaperon.Master do
           scheduled_load_tests: EQ.t()
         }
 
+  @derive {Inspect, only: [:id]}
+
   use GenServer
   require Logger
   alias Chaperon.Util
