@@ -3,6 +3,8 @@ defmodule Chaperon.Export.S3 do
   CSV metrics export module.
   """
 
+  require Logger
+
   @behaviour Chaperon.Exporter
 
   @doc """
