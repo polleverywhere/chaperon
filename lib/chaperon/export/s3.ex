@@ -29,6 +29,8 @@ defmodule Chaperon.Export.S3 do
   end
 
   def upload_file(src_path) do
+    Logger.info("Uploading file #{src_path} to S3 bucket: #{s3_bucket()}")
+
     ExAws.S3.put_object(s3_bucket(), dest_path(src_path), File.read!(src_path))
     |> ExAws.request!()
   end
