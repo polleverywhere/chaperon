@@ -163,14 +163,14 @@ defmodule Chaperon do
 
     print_separator()
 
-    {exporter, options} = options |> exporter
+    {exporter, new_options} = options |> exporter
 
     {:ok, data} =
       exporter
       |> apply(:encode, [
         session,
         Keyword.merge(
-          options,
+          new_options,
           load_test: Util.shortened_module_name(lt_mod),
           duration: duration_s
         )
@@ -181,7 +181,7 @@ defmodule Chaperon do
         {:remote, session, data}
 
       output ->
-        {exporter, options} = options |> exporter
+        {exporter, new_options} = options |> exporter
 
         Logger.info("Using result exporter #{inspect(exporter)} with options #{inspect(options)}")
 
@@ -189,7 +189,7 @@ defmodule Chaperon do
           exporter
           |> apply(:write_output, [
             lt_mod,
-            options,
+            new_options,
             data,
             output
           ])
