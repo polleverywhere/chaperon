@@ -183,6 +183,8 @@ defmodule Chaperon do
       output ->
         {exporter, options} = options |> exporter
 
+        Logger.info("Using result exporter #{inspect(exporter)} with options #{inspect(options)}")
+
         {:ok, _} =
           exporter
           |> apply(:write_output, [
@@ -202,15 +204,24 @@ defmodule Chaperon do
   end
 
   def exporter(options) do
+    Logger.info("Chaperon.exporter | Checking exporter in options: #{inspect(options)}")
+
     case Keyword.get(options, :export, Chaperon.Export.CSV) do
-      {Chaperon.Export.S3, exporter} ->
+      {exporter, nested_exporter} when exporter == Chaperon.Export.S3 ->
         options =
           options
-          |> Keyword.put(:export, exporter)
+          |> Keyword.put(:export, nested_exporter)
+
+        Logger.info(
+          "Chaperon.exporter | Using S3 exporter #{inspect(exporter)} with nested #{
+            inspect(nested_exporter)
+          }"
+        )
 
         {Chaperon.Export.S3, options}
 
       exporter ->
+        Logger.info("Chaperon.exporter | Using exporter #{inspect(exporter)}")
         {exporter, options |> Keyword.delete(:export)}
     end
   end

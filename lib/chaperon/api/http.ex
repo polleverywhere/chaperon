@@ -131,6 +131,7 @@ defmodule Chaperon.API.HTTP do
 
   def parse_options(args) do
     parser = Application.get_env(:chaperon, __MODULE__)[:option_parser]
+    Logger.info("Chaperon.API.HTTP | Using option parser: #{inspect(parser)}")
 
     case parser.parse_options(args) do
       {:ok, lt_configs} ->
@@ -142,7 +143,7 @@ defmodule Chaperon.API.HTTP do
         %{test: lt, options: options}
 
       {:error, reason} ->
-        Logger.error("Error parsing options using parser #{parser}: #{reason}")
+        Logger.error("Error parsing options using parser #{inspect(parser)}: #{inspect(reason)}")
         raise ArgumentError, message: inspect(reason)
     end
   end
