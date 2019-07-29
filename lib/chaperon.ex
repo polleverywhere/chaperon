@@ -181,8 +181,6 @@ defmodule Chaperon do
         {:remote, session, data}
 
       output ->
-        {exporter, new_options} = options |> exporter
-
         Logger.info("Using result exporter #{inspect(exporter)} with options #{inspect(options)}")
 
         {:ok, _} =
