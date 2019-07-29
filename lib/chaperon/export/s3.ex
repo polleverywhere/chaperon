@@ -15,6 +15,8 @@ defmodule Chaperon.Export.S3 do
   end
 
   def write_output(lt_mod, options, data, filename) do
+    lt_name = Chaperon.LoadTest.name(lt_mod)
+    Logger.info("Chaperon.Export.S3 | Writing output for #{lt_name} to #{filename}")
     {:ok, files} = nested_exporter(options).write_output(lt_mod, options, data, filename)
 
     :ok =
@@ -31,7 +33,7 @@ defmodule Chaperon.Export.S3 do
   end
 
   def upload_file(src_path) do
-    Logger.info("Uploading file #{src_path} to S3 bucket: #{s3_bucket()}")
+    Logger.info("Chaperon.Export.S3 | Uploading file #{src_path} to S3 bucket: #{s3_bucket()}")
 
     ExAws.S3.put_object(s3_bucket(), dest_path(src_path), File.read!(src_path))
     |> ExAws.request!()
