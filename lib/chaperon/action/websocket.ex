@@ -19,11 +19,11 @@ defmodule Chaperon.Action.WebSocket do
   Returns a `Chaperon.WebSocket.SendMessage` action with a given `message` and
   `options`.
   """
-  @spec send(any(), :text | :binary) :: %WebSocket.SendMessage{}
-  def send(message, type \\ :text, options \\ []) do
+  @spec send(any(), Keword.t()) :: %WebSocket.SendMessage{}
+  def send(message, options \\ []) do
     %WebSocket.SendMessage{
       message: message,
-      type: type,
+      type: Keyword.get(options, :type, :text),
       options: options
     }
   end
