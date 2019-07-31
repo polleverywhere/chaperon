@@ -286,8 +286,8 @@ defmodule Chaperon.Master do
   end
 
   defp start_load_test(state, client, %{test: lt_mod, options: options}, task_id \\ UUID.uuid4()) do
-    task =
-      Task.async(fn ->
+    {:ok, task} =
+      Task.start(fn ->
         Process.sleep(@load_test_pause_interval)
 
         try do
@@ -339,7 +339,7 @@ defmodule Chaperon.Master do
 
   defp cancel_running_task(state, task_id, task) do
     Logger.info("Canceling running task #{inspect(task)}")
-    Task.shutdown(task)
+    Process.exit(task, :kill)
 
     state
     |> remove_task(task_id)
