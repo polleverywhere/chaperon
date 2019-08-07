@@ -85,6 +85,10 @@ defmodule Chaperon.Master do
     GenServer.call(@name, :scheduled_load_tests)
   end
 
+  def cancel_all() do
+    GenServer.call(@name, :cancel_all)
+  end
+
   def cancel_running_or_scheduled(id) do
     GenServer.call(@name, {:cancel_running_or_scheduled, id})
   end
@@ -171,6 +175,15 @@ defmodule Chaperon.Master do
       end
 
     {:reply, {:ok, ids}, state}
+  end
+
+  def handle_call(:cancel_all, _, state) do
+    for {task_id, %{task: task}} <- state.tasks do
+      state
+      |> cancel_running_task(task_id, task)
+    end
+
+    {:reply, :ok, %{state | tasks: %{}, scheduled_load_tests: EQ.new()}}
   end
 
   def handle_call({:cancel_running_or_scheduled, id}, _, state) do
