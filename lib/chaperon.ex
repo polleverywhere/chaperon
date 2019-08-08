@@ -202,8 +202,6 @@ defmodule Chaperon do
   end
 
   def exporter(options) do
-    Logger.info("Chaperon.exporter | Checking exporter in options: #{inspect(options)}")
-
     case Keyword.get(options, :export, Chaperon.Export.CSV) do
       {exporter, nested_exporter} when exporter == Chaperon.Export.S3 ->
         options =
