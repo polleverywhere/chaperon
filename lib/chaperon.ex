@@ -25,13 +25,7 @@ defmodule Chaperon do
 
   @version Mix.Project.config()[:version]
   def version do
-    suffix =
-      case System.get_env("VERSION_SUFFIX") do
-        nil -> ""
-        v -> " (#{v})"
-      end
-
-    "#{@version}#{suffix}"
+    @version
   end
 
   @doc """
