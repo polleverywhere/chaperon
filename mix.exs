@@ -82,11 +82,11 @@ defmodule Chaperon.Mixfile do
       {:httpoison, "~> 1.5"},
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
-      {:histogrex, "~> 0.0.4"},
+      {:histogrex, "~> 0.0.5"},
       {:websockex, "~> 0.4"},
       {:e_q, "~> 1.0.0"},
-      {:instream, "~> 0.16.0"},
-      {:deep_merge, "~> 0.1.1"},
+      {:instream, "~> 0.21.0"},
+      {:deep_merge, "~> 1.0"},
       {:cowboy, "~> 2.6"},
       {:plug, "~> 1.8"},
       {:plug_cowboy, "~> 2.0"},
@@ -94,8 +94,8 @@ defmodule Chaperon.Mixfile do
       {:ex_aws, "~> 2.0"},
       {:ex_aws_s3, "~> 2.0"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.14", only: :dev},
-      {:credo, "~> 0.8", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.21.1", only: :dev},
+      {:credo, "~> 1.1", only: [:dev, :test], runtime: false}
     ]
   end
 end
