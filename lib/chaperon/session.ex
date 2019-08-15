@@ -894,7 +894,7 @@ defmodule Chaperon.Session do
       iex> try do
       iex>   session |> config(:invalid) # does not exist
       iex> rescue
-      iex>   _ in Chaperon.Session.RequiredConfigMissing -> :failed
+      iex>   _ in Chaperon.Session.RequiredConfigMissingError -> :failed
       iex> end
       :failed
       iex> session |> config([:bar, :val1])
@@ -933,7 +933,7 @@ defmodule Chaperon.Session do
       iex> try do
       iex>   session |> config(:invalid) # no default value given
       iex> rescue
-      iex>   _ in Chaperon.Session.RequiredConfigMissing -> :failed
+      iex>   _ in Chaperon.Session.RequiredConfigMissingError -> :failed
       iex> end
       :failed
       iex> session |> config(:invalid, "default")
@@ -984,7 +984,7 @@ defmodule Chaperon.Session do
     end
   end
 
-  defmodule RequiredConfigMissing do
+  defmodule RequiredConfigMissingError do
     defexception config_key: nil, session: nil
 
     @type t :: %__MODULE__{
@@ -999,7 +999,9 @@ defmodule Chaperon.Session do
 
     @spec message(t()) :: String.t()
     def message(%__MODULE__{config_key: key, session: session}) do
-      "[Chaperon.Session.RequiredConfigMissing #{session.id} #{session.name}] | #{inspect(key)} "
+      "[Chaperon.Session.RequiredConfigMissingError #{session.id} #{session.name}] | #{
+        inspect(key)
+      } "
     end
   end
 
@@ -1017,7 +1019,7 @@ defmodule Chaperon.Session do
         session
         |> log_error("Config key #{inspect(key)} not found")
 
-        raise RequiredConfigMissing.new(key, session)
+        raise RequiredConfigMissingError.new(key, session)
     end
   end
 

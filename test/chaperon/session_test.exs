@@ -33,15 +33,15 @@ defmodule Chaperon.Session.Test do
     assert Session.config(s, "nested.nested_key", "default") == "okidoki"
     assert Session.config(s, "nested.not_defined", "default") == "default"
 
-    assert_raise(Chaperon.Session.RequiredConfigMissing, fn ->
+    assert_raise(Chaperon.Session.RequiredConfigMissingError, fn ->
       Session.config(s, :not_found)
     end)
 
-    assert_raise(Chaperon.Session.RequiredConfigMissing, fn ->
+    assert_raise(Chaperon.Session.RequiredConfigMissingError, fn ->
       Session.config(s, [:invalid, :config, :key, :path])
     end)
 
-    assert_raise(Chaperon.Session.RequiredConfigMissing, fn ->
+    assert_raise(Chaperon.Session.RequiredConfigMissingError, fn ->
       Session.config(s, "invalid.config.key.path")
     end)
   end
