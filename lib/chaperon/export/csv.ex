@@ -14,6 +14,7 @@ defmodule Chaperon.Export.CSV do
   @doc """
   Encodes metrics of given `session` into CSV format.
   """
+  @impl Chaperon.Exporter
   def encode(session, opts \\ []) do
     separator = opts |> Keyword.get(:separator, @separator)
     delimiter = opts |> Keyword.get(:delimiter, @delimiter)
@@ -23,6 +24,7 @@ defmodule Chaperon.Export.CSV do
     {:ok, data}
   end
 
+  @impl Chaperon.Exporter
   def write_output(lt_mod, options, data, filename) do
     runtime_config = Keyword.get(options, :config, %{})
     Chaperon.write_output_to_file(lt_mod, runtime_config, data, filename <> ".csv")

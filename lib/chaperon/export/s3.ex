@@ -10,10 +10,12 @@ defmodule Chaperon.Export.S3 do
   @doc """
   Encodes metrics of given `session` into CSV format.
   """
+  @impl Chaperon.Exporter
   def encode(session, options \\ []) do
     nested_exporter(options).encode(session, options)
   end
 
+  @impl Chaperon.Exporter
   def write_output(lt_mod, options, data, filename) do
     lt_name = Chaperon.LoadTest.name(lt_mod)
     Logger.info("Chaperon.Export.S3 | Writing output for #{lt_name} to #{filename}")

@@ -38,6 +38,7 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
     alias __MODULE__.LoadTestMeasurement
     require Logger
 
+    @impl Chaperon.Exporter
     def write_output(lt_mod, _options, data, _) do
       Logger.info("Writing data for #{Chaperon.LoadTest.name(lt_mod)} to InfluxDB")
 
@@ -51,6 +52,7 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
     @doc """
     Sends metrics of given `session` to InfluxDB in `LoadTestMeasurement` format.
     """
+    @impl Chaperon.Exporter
     def encode(session, opts \\ []) do
       data =
         session.metrics

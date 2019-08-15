@@ -17,6 +17,7 @@ defmodule Chaperon.Export.JSON do
   @doc """
   Encodes metrics of given `session` into JSON format.
   """
+  @impl Chaperon.Exporter
   def encode(session, _opts \\ []) do
     data =
       session.metrics
@@ -48,6 +49,7 @@ defmodule Chaperon.Export.JSON do
     {:ok, data}
   end
 
+  @impl Chaperon.Exporter
   def write_output(lt_mod, options, data, filename) do
     runtime_config = Keyword.get(options, :config, %{})
     Chaperon.write_output_to_file(lt_mod, runtime_config, data, filename <> ".json")
