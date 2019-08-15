@@ -29,6 +29,14 @@ defmodule Chaperon.Export.JSON do
             metrics: metrics(vals)
           }
 
+        {{{:error, {:http, code}}, {action, url}}, vals} ->
+          %{
+            error: %{http: code},
+            action: action,
+            url: url,
+            metrics: metrics(vals)
+          }
+
         {{action, url}, vals} ->
           %{action: action, url: url, metrics: metrics(vals)}
 

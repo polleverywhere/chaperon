@@ -59,6 +59,9 @@ if Application.get_env(:chaperon, Chaperon.Export.InfluxDB, false) do
             mod_name = Util.shortened_module_name(mod)
             encode_runs(vals, "call(#{mod_name}.#{func})", opts)
 
+          {{{:error, {:http, code}}, {action, url}}, vals} ->
+            encode_runs(vals, "error.http.#{code}(#{action}(#{url}))", opts)
+
           {{action, url}, vals} ->
             encode_runs(vals, "#{action}(#{url})", opts)
 

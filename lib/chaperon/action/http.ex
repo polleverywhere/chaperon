@@ -279,10 +279,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
       {:ok, response} ->
         session
         |> add_result(action, response)
-        |> add_metric(
-          {action.method, HTTP.metrics_url(action, session)},
-          timestamp() - start
-        )
+        |> add_request_metrics(action, response, timestamp() - start)
         |> store_response_cookies(response)
         |> run_callback_if_defined(action, response)
         |> ok
@@ -296,6 +293,28 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.HTTP do
           |> run_error_callback(action, reason)
 
         {:error, %Error{reason: reason, action: action, session: session}}
+    end
+  end
+
+  defp add_request_metrics(
+         session,
+         action,
+         _response = %HTTPoison.Response{status_code: status_code},
+         duration
+       ) do
+    metrics_url = HTTP.metrics_url(action, session)
+
+    session =
+      session
+      |> add_metric({action.method, metrics_url}, duration)
+
+    case status_code do
+      c when c < 400 ->
+        session
+
+      c when c in 400..599 ->
+        session
+        |> add_metric({{:error, {:http, c}}, {action.method, metrics_url}}, duration)
     end
   end
 

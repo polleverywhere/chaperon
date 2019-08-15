@@ -55,6 +55,9 @@ defmodule Chaperon.Export.CSV do
         mod_name = Util.shortened_module_name(mod)
         encode_runs(vals, "call(#{mod_name}.#{func})", separator)
 
+      {{{:error, {:http, code}}, {action, url}}, vals} ->
+        encode_runs(vals, "Error HTTP #{code} #{action}(#{url})", separator)
+
       {{action, url}, vals} ->
         encode_runs(vals, "#{action}(#{url})", separator)
 
