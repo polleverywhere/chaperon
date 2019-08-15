@@ -1663,9 +1663,9 @@ defmodule Chaperon.Session do
     end
   end
 
-  defp maybe_end_interval_task(%{interval_task: nil} = session), do: session
+  defp maybe_end_interval_task(session = %{interval_task: nil}), do: session
 
-  defp maybe_end_interval_task(%{interval_task: task} = session) do
+  defp maybe_end_interval_task(session = %{interval_task: task}) do
     send(task.pid, :end_interval_task)
     interval_session = Task.await(task)
 
