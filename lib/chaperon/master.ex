@@ -261,6 +261,11 @@ defmodule Chaperon.Master do
     {:noreply, state}
   end
 
+  def handle_info({:DOWN, _ref, :process, pid, :normal}, state) do
+    Logger.debug("Chaperon.Master | Load test finished: #{inspect(pid)}")
+    {:noreply, state}
+  end
+
   def handle_info({:DOWN, ref, :process, pid, {error, _context}}, state) do
     task_id = find_task_id(state, pid, ref)
     Logger.error("Chaperon.Master | LoadTest died: #{task_id} | #{Exception.message(error)}")
