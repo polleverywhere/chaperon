@@ -261,6 +261,24 @@ defmodule Chaperon.Master do
     {:noreply, state}
   end
 
+  def handle_info({:DOWN, ref, :process, pid, {error, _context}}, state) do
+    task_id = task_id_for_pid(state, pid)
+    Logger.error("Chaperon.Master | LoadTest died: #{task_id} | #{Exception.message(error)}")
+
+    state =
+      state
+      |> remove_task(task_id)
+      |> schedule_next()
+
+    {:noreply, state}
+  end
+
+  def handle_info(msg, state) do
+    Logger.error("Chaperon.Master | Ignoring unknown message: #{inspect(msg)}")
+
+    {:noreply, state}
+  end
+
   defp run_options(options) do
     case {:global.whereis_name(Chaperon.Master), options[:output]} do
       {_, nil} ->
@@ -302,7 +320,7 @@ defmodule Chaperon.Master do
   end
 
   defp start_load_test(state, client, %{test: lt_mod, options: options}, task_id \\ UUID.uuid4()) do
-    {:ok, task} =
+    {:ok, task_pid} =
       Task.start(fn ->
         Process.sleep(@load_test_pause_interval)
 
@@ -315,10 +333,16 @@ defmodule Chaperon.Master do
         end
       end)
 
+    task_ref = Process.monitor(task_pid)
+
     state =
       update_in(
         state.tasks,
-        &Map.put(&1, task_id, %{client: client, load_test: lt_mod, task: task})
+        &Map.put(&1, task_id, %{
+          client: client,
+          load_test: lt_mod,
+          task: {task_pid, task_ref}
+        })
       )
 
     %{state: state, id: task_id}
@@ -338,26 +362,37 @@ defmodule Chaperon.Master do
 
   defp schedule_next(state) do
     if EQ.empty?(state.scheduled_load_tests) do
+      Logger.warn("Chaperon.Master | No other load tests scheduled - aborting schedule_next")
       state
     else
       case EQ.pop(state.scheduled_load_tests) do
         {{:value, next}, remaining} ->
-          Logger.info("Starting next scheduled load test with id #{next.id}")
+          Logger.info("Chaperon.Master | Starting next scheduled load test with id #{next.id}")
           %{state: state, id: _} = state |> start_load_test(nil, next, next.id)
           %{state | scheduled_load_tests: remaining}
 
         {:empty, _remaining} ->
-          Logger.warn("No remaining scheduled load tests available. Doing nothing for now...")
+          Logger.warn(
+            "Chaperon.Master | No remaining scheduled load tests available. Doing nothing for now..."
+          )
+
           state
       end
     end
   end
 
-  defp cancel_running_task(state, task_id, task) do
-    Logger.info("Canceling running task #{inspect(task)}")
-    Process.exit(task, :kill)
+  defp cancel_running_task(state, task_id, task = {pid, _ref}) do
+    Logger.info("Chaperon.Master | Canceling running task #{inspect(task)}")
+    Process.exit(pid, :kill)
 
     state
     |> remove_task(task_id)
+  end
+
+  defp task_id_for_pid(state, pid) do
+    for {task_id, %{task: {^pid, _}}} <- state.tasks do
+      task_id
+    end
+    |> Enum.at(0)
   end
 end
