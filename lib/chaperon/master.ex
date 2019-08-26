@@ -99,7 +99,9 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:run_load_test, lt_mod, options}, client, state) do
-    Logger.info("Starting LoadTest #{Chaperon.LoadTest.name(lt_mod)} @ Master #{state.id}")
+    Logger.info(
+      "Chaperon.Master | Starting LoadTest #{Chaperon.LoadTest.name(lt_mod)} @ Master #{state.id}"
+    )
 
     %{state: state, id: _task_id} =
       start_load_test(state, client, %{test: lt_mod, options: options})
@@ -113,7 +115,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_call(:running_load_tests, _, state) do
-    Logger.info("Requesting running load tests")
+    Logger.info("Chaperon.Master | Requesting running load tests")
 
     running =
       for {id, %{load_test: lt_conf}} <- state.tasks do
@@ -124,7 +126,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_call(:scheduled_load_tests, _, state) do
-    Logger.info("Requesting scheduled load tests")
+    Logger.info("Chaperon.Master | Requesting scheduled load tests")
 
     scheduled =
       for %{test: lt_conf, id: id} <- EQ.to_list(state.scheduled_load_tests) do
@@ -140,7 +142,7 @@ defmodule Chaperon.Master do
         state
       ) do
     name = Chaperon.LoadTest.name(lt_mod)
-    Logger.info("Scheduling load test with name: #{name}")
+    Logger.info("Chaperon.Master | Scheduling load test with name: #{name}")
 
     %{state: state, id: id} =
       if running_load_test?(state) do
@@ -153,7 +155,10 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:schedule_load_tests, []}, client, state) do
-    Logger.warn("Client #{inspect(client)} tried to schedule empty list of load tests - Aborting")
+    Logger.warn(
+      "Chaperon.Master | Client #{inspect(client)} tried to schedule empty list of load tests - Aborting"
+    )
+
     {:reply, {:error, :no_load_tests_given}, state}
   end
 
@@ -161,7 +166,9 @@ defmodule Chaperon.Master do
     lt_names = for %{test: lt_mod} <- load_tests, do: Chaperon.LoadTest.name(lt_mod)
 
     Logger.info(
-      "Scheduling #{Enum.count(load_tests)} load tests with names: #{inspect(lt_names)}"
+      "Chaperon.Master | Scheduling #{Enum.count(load_tests)} load tests with names: #{
+        inspect(lt_names)
+      }"
     )
 
     %{state: state, ids: ids} = state |> add_load_tests(load_tests)
@@ -204,11 +211,13 @@ defmodule Chaperon.Master do
 
   def handle_cast({:load_test_finished, {lt_mod, task_id}, session}, state) do
     lt_name = Chaperon.LoadTest.name(lt_mod)
-    Logger.info("LoadTest finished: #{lt_name} / #{task_id}")
+    Logger.info("Chaperon.Master | LoadTest finished: #{lt_name} / #{task_id}")
 
     case state.tasks[task_id] do
       nil ->
-        Logger.error("No client found for finished load test: #{lt_name} @ #{task_id}")
+        Logger.error(
+          "Chaperon.Master | No client found for finished load test: #{lt_name} @ #{task_id}"
+        )
 
       %{client: client} ->
         if client do
@@ -228,14 +237,21 @@ defmodule Chaperon.Master do
     case state.tasks[task_id] do
       %{client: client} ->
         lt_name = Chaperon.LoadTest.name(lt_mod)
-        Logger.info("LoadTest failed: #{lt_name} / #{task_id} with error: #{inspect(err)}")
+
+        Logger.info(
+          "Chaperon.Master | LoadTest failed: #{lt_name} / #{task_id} with error: #{inspect(err)}"
+        )
 
         if client do
           GenServer.reply(client, {:error, err})
         end
 
       nil ->
-        Logger.info("Unknown LoadTest with id #{task_id} failed with error: #{inspect(err)}")
+        Logger.info(
+          "Chaperon.Master | Unknown LoadTest with id #{task_id} failed with error: #{
+            inspect(err)
+          }"
+        )
     end
 
     state
@@ -263,7 +279,7 @@ defmodule Chaperon.Master do
   defp add_load_test(state, lt = %{test: lt_mod, options: _}) do
     id = UUID.uuid4()
     name = Chaperon.LoadTest.name(lt_mod)
-    Logger.debug("Scheduling load test #{name} with ID #{id}")
+    Logger.debug("Chaperon.Master | Scheduling load test #{name} with ID #{id}")
     state = update_in(state.scheduled_load_tests, &EQ.push(&1, Map.merge(%{id: id}, lt)))
     %{state: state, id: id}
   end
