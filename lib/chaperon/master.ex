@@ -262,7 +262,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_info({:DOWN, ref, :process, pid, {error, _context}}, state) do
-    task_id = task_id_for_pid(state, pid)
+    task_id = find_task_id(state, pid, ref)
     Logger.error("Chaperon.Master | LoadTest died: #{task_id} | #{Exception.message(error)}")
 
     state =
@@ -389,8 +389,8 @@ defmodule Chaperon.Master do
     |> remove_task(task_id)
   end
 
-  defp task_id_for_pid(state, pid) do
-    for {task_id, %{task: {^pid, _}}} <- state.tasks do
+  defp find_task_id(state, pid, ref) do
+    for {task_id, %{task: {^pid, ^ref}}} <- state.tasks do
       task_id
     end
     |> Enum.at(0)
