@@ -1,4 +1,10 @@
 defmodule Chaperon.API.HTTP do
+  @moduledoc """
+  HTTP API handler used for remote control of chaperon cluster.
+  Allows scheduling new load tests, aborting currently running or scheduled ones
+  as well as listing all currently running and scheduled load tests.
+  """
+
   require Logger
   require Poison
 
