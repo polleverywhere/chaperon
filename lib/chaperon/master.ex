@@ -93,6 +93,10 @@ defmodule Chaperon.Master do
     GenServer.call(@name, {:cancel_running_or_scheduled, id})
   end
 
+  def cancel_scheduled() do
+    GenServer.call(@name, :cancel_scheduled)
+  end
+
   @spec ignore_node_as_worker(atom) :: :ok
   def ignore_node_as_worker(node) do
     GenServer.call(@name, {:ignore_node_as_worker, node})
@@ -207,6 +211,10 @@ defmodule Chaperon.Master do
       end
 
     {:reply, :ok, state}
+  end
+
+  def handle_call(:cancel_scheduled, _, state) do
+    {:reply, :ok, %{state | scheduled_load_tests: EQ.new()}}
   end
 
   def handle_cast({:load_test_finished, {lt_mod, task_id}, session}, state) do
