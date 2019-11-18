@@ -7,6 +7,7 @@ defmodule Chaperon.Scenario.Metrics do
   use Histogrex
   alias __MODULE__
   alias Chaperon.Session
+  require Logger
 
   template(:durations, min: 1, max: 10_000_000, precision: 3)
 
@@ -136,6 +137,7 @@ defmodule Chaperon.Scenario.Metrics do
       record_metric(k, v)
     rescue
       err ->
+        Logger.error("Invalid metric value: #{inspect(k)} / #{inspect(v)}")
         record_metric("FAILURE metric #{inspect(k)}: #{inspect(err)}", 1)
     end
 
