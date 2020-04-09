@@ -355,6 +355,7 @@ defmodule Chaperon.Master do
         &Map.put(&1, task_id, %{
           client: client,
           load_test: lt_mod,
+          options: options,
           task: {task_pid, task_ref}
         })
       )
