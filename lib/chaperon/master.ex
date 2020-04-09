@@ -122,8 +122,9 @@ defmodule Chaperon.Master do
     Logger.info("Chaperon.Master | Requesting running load tests")
 
     running =
-      for {id, %{load_test: lt_conf}} <- state.tasks do
-        %{name: Chaperon.LoadTest.name(lt_conf), id: id}
+      for {id, %{load_test: lt_conf, options: options}} <- state.tasks do
+        Logger.error("Got load test options: #{inspect(options)}")
+        %{name: Chaperon.LoadTest.name(lt_conf), id: id, tag: options[:tag]}
       end
 
     {:reply, running, state}
@@ -133,8 +134,8 @@ defmodule Chaperon.Master do
     Logger.info("Chaperon.Master | Requesting scheduled load tests")
 
     scheduled =
-      for %{test: lt_conf, id: id} <- EQ.to_list(state.scheduled_load_tests) do
-        %{name: Chaperon.LoadTest.name(lt_conf), id: id}
+      for %{test: lt_conf, id: id, options: options} <- EQ.to_list(state.scheduled_load_tests) do
+        %{name: Chaperon.LoadTest.name(lt_conf), id: id, tag: options[:tag]}
       end
 
     {:reply, scheduled, state}
