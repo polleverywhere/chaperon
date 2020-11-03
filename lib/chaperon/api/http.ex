@@ -50,11 +50,24 @@ defmodule Chaperon.API.HTTP do
     port = api_port()
     Logger.info("Starting Chaperon.API.HTTP on port #{port}")
 
-    Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
+    case api_ip() do
+      nil -> Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
+      ip -> Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port, ip: ip)
+    end
   end
 
   def enabled?() do
     api_port() != nil
+  end
+
+  def api_ip() do
+    case System.get_env("CHAPERON_IP") do
+      nil ->
+        Application.get_env(:chaperon, __MODULE__)[:ip]
+
+      ip ->
+        String.to_charlist(ip) |> :inet.parse_address() |> elem(1)
+    end
   end
 
   def api_port() do
