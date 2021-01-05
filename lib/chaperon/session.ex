@@ -317,8 +317,7 @@ defmodule Chaperon.Session do
           |> retry_delay(opts)
           |> retry_on_error(func, args, opts)
         else
-          stacktrace = System.stacktrace()
-          reraise err, stacktrace
+          reraise err, __STACKTRACE__
         end
     end
   end

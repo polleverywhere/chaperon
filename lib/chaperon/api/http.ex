@@ -32,6 +32,7 @@ defmodule Chaperon.API.HTTP do
 
   use Plug.Router
   import Plug.Conn
+  import Plug.BasicAuth
   import Chaperon.Util, only: [symbolize_keys: 1]
 
   if Mix.env() == :dev do
@@ -41,7 +42,7 @@ defmodule Chaperon.API.HTTP do
   plug(Chaperon.API.HTTP.HealthCheckPlug)
   plug(:self_logger)
   plug(Plug.RequestId)
-  plug(BasicAuth, use_config: {:chaperon, Chaperon.API.HTTP})
+  plug(:basic_auth, Application.get_env(:chaperon, Chaperon.API.HTTP))
   plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
   plug(:match)
   plug(:dispatch)
