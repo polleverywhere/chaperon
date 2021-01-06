@@ -21,6 +21,7 @@ defmodule Chaperon.Action.HTTP do
   @type options :: [
           form: map | Keyword.t(),
           json: map | Keyword.t(),
+          gzip: iodata,
           headers: map | Keyword.t(),
           params: map | Keyword.t(),
           decode: :json | (HTTPoison.Response.t() -> any),
@@ -239,6 +240,13 @@ defmodule Chaperon.Action.HTTP do
 
   defp parse_body(json: data), do: data |> json_body
   defp parse_body(form: data), do: data |> form_body
+
+  defp parse_body(gzip: data) do
+    {
+      %{"Content-Encoding" => "gzip"},
+      data |> :zlib.gzip()
+    }
+  end
 
   defp json_body(data) do
     {
