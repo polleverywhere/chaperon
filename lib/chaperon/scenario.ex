@@ -45,7 +45,7 @@ defmodule Chaperon.Scenario do
     next scenario in the list. Makes it easy to define a new scenario as a
     pipeline of a list of existing scenarios.
 
-    Example usage:
+    ## Example
 
         alias Chaperon.Scenario
         alias MyScenarios.{A, B, C}
@@ -54,6 +54,7 @@ defmodule Chaperon.Scenario do
           Scenario.Sequence,
           Scenario.Sequence.config_for([A, B, C])
         )
+
     """
 
     alias Chaperon.Session
@@ -233,7 +234,7 @@ defmodule Chaperon.Scenario do
 
   @doc """
   Cleans up any resources after the Scenario was run (if needed).
-  Can be overriden.
+  Can be overridden.
 
   If `scenario`'s implementation module defines a `teardown/1` callback function,
   calls it with `session` to clean up resources as needed.

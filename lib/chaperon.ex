@@ -55,19 +55,30 @@ defmodule Chaperon do
   at the end.
 
   - `lt_mod` LoadTest module to be executed
+
   - `options` List of options to be used. Valid values are:
       - `:print_results` If set to `true`, will print all action results.
-      - `:export` Can be set to any module implementing the `Chaperon.Exporter` behaviour.
-        Defaults to `Chaperon.Export.CSV`. When using `Chaperon.Export.S3` it defaults to the CSV export format.
-        You can use another export format by wrapping it in a tuple, like so: `{Chaperon.Export.S3, Chaperon.Export.JSON}`
+
+      - `:export` Can be set to any module implementing the `Chaperon.Exporter`
+        behaviour.
+
+        Defaults to `Chaperon.Export.CSV`. When using `Chaperon.Export.S3` it
+        defaults to the CSV export format.
+
+        You can use another export format by wrapping it in a tuple, like so:
+        `{Chaperon.Export.S3, Chaperon.Export.JSON}`
+
       - `:output` Can be set to a file path
+
       - `:tag` Can be set to be used when using the default export filename.
         Allows adding a custom 'tag' string as a prefix to the generated result
         output filename.
+
       - `:metrics` Filtering options for metrics
           Valid filters:
-            - (metric) -> boolean
-            - [metric_type]
+          - (metric) -> boolean
+          - [metric_type]
+
   ## Example
 
       alias Chaperon.Export.JSON
@@ -84,13 +95,16 @@ defmodule Chaperon do
       # Outputs metrics in JSON format to metrics.json file
       Chaperon.run_load_test MyLoadTest, export: JSON, output: "metrics.json"
 
-      # Outputs metrics in CCSV format to "results/<date>/MyLoadTest/master-<timestamp>.csv"
+      # Outputs metrics in CCSV format to
+      # "results/<date>/MyLoadTest/master-<timestamp>.csv"
       Chaperon.run_load_test MyLoadTest, tag: "master"
 
-      # Outputs metrics in JSON format to "results/<date>/MyLoadTest/master-<timestamp>.json"
+      # Outputs metrics in JSON format to
+      # "results/<date>/MyLoadTest/master-<timestamp>.json"
       Chaperon.run_load_test MyLoadTest, export: JSON, tag: "master"
 
-      # Tracks only calls in MyScenario (can take any function that returns `true` or `false`)
+      # Tracks only calls in MyScenario (can take any function that returns
+      # `true` or `false`)
       Chaperon.run_load_test MyLoadTest, tag: "master", metrics: fn
         {:call, {MyScenario, _}} ->
           true
@@ -105,6 +119,7 @@ defmodule Chaperon do
         :post,
         :my_custom_metric
       ]
+
   """
   def run_load_test(lt_mod, options \\ []) do
     timeout = Chaperon.LoadTest.timeout(lt_mod)
