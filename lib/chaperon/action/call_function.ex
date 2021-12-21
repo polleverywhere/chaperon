@@ -21,7 +21,13 @@ end
 defimpl Chaperon.Actionable, for: Chaperon.Action.CallFunction do
   alias Chaperon.Session
 
-  def run(%{func: f, args: args}, session) when is_atom(f) do
+  def run(%{func: f, args: args}, in_session) when is_atom(f) do
+    session =
+      case in_session do
+        {:ok, s} -> s
+        s -> s
+      end
+
     metric = {:call, {session.scenario.module, f}}
 
     session

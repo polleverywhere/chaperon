@@ -52,6 +52,7 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
       {:ws_closed, ^ws_url} ->
         session
         |> log_error("Failed to connect via WS to #{ws_url} - Connection closed remotely")
+        |> Session.error({:ws_closed, :ws_conn, ws_url})
     after
       timeout ->
         session
@@ -79,7 +80,15 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
         send(parent, {:ws_connected, ws_client, ws_url})
 
       {:error, %WebSockex.ConnError{original: :closed}} ->
-        send(parent, {:ws_closed, ws_url})
+        session
+        |> log_warn("Failed to connect via WS to #{ws_url} - WS_CLOSED")
+        |> Session.random_delay(
+          session
+          |> Session.config("ws.connect_timeout", 3 |> seconds)
+        )
+        |> connection_attempt_loop(ws_url, parent)
+
+      # send(parent, {:ws_closed, ws_url})
 
       {:error, %WebSockex.ConnError{original: :timeout}} ->
         session
