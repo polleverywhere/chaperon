@@ -1,5 +1,11 @@
 # Chaperon
 
+[![Module Version](https://img.shields.io/hexpm/v/chaperon.svg)](https://hex.pm/packages/chaperon)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/chaperon/)
+[![Total Download](https://img.shields.io/hexpm/dt/chaperon.svg)](https://hex.pm/packages/chaperon)
+[![License](https://img.shields.io/hexpm/l/chaperon.svg)](https://github.com/polleverywhere/chaperon/blob/master/LICENSE.md)
+[![Last Updated](https://img.shields.io/github/last-commit/polleverywhere/chaperon.svg)](https://github.com/yyy/chaperon/commits/master)
+
 ## HTTP Service Performance Testing Framework
 
 This is a framework / library & tool for doing load and performance tests on web services.
@@ -45,16 +51,24 @@ Then enter the following code into any worker's iex shell to connect it to the m
 iex> Chaperon.connect_to_master :"chaperon@node1.myhost.com"
 ```
 
-Pick one of the nodes as your master node and connect to it from the worker nodes (see above).  
-Before starting up the child nodes make sure you've given them the same VM cookie and config to point to the master node.  
+Pick one of the nodes as your master node and connect to it from the worker nodes (see above).
+Before starting up the child nodes make sure you've given them the same VM cookie and config to point to the master node.
 The master node can be identical to the worker nodes, the only difference being that it kicks off the load test and distributes the workload across all worker nodes. When a worker node is done with running a scenario / session task, it sends the results back to the master, which then merges all results to give the final metrics for display / output.
 
 
 ## Is this ready for production use?
 
 Chaperon is being used at [Poll Everywhere](https://polleverywhere.com)  and was written for load testing our infrastructure and polling services.
-It has been used to simulate over 100k concurrent vote participant sessions on a 4 node cluster.  
-It currently is still on a pre 1.0 version. A 1.0 release is not planned yet as the main focus is to get rid of any potential bugs, refine the public API and internal implementation code until we're confident that everything works as expected.  
+It has been used to simulate over 100k concurrent vote participant sessions on a 4 node cluster.
+It currently is still on a pre 1.0 version. A 1.0 release is not planned yet as the main focus is to get rid of any potential bugs, refine the public API and internal implementation code until we're confident that everything works as expected.
 That doesn't mean it shouldn't be used in its current stage, though.
 
 If you'd like to try out Chaperon, please give it a try. Any feedback, bug reports or patches are welcome.
+
+
+## Copyright and License
+
+Copyright (c) 2016 Christopher Bertels
+
+This work is free. You can redistribute it and/or modify it under the
+terms of the MIT License. See the [LICENSE.md](./LICENSE.md) file for more details.
