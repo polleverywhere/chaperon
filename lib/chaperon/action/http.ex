@@ -207,7 +207,8 @@ defmodule Chaperon.Action.HTTP do
     opts = [
       cookie: session.cookies,
       basic_auth: session.config[:basic_auth],
-      pool: :chaperon
+      pool: :chaperon,
+      insecure: session.config[:insecure]
     ]
 
     opts
