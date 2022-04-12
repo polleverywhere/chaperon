@@ -277,7 +277,7 @@ defmodule Chaperon.Master do
 
   def handle_info({:DOWN, ref, :process, pid, {error, _context}}, state) do
     task_id = find_task_id(state, pid, ref)
-    Logger.error("Chaperon.Master | LoadTest died: #{task_id} | #{Exception.message(error)}")
+    Logger.error("Chaperon.Master | LoadTest died: #{task_id} | #{inspect(error)}")
 
     state =
       state
