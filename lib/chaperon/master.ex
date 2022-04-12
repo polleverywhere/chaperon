@@ -123,7 +123,7 @@ defmodule Chaperon.Master do
 
     running =
       for {id, %{load_test: lt_conf, options: options}} <- state.tasks do
-        Logger.error("Got load test options: #{inspect(options)}")
+        Logger.debug("Got load test options: #{inspect(options)}")
         %{name: Chaperon.LoadTest.name(lt_conf), id: id, tag: options[:tag]}
       end
 
