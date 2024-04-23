@@ -1,4 +1,3 @@
-use Mix.Config
+import Config
 
-config :logger, :console,
-  format: ""
+config :logger, :console, format: ""
