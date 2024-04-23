@@ -52,9 +52,7 @@ defmodule Chaperon.Session.Logging do
       session = unquote(session)
 
       Logger.error(
-        "#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} #{
-          inspect(unquote(reason))
-        }"
+        "#{Chaperon.Session.id_string(session)} #{session.name} | #{unquote(message)} #{inspect(unquote(reason))}"
       )
 
       session
