@@ -42,7 +42,7 @@ defmodule Chaperon.API.HTTP do
   plug(Chaperon.API.HTTP.HealthCheckPlug)
   plug(:self_logger)
   plug(Plug.RequestId)
-  plug(:basic_auth, Application.get_env(:chaperon, Chaperon.API.HTTP))
+  plug(:basic_auth, Application.compile_env(:chaperon, Chaperon.API.HTTP))
   plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
   plug(:match)
   plug(:dispatch)
@@ -52,8 +52,8 @@ defmodule Chaperon.API.HTTP do
     Logger.info("Starting Chaperon.API.HTTP on port #{port}")
 
     case api_ip() do
-      nil -> Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
-      ip -> Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port, ip: ip)
+      nil -> Plug.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
+      ip -> Plug.Cowboy.http(__MODULE__, [acceptors: 20], port: port, ip: ip)
     end
   end
 

@@ -378,6 +378,7 @@ defmodule Chaperon.Session do
 
   @doc """
   Await an async task with a given `task_name` in `session`.
+  Alternatively await all async tasks for the given `task_names` in `session`.
   """
   @spec await(Session.t(), atom) :: Session.t()
   def await(session, task_name) when is_atom(task_name) do
@@ -385,9 +386,6 @@ defmodule Chaperon.Session do
     |> await(task_name, session.async_tasks[task_name])
   end
 
-  @doc """
-  Await all async tasks for the given `task_names` in `session`.
-  """
   @spec await(Session.t(), [atom]) :: Session.t()
   def await(session, task_names) when is_list(task_names) do
     task_names
@@ -998,9 +996,7 @@ defmodule Chaperon.Session do
 
     @spec message(t()) :: String.t()
     def message(%__MODULE__{config_key: key, session: session}) do
-      "[Chaperon.Session.RequiredConfigMissingError #{session.id} #{session.name}] | #{
-        inspect(key)
-      } "
+      "[Chaperon.Session.RequiredConfigMissingError #{session.id} #{session.name}] | #{inspect(key)} "
     end
   end
 
@@ -1201,16 +1197,23 @@ defmodule Chaperon.Session do
   end
 
   @doc """
-  Await any signal and call a given callback with the session and the received
+  Await a given signal in the current session and returns session afterwards.
+  Alternatively await any signal and call a given callback with the session and the received
   signal.
 
-  Example:
+  Example 1:
 
       session
       |> await_signal(fn(session, signal) ->
         session
         |> assign(signal: signal)
       end)
+
+  Example 2:
+
+      session
+      |> await_signal(:continue_search)
+      |> get("/search", params: [query: "Got load test?"])
   """
   @spec await_signal(
           Session.t(),
@@ -1225,15 +1228,6 @@ defmodule Chaperon.Session do
     )
   end
 
-  @doc """
-  Await a given signal in the current session and returns session afterwards.
-
-  Example:
-
-      session
-      |> await_signal(:continue_search)
-      |> get("/search", params: [query: "Got load test?"])
-  """
   def await_signal(session, expected_signal) do
     await_common(
       session,
@@ -1863,9 +1857,7 @@ defimpl String.Chars, for: Chaperon.Session do
             "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}}"
 
           parent_id ->
-            "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}, parent_id: #{
-              inspect(parent_id)
-            }}"
+            "Session{id: #{inspect(session.id)}, scenario: #{inspect(scenario_mod)}, parent_id: #{inspect(parent_id)}}"
         end
 
       nil ->

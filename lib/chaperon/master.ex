@@ -6,6 +6,8 @@ defmodule Chaperon.Master do
   globally as `Chaperon.Master`.
   """
 
+  @derive {Inspect, only: [:id]}
+
   defstruct id: nil,
             sessions: %{},
             tasks: %{},
@@ -19,8 +21,6 @@ defmodule Chaperon.Master do
           non_worker_nodes: [atom],
           scheduled_load_tests: EQ.t()
         }
-
-  @derive {Inspect, only: [:id]}
 
   @load_test_pause_interval Chaperon.Timing.seconds(30)
 
@@ -327,7 +327,7 @@ defmodule Chaperon.Master do
   end
 
   defp running_load_test?(state) do
-    Map.size(state.tasks) > 0
+    map_size(state.tasks) > 0
   end
 
   defp start_load_test(state, client, %{test: lt_mod, options: options}, task_id \\ UUID.uuid4()) do
