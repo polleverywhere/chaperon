@@ -160,7 +160,7 @@ defmodule Chaperon.Master do
   end
 
   def handle_call({:schedule_load_tests, []}, client, state) do
-    Logger.warn(
+    Logger.warning(
       "Chaperon.Master | Client #{inspect(client)} tried to schedule empty list of load tests - Aborting"
     )
 
@@ -171,9 +171,7 @@ defmodule Chaperon.Master do
     lt_names = for %{test: lt_mod} <- load_tests, do: Chaperon.LoadTest.name(lt_mod)
 
     Logger.info(
-      "Chaperon.Master | Scheduling #{Enum.count(load_tests)} load tests with names: #{
-        inspect(lt_names)
-      }"
+      "Chaperon.Master | Scheduling #{Enum.count(load_tests)} load tests with names: #{inspect(lt_names)}"
     )
 
     %{state: state, ids: ids} = state |> add_load_tests(load_tests)
@@ -257,9 +255,7 @@ defmodule Chaperon.Master do
 
       nil ->
         Logger.info(
-          "Chaperon.Master | Unknown LoadTest with id #{task_id} failed with error: #{
-            inspect(err)
-          }"
+          "Chaperon.Master | Unknown LoadTest with id #{task_id} failed with error: #{inspect(err)}"
         )
     end
 
@@ -378,7 +374,7 @@ defmodule Chaperon.Master do
 
   defp schedule_next(state) do
     if EQ.empty?(state.scheduled_load_tests) do
-      Logger.warn("Chaperon.Master | No other load tests scheduled - aborting schedule_next")
+      Logger.warning("Chaperon.Master | No other load tests scheduled - aborting schedule_next")
       state
     else
       case EQ.pop(state.scheduled_load_tests) do
@@ -388,7 +384,7 @@ defmodule Chaperon.Master do
           %{state | scheduled_load_tests: remaining}
 
         {:empty, _remaining} ->
-          Logger.warn(
+          Logger.warning(
             "Chaperon.Master | No remaining scheduled load tests available. Doing nothing for now..."
           )
 

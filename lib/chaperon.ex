@@ -130,7 +130,7 @@ defmodule Chaperon do
     if results.timed_out > 0 do
       succeeded = Enum.count(results.sessions)
 
-      Logger.warn(
+      Logger.warning(
         "#{lt_name} : #{results.timed_out} sessions timed out. #{succeeded} sessions succeeded."
       )
     end
@@ -203,9 +203,7 @@ defmodule Chaperon do
           |> Keyword.put(:export, nested_exporter)
 
         Logger.info(
-          "Chaperon.exporter | Using S3 exporter #{inspect(exporter)} with nested #{
-            inspect(nested_exporter)
-          }"
+          "Chaperon.exporter | Using S3 exporter #{inspect(exporter)} with nested #{inspect(nested_exporter)}"
         )
 
         {Chaperon.Export.S3, options}
