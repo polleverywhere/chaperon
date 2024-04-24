@@ -32,6 +32,7 @@ defmodule Chaperon.API.HTTP do
 
   use Plug.Router
   import Plug.Conn
+  import Plug.BasicAuth
   import Chaperon.Util, only: [symbolize_keys: 1]
 
   if Mix.env() == :dev do
@@ -41,7 +42,7 @@ defmodule Chaperon.API.HTTP do
   plug(Chaperon.API.HTTP.HealthCheckPlug)
   plug(:self_logger)
   plug(Plug.RequestId)
-  plug(BasicAuth, use_config: {:chaperon, Chaperon.API.HTTP})
+  plug(:auth)
   plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
   plug(:match)
   plug(:dispatch)
@@ -51,9 +52,15 @@ defmodule Chaperon.API.HTTP do
     Logger.info("Starting Chaperon.API.HTTP on port #{port}")
 
     case api_ip() do
-      nil -> Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
-      ip -> Plug.Adapters.Cowboy.http(__MODULE__, [acceptors: 20], port: port, ip: ip)
+      nil -> Plug.Cowboy.http(__MODULE__, [acceptors: 20], port: port)
+      ip -> Plug.Cowboy.http(__MODULE__, [acceptors: 20], port: port, ip: ip)
     end
+  end
+
+  defp auth(conn, _opts) do
+    username = "chaperon"
+    password = System.fetch_env!("CHAPERON_API_TOKEN")
+    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
   end
 
   def enabled?() do

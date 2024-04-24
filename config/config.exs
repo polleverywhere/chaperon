@@ -1,6 +1,6 @@
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
-use Mix.Config
+import Config
 
 config :logger, :console,
   level: :info,
@@ -33,5 +33,5 @@ config :ex_aws,
 
 # Custom per env config files override values defined here (if they exist)
 if File.exists?("#{__DIR__}/#{Mix.env()}.exs") do
-  import_config "#{Mix.env()}.exs"
+  import_config "#{config_env()}.exs"
 end

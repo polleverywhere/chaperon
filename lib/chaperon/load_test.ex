@@ -253,17 +253,15 @@ defmodule Chaperon.LoadTest do
   """
   @spec merge_sessions(Results.t()) :: Session.t()
   def merge_sessions(results = %Results{sessions: [], max_timeout: timeout}) do
-    Logger.warn(
-      "No scenario task finished in time (timeout = #{timeout}) for load_test: #{
-        inspect(results.load_test)
-      }"
+    Logger.warning(
+      "No scenario task finished in time (timeout = #{timeout}) for load_test: #{inspect(results.load_test)}"
     )
 
     %Session{}
   end
 
   def merge_sessions(r = %Results{sessions: [nil | sessions]}) do
-    Logger.warn("Skipping timed out session while merging session metrics & results")
+    Logger.warning("Skipping timed out session while merging session metrics & results")
     merge_sessions(%{r | sessions: sessions})
   end
 

@@ -56,11 +56,13 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
       {:ws_failed, ^ws_url, error = %WebSockex.RequestError{code: code, message: message}} ->
         session
         |> log_error(
-          "Failed to connect via WS to #{ws_url} - Failed connection request response: #{code} : #{
-            message
-          }"
+          "Failed to connect via WS to #{ws_url} - Failed connection request response: #{code} : #{message}"
         )
         |> Session.error({:ws_failed, ws_url, error})
+
+      {:ws_emfile, ^ws_url} ->
+        session
+        |> log_error("Connection attempt failed: Too many open files")
     after
       timeout ->
         session
@@ -89,6 +91,9 @@ defimpl Chaperon.Actionable, for: Chaperon.Action.WebSocket.Connect do
 
       {:error, %WebSockex.ConnError{original: :closed}} ->
         send(parent, {:ws_closed, ws_url})
+
+      {:error, %WebSockex.ConnError{original: :emfile}} ->
+        send(parent, {:ws_emfile, ws_url})
 
       {:error, %WebSockex.ConnError{original: :timeout}} ->
         session
