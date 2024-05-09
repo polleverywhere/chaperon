@@ -5,7 +5,7 @@ defmodule Chaperon.Mixfile do
     [
       app: :chaperon,
       version: "0.3.1",
-      elixir: "~> 1.6",
+      elixir: "~> 1.16",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
